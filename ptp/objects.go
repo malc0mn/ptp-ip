@@ -93,11 +93,11 @@ const (
 	// Audio clip
 	OFC_MP3 ObjectFormatCode = 0x3009
 	// Video clip
-	OFC_AVI ObjectFormatCode = 0x300a
+	OFC_AVI ObjectFormatCode = 0x300A
 	// Video clip
-	OFC_MPEG ObjectFormatCode = 0x300b
+	OFC_MPEG ObjectFormatCode = 0x300B
 	// Microsoft Advanced Streaming Format (video)
-	OFC_ASF ObjectFormatCode = 0x300c
+	OFC_ASF ObjectFormatCode = 0x300C
 	// Unknown image object
 	OFC_Unknown ObjectFormatCode = 0x3800
 	// Exchangeable File Format, JEIDA standard
@@ -117,15 +117,15 @@ const (
 	// PhotoCD Image Pac
 	OFC_PCD ObjectFormatCode = 0x3809
 	// Quickdraw Image Format
-	OFC_PICT ObjectFormatCode = 0x380a
+	OFC_PICT ObjectFormatCode = 0x380A
 	// Portable Network Graphics
-	OFC_PNG ObjectFormatCode = 0x380b
+	OFC_PNG ObjectFormatCode = 0x380B
 	// Tag Image File Format
-	OFC_TIFF ObjectFormatCode = 0x380d
+	OFC_TIFF ObjectFormatCode = 0x380D
 	// Tag Image File Format for Information Technology (graphic arts)
-	OFC_TIFF_IT ObjectFormatCode = 0x380e
+	OFC_TIFF_IT ObjectFormatCode = 0x380E
 	// JPEG2000 Baseline File Format
-	OFC_JP2 ObjectFormatCode = 0x380f
+	OFC_JP2 ObjectFormatCode = 0x380F
 	// JPEG2000 Extended File Format
 	OFC_JPX ObjectFormatCode = 0x3810
 )

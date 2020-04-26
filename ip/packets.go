@@ -8,11 +8,16 @@ import (
 type DataPhase uint32
 type PacketType uint32
 type FailReason uint32
+type ProtocolVersion uint32
 
 const (
 	DP_NoDataOrDataIn DataPhase = 0x00000001
 	DP_DataOut        DataPhase = 0x00000002
 	DP_Unknown        DataPhase = 0x00000003
+
+	FR_FailRejectedInitiator FailReason = 0x00000001
+	FR_FailBusy              FailReason = 0x00000002
+	FR_FailUnspecified       FailReason = 0x00000003
 
 	PKT_InitCommandRequest PacketType = 0x00000001
 	PKT_InitCommandAck     PacketType = 0x00000002
@@ -29,9 +34,7 @@ const (
 	PKT_ProbeRequest       PacketType = 0x0000000D
 	PKT_ProbeResponse      PacketType = 0x0000000E
 
-	FR_FailRejectedInitiator FailReason = 0x00000001
-	FR_FailBusy              FailReason = 0x00000002
-	FR_FailUnspecified       FailReason = 0x00000003
+	PV_VersionOnePointZero ProtocolVersion = 0x00010000
 )
 
 type packetBase struct {

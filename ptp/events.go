@@ -64,13 +64,13 @@ const (
 
 	// This event shall be sent when a store becomes full. Any multi-object capture that may be occurring should retain
 	// the objects that were written to a store before the store became full.
-	EC_StoreFull EventCode = 0x400a
+	EC_StoreFull EventCode = 0x400A
 
 	// This event needs only to be supported for devices that support multiple sessions or in the case if the device is
 	// capable of resetting itself automatically or manually through user intervention while connected. This event shall
 	// be sent to all open sessions other than the session that initiated the operation. This event shall be interpreted
 	// as indicating that the sessions are about to be closed.
-	EC_DeviceReset EventCode = 0x400b
+	EC_DeviceReset EventCode = 0x400B
 
 	// This event is used when information in the StorageInfo dataset for a store changes. This can occur due to device
 	// properties changing, such as ImageSize, which can cause changes in fields such as FreeSpaceInImages. This event
@@ -78,12 +78,12 @@ const (
 	// deterministic manner. This includes changes in FreeSpaceInImages or FreeSpaceInBytes caused by operations such as
 	// InitiateCapture or CopyObject, where the Initiator can recognize the changes due to the successful response code
 	// of the operation, and/or related required events.
-	EC_StorageInfoChanged EventCode = 0x400c
+	EC_StorageInfoChanged EventCode = 0x400C
 
 	// This event is used to indicate that a capture session, previously initiated by the InitiateCapture operation, is
 	// complete, and that no more ObjectAdded events will occur as the result of this asynchronous operation. This
 	// operation is not used for InitiateOpenCapture operations.
-	EC_CaptureComplete EventCode = 0x400d
+	EC_CaptureComplete EventCode = 0x400D
 
 	// This event may be implemented for certain transports where situations can arise where the Responder was unable to
 	// report events to the Initiator regarding changes in its internal status. When an Initiator receives this event,
@@ -94,7 +94,7 @@ const (
 	// been unable to report state changes during that time period. This prevents the need for queuing of these
 	// unreportable events. The details of the use of this event are ip-specific and should be fully specified in
 	// the specific ip implementation specification.
-	EC_UnreportedStatus EventCode = 0x400e
+	EC_UnreportedStatus EventCode = 0x400E
 )
 
 type Event struct {
