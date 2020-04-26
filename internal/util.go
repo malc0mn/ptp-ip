@@ -13,3 +13,15 @@ func LogError(err error) {
 		log.Printf("ERROR: %s", err)
 	}
 }
+
+func LogInfo(err error) {
+	if err != nil {
+		log.Printf("INFO: %s", err)
+	}
+}
+
+func LogDebug(err error) {
+	if err != nil {
+		log.Printf("DEBUG: %s", err)
+	}
+}
