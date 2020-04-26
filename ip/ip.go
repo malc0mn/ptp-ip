@@ -18,7 +18,8 @@ const (
 )
 
 var (
-	BytesWrittenMismatch = errors.New("Bytes written mismatch: written %d wanted %d")
+	BytesWrittenMismatch = errors.New("bytes written mismatch: written %d wanted %d")
+	ReadResponseError    = errors.New("unable to read response packet")
 )
 
 type Initiator struct {
@@ -90,31 +91,33 @@ func (c *Client) InitiatorGUID() uuid.UUID {
 
 func (c *Client) Dial() {
 	c.initCommandDataConn()
-	c.initEventConn()
+	c.initEventConn(1)
 }
 
 func (c *Client) DialWithStreamer() {
 	c.initCommandDataConn()
-	c.initEventConn()
+	c.initEventConn(1)
 	c.initStreamerConn()
 }
 
-func (c *Client) SendPacket(w io.Writer, packet interface{}) error {
-	payload := ipInternal.ToBytesLittleEndian(packet)
-	// The packet length MUST include the header, so we add 4 bytes for the length field!
-	lenBytes := 4
-	length := ipInternal.ToBytesLittleEndian(uint32(len(payload) + lenBytes))
+func (c *Client) SendPacket(w io.Writer, packet Packet) error {
+	pt, pl := packet.Payload()
+	// The packet length MUST include the header, so we add 8 bytes for that!
+	lenBytes := 8
+	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), pt})
 
-	n, err := w.Write(length)
+	// Send header.
+	n, err := w.Write(h)
 	internal.FailOnError(err)
 	if n != lenBytes {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, lenBytes)
 	}
 	internal.LogDebug(fmt.Errorf("bytes written %d", n))
 
-	n, err = w.Write(payload)
-	if n != len(payload) {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, len(payload))
+	// Send payload.
+	n, err = w.Write(pl)
+	if n != len(pl) {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, len(pl))
 	}
 	internal.FailOnError(err)
 	internal.LogDebug(fmt.Errorf("bytes written %d", n))
@@ -122,21 +125,33 @@ func (c *Client) SendPacket(w io.Writer, packet interface{}) error {
 	return nil
 }
 
-func (c *Client) ReadResponse(r io.Reader) ([]byte, error) {
-	var length uint32
-	err := binary.Read(r, binary.LittleEndian, &length)
-	if err != nil {
+func (c *Client) ReadResponse(r io.Reader) (*Packet, error) {
+	var h Header
+	if err := binary.Read(r, binary.LittleEndian, h); err != nil {
 		return nil, err
 	}
 
-	if length != 0 {
-		payload := make([]byte, length - 4)
-		n, err := io.ReadFull(r, payload)
-		internal.FailOnError(err)
-		internal.LogDebug(fmt.Errorf("bytes read %d", n))
-		return payload, nil
+	if h.Length() != 0 {
+		packet, err := NewPacketFromPacketType(h.PacketType())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := binary.Read(r, binary.LittleEndian, packet); err != nil {
+			return nil, err
+		}
+
+		return packet, nil
+		/*
+			payload := make([]byte, length - 8)
+			n, err := io.ReadFull(r, payload)
+			internal.FailOnError(err)
+			internal.LogDebug(fmt.Errorf("bytes read %d", n))
+			return payload, nil
+		*/
 	}
-	return fmt.Errorf(), nil
+
+	return nil, ReadResponseError
 }
 
 func (c *Client) initCommandDataConn() uint32 {
@@ -146,7 +161,9 @@ func (c *Client) initCommandDataConn() uint32 {
 
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 	c.SendPacket(c.commandDataConn, icrp)
-	r, err := c.ReadResponse(c.commandDataConn)
+	/*r, err :=*/ c.ReadResponse(c.commandDataConn)
+
+	return 0
 }
 
 func (c *Client) initEventConn(connNum uint32) {
