@@ -1,7 +1,6 @@
 package ptp
 
 import (
-	"github.com/malc0mn/ptp-ip/ptp/consts"
 	"time"
 )
 
@@ -12,10 +11,10 @@ import (
 // qualified by the ObjectInfo dataset.
 type ObjectInfo struct {
 	// The StorageID of the device's store in which the image resides.
-	StorageID ptp.StorageID
+	StorageID StorageID
 
 	//  Indicates ObjectFormatCode of the object.
-	ObjectFormat ptp.ObjectFormatCode
+	ObjectFormat ObjectFormatCode
 
 	// An optional field representing the write-protection status of the data object. Objects that are protected may not
 	// be deleted as the result of any operations specified in this standard without first separately removing their
@@ -24,7 +23,7 @@ type ObjectInfo struct {
 	// dataset. If an attempt to delete an object is made, success will only occur if the ProtectionStatus of the object
 	// is 0x0000 and the AccessCapability of the store allows deletion. If a device does not support object protection,
 	// this field should always be set to 0x0000, and the SetProtection operation should not be supported.
-	ProtectionStatus ptp.ProtectionStatus
+	ProtectionStatus ProtectionStatus
 
 	// The size of the buffer needed to hold the entire binary object in bytes. This field may be used for memory
 	// allocation purposes in object receivers by transport implementations.
@@ -33,7 +32,7 @@ type ObjectInfo struct {
 	// Indicates ObjectFormatCode of the thumbnail. In order for an object to be referred to as an image, it must be able to
 	// produce a thumbnail as the response to a request. Therefore, this value should only be 0x00000000 for the case of
 	// non-image objects.
-	ThumbFormat ptp.ObjectFormatCode
+	ThumbFormat ObjectFormatCode
 
 	// The size of the buffer needed to hold the thumbnail. This field may be used for memory allocation purposes. In
 	// order for an object to be referred to as an image, it must be able to produce a thumbnail as the response to a
@@ -73,16 +72,16 @@ type ObjectInfo struct {
 	// Indicates the handle of the object that is the parent of this object. The ParentObject must be of object type
 	// Association. If the device does not support associations, or the object is in the “root” of the hierarchical
 	// store, then this value should be set to 0x00000000.
-	ParentObject ptp.ObjectHandle
+	ParentObject ObjectHandle
 
 	// A field that is only used for objects of type Association. This code indicates the type of association. If the
 	// object is not an association, this field should be set to 0x0000.
-	AssociationType ptp.AssociationType
+	AssociationType AssociationType
 
 	// This field is used to hold a descriptor parameter for the association, and may therefore only be non-zero if the
 	// AssociationType is non-zero. The interpretation of this field is dependent upon the particular AssociationType,
 	// and is only used for certain types of associations. If unused, this field should be set to 0x00000000.
-	AssociationDesc ptp.AssociationDesc
+	AssociationDesc AssociationDesc
 
 	// This field is optional, and is only used if the object is a member of an association, and only if the association
 	// is ordered. If the object is not a member of an ordered association, this value should be set to 0x00000000.

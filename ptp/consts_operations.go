@@ -1,7 +1,5 @@
 package ptp
 
-import ptp "github.com/malc0mn/ptp-ip/ptp/datasets"
-
 type OperationCode uint16
 type OperationResponseCode uint16
 
@@ -75,8 +73,8 @@ const (
 // This operation is the only operation that may be issued inside or
 // outside of a session. When used outside a session, both the SessionID and the TransactionID in the
 // OperationRequest dataset shall be set to 0x00000000.
-func GetDeviceInfo() ptp.DeviceInfo {
-
+func GetDeviceInfo() DeviceInfo {
+	return DeviceInfo{}
 }
 
 // Causes device to allocate resources, assigns handles to data objects if necessary, and performs any
@@ -102,12 +100,12 @@ func CloseSession() {
 // valid logical store. One StorageID should also be present for each removable media that is not inserted, which
 // would contain a non-zero PhysicalStorageID and a LogicalStorageID with the value 0x0000.
 func GetStorageIDs() []StorageID {
-
+	return []StorageID{}
 }
 
 // Returns a StorageInfo dataset for the particular storage area indicated in the first parameter.
-func GetStorageInfo() ptp.StorageInfo {
-
+func GetStorageInfo() StorageInfo {
+	return StorageInfo{}
 }
 
 // Returns the total number of objects present in the store indicated by the first parameter. If the number of objects
@@ -132,7 +130,7 @@ func GetStorageInfo() ptp.StorageInfo {
 // returned. If unused, this operation returns the number of ObjectHandles aggregated across the entire device (modified
 // by the second parameter), and the third parameter should be set to 0x00000000.
 func GetNumObjects() int {
-
+	return 0
 }
 
 // Returns an array of ObjectHandles present in the store indicated by the StorageID in the first parameter. If an
@@ -155,7 +153,7 @@ func GetNumObjects() int {
 // If the third parameter is unused, this operation returns ObjectHandles aggregated across the entire device (modified
 // by the second parameter), and the third parameter should be set to 0x00000000.
 func GetObjectHandles() []ObjectHandle {
-
+	return []ObjectHandle{}
 }
 
 // Returns the ObjectInfo dataset. The primary purpose of this operation is to obtain information about a data object
@@ -163,8 +161,8 @@ func GetObjectHandles() []ObjectHandle {
 // GetObject operation. This information may also be used by the caller to allocate memory before receiving the object.
 // Objects that possess an ObjectFormatCode of type Association do not require a GetObject operation, as these objects are
 // fully qualified by their ObjectInfo dataset.
-func GetObjectInfo () ptp.ObjectInfo {
-
+func GetObjectInfo() ObjectInfo {
+	return ObjectInfo{}
 }
 
 // Retrieves one object from the device. This operation is used for all types of data objects present on the device,
@@ -255,7 +253,7 @@ func DeleteObject(handle ObjectHandle) {
 // depth-first or breadth-first fashion down the hierarchy tree. The Initiator shall use the Responder's newly assigned
 // ObjectHandle in the third response parameter for the ParentObject that is returned in the SendObjectInfo response as
 // the second operation parameter for a child's SendObjectInfo operation.
-func SendObjectInfo(info ptp.ObjectInfo) {
+func SendObjectInfo(info ObjectInfo) {
 
 }
 
@@ -272,7 +270,7 @@ func SendObjectInfo(info ptp.ObjectInfo) {
 // the session. If the destination store is removed during object transmission, the Incomplete_Transfer response should
 // be issued along with the StoreRemoved event.
 func SendObject() {
-	
+
 }
 
 // Causes the device to initiate the capture of one or more new data objects according to its current device properties,
@@ -370,8 +368,8 @@ func PowerDown() {
 }
 
 // Returns the appropriate Property Describing Dataset as indicated by the first parameter.
-func GetDevicePropDesc(code DevicePropCode) ptp.DevicePropDesc {
-
+func GetDevicePropDesc(code DevicePropCode) DevicePropDesc {
+	return DevicePropDesc{}
 }
 
 // Returns the current value of a property. The size and format of the data returned from this operation should be
@@ -406,7 +404,7 @@ func ResetDevicePropValue() {
 // capture has already terminated for some other reason, this operation should return Capture_Already_Terminated. If the
 // TransactionID parameter does not refer to transaction that was an InitiateOpenCapture, this operation should return
 // Invalid_TransactionID.
-func TerminateOpenCapture(id ptp.TransactionID) {
+func TerminateOpenCapture(id TransactionID) {
 
 }
 

@@ -1,12 +1,10 @@
 package ptp
 
-import ptp "github.com/malc0mn/ptp-ip/ptp/consts"
-
 // The response phase consists of the transport-specific transmission of a 30-byte response dataset from the Responder
 // to the Initiator.
 type OperationResponse struct {
 	// Indicates the interpretation of the response.
-	ResponseCode ptp.OperationResponseCode
+	ResponseCode OperationResponseCode
 
 	// The identifier for the session within which this operation is being responded to. This value is assigned by the
 	// Initiator using the OpenSession operation, and should be copied from the OperationRequest dataset that is

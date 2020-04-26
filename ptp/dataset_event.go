@@ -1,10 +1,8 @@
 package ptp
 
-import ptp "github.com/malc0mn/ptp-ip/ptp/consts"
-
 type Event struct {
 	// Indicates the event.
-	EventCode ptp.EventCode
+	EventCode EventCode
 
 	// Indicates the SessionID of the session for which the event is relevant. If the event is relevant to all open
 	// sessions, this field should be set to 0xFFFFFFFF.

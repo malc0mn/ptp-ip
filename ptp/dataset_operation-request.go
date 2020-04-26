@@ -1,7 +1,5 @@
 package ptp
 
-import ptp "github.com/malc0mn/ptp-ip/ptp/consts"
-
 // Each session has a SessionID that consists of one device-unique 32-bit unsigned integer (UINT32). SessionIDs are
 // assigned by the Initiator as a parameter to the OpenSession operation, and must be non-zero.
 type SessionID uint32
@@ -21,7 +19,7 @@ type TransactionID uint32
 // Initiator to the Responder.
 type OperationRequest struct {
 	// The code indicating which operation is being initiated.
-	OperationCode ptp.OperationCode
+	OperationCode OperationCode
 
 	// The identifier for the session within which this operation is being initiated. This value is assigned by the
 	// Initiator using the OpenSession operation. This field should be set to 0x00000000 for operations that do not

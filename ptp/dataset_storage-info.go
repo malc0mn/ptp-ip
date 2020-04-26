@@ -1,26 +1,24 @@
 package ptp
 
-import ptp "github.com/malc0mn/ptp-ip/ptp/consts"
-
 // This dataset is used to hold the state information for a storage device.
 type StorageInfo struct {
 	// The code that identifies the type of storage, particularly whether the store is inherently random-access or
 	// read-only memory, and whether it is fixed or removable media.
-	StorageType ptp.StorageType
+	StorageType StorageType
 
 	// This optional code indicates the type of filesystem present on the device. This field may be used to determine
 	// the filenaming convention used by the storage device, as well as to determine whether support for a hierarchical
 	// system is present. If the storage device is DCF-conformant, it shall indicate so here.
 	// All values having bit 31 set to zero are reserved for future use. If a proprietary implementation wishes to
 	// extend the interpretation of this field, bit 31 should be set to 1.
-	FilesystemType ptp.FilesysytemType
+	FilesystemType FilesysytemType
 
 	// This field indicates whether the store is read-write or read-only. If the store is read-only, deletion may or may
 	// not be allowed. The allowed values are described in the following table. Read-Write is only valid if the
 	// StorageType is nonROM, as described in the StorageType field above.
 	// All values having bit 15 set to zero are reserved for future use. If a proprietary implementation wishes to
 	// extend the interpretation of this field, bit 15 should be set to 1.
-	AccessCapability ptp.AccessCapability
+	AccessCapability AccessCapability
 
 	// This is an optional field that indicates the total storage capacity of the store in bytes. If this field is
 	// unused, it should report 0xFFFFFFFF.

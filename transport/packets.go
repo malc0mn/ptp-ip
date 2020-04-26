@@ -2,7 +2,7 @@ package transport
 
 import (
 	"github.com/google/uuid"
-	ptp "github.com/malc0mn/ptp-ip/ptp/datasets"
+	"github.com/malc0mn/ptp-ip/ptp"
 )
 
 type DataPhase uint32
@@ -46,7 +46,7 @@ type packetBase struct {
 // Initiator to the Responder. The Responder can implement a filtering mechanism denying certain identities.
 type InitCommandRequestPacket struct {
 	packetBase
-	GUID         uuid.UUID
+	GUID uuid.UUID
 	// A null terminated string.
 	FriendlyName string
 	// The 16 most significant bits are the major number, the 16 least significant bits are the minor number.
@@ -142,7 +142,7 @@ type StartDataPacket struct {
 type DataPacket struct {
 	packetBase
 	TransactionId ptp.TransactionID
-	DataPayload interface{}
+	DataPayload   interface{}
 }
 
 // This packet is used to indicate the end of the data phase. The EndDataPacket can also carry useful data. This
@@ -152,7 +152,7 @@ type DataPacket struct {
 type EndDataPacket struct {
 	packetBase
 	TransactionId ptp.TransactionID
-	DataPayload interface{}
+	DataPayload   interface{}
 }
 
 // This packet is used to cancel a transaction.
@@ -165,7 +165,7 @@ type CancelPacket struct {
 // such packet, the device MUST respond immediately with a ProbeResponsePacket. If no response is received within a
 // reasonable period of time, the device initiating this check will close the active PTP-IP session(s) with the remote
 // device.
-// This packet should be used with utmost care in order to avoid overloading of the LAN. 
+// This packet should be used with utmost care in order to avoid overloading of the LAN.
 //   1. Initiator to Responder: it is recommended that this packet is used only during a PTP transaction (e.g. when a
 //      format command is issued; if the storage media is large, the response time can be quite large), in order to
 //      check out if the Responder is still active or not.
