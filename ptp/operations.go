@@ -2,9 +2,11 @@ package ptp
 
 type OperationCode uint16
 type OperationResponseCode uint16
+
 // Each session has a SessionID that consists of one device-unique 32-bit unsigned integer (UINT32). SessionIDs are
 // assigned by the Initiator as a parameter to the OpenSession operation, and must be non-zero.
 type SessionID uint32
+
 // Each transaction within a session has a unique transaction identifier called TransactionID that is a session-unique
 // 32-bit unsigned integer (UINT32). TransactionIDs are continuous sequences in numerical order starting from
 // 0x00000001. The TransactionID used for the OpenSession operation shall be 0x00000000. The first operation issued by
