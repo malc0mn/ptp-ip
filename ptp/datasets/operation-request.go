@@ -2,19 +2,19 @@ package ptp
 
 import ptp "github.com/malc0mn/ptp-ip/ptp/consts"
 
-// Each session shall have a SessionID that consists of one device-unique 32-bit unsigned integer (UINT32). SessionIDs
-// are assigned by the Initiator as a parameter to the OpenSession operation, and must be non-zero.
+// Each session has a SessionID that consists of one device-unique 32-bit unsigned integer (UINT32). SessionIDs are
+// assigned by the Initiator as a parameter to the OpenSession operation, and must be non-zero.
 type SessionID uint32
 
-// Each transaction within a session shall have a unique transaction identifier called TransactionID that is a
-// session-unique 32-bit unsigned integer (UINT32). TransactionIDs are continuous sequences in numerical order starting
-// from 0x00000001. The TransactionID used for the OpenSession operation shall be 0x00000000. The first operation issued
-// by an Initiator after an OpenSession operation shall possess a TransactionID of 0x00000001, the second operation
-// shall possess a TransactionID of 0x00000002, etc. The TransactionID of 0xFFFFFFFF shall not be considered valid, and
-// is reserved for context-specific meanings. The presence of TransactionID allows asynchronous events to refer to
-// specific previously initiated operations. If this field reaches its maximum value (0xFFFFFFFE), the device should
-// "rollover" to 0x00000001. TransactionIDs allow events to refer to particular operation requests, allow correspondence
-// between data objects and their describing datasets, and aid in debugging.
+// Each transaction within a session has a unique transaction identifier called TransactionID that is a session-unique
+// 32-bit unsigned integer (UINT32). TransactionIDs are continuous sequences in numerical order starting from
+// 0x00000001. The TransactionID used for the OpenSession operation shall be 0x00000000. The first operation issued by
+// an Initiator after an OpenSession operation has a TransactionID of 0x00000001, the second operation has a
+// TransactionID of 0x00000002, etc. The TransactionID of 0xFFFFFFFF is not valid, and is reserved for context-specific
+// meanings. The presence of TransactionID allows asynchronous events to refer to specific previously initiated
+// operations. If this field reaches its maximum value (0xFFFFFFFE), the device should "rollover" to 0x00000001.
+// TransactionIDs allow events to refer to particular operation requests, allow correspondence between data objects and
+// their describing datasets, and aid in debugging.
 type TransactionID uint32
 
 // The operation request phase consists of the transport-specific transmission of a 30-byte operation dataset from the
