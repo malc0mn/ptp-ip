@@ -33,7 +33,6 @@ func (r *Responder) String() string {
 }
 
 func NewInitiator() *Inititor {
-	// TODO: handle error from uuid.NewRandom.
 	guid, err := uuid.NewRandom()
 	internal.FailOnError(err)
 	i := Inititor{guid, InitiatorFriendlyName}
