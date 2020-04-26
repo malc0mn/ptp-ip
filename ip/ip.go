@@ -1,11 +1,13 @@
 package ip
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"io"
 	"net"
 )
 
@@ -97,20 +99,20 @@ func (c *Client) DialWithStreamer() {
 	c.initStreamerConn()
 }
 
-func (c *Client) SendPacket(packet interface{}) error {
+func (c *Client) SendPacket(w io.Writer, packet interface{}) error {
 	payload := ipInternal.ToBytesLittleEndian(packet)
 	// The packet length MUST include the header, so we add 4 bytes for the length field!
 	lenBytes := 4
 	length := ipInternal.ToBytesLittleEndian(uint32(len(payload) + lenBytes))
 
-	n, err := c.commandDataConn.Write(length)
+	n, err := w.Write(length)
 	internal.FailOnError(err)
 	if n != lenBytes {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, lenBytes)
 	}
 	internal.LogDebug(fmt.Errorf("bytes written %d", n))
 
-	n, err = c.commandDataConn.Write(payload)
+	n, err = w.Write(payload)
 	if n != len(payload) {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, len(payload))
 	}
@@ -120,20 +122,40 @@ func (c *Client) SendPacket(packet interface{}) error {
 	return nil
 }
 
-func (c *Client) initCommandDataConn() {
+func (c *Client) ReadResponse(r io.Reader) ([]byte, error) {
+	var length uint32
+	err := binary.Read(r, binary.LittleEndian, &length)
+	if err != nil {
+		return nil, err
+	}
+
+	if length != 0 {
+		payload := make([]byte, length - 4)
+		n, err := io.ReadFull(r, payload)
+		internal.FailOnError(err)
+		internal.LogDebug(fmt.Errorf("bytes read %d", n))
+		return payload, nil
+	}
+	return fmt.Errorf(), nil
+}
+
+func (c *Client) initCommandDataConn() uint32 {
 	conn, err := net.Dial(c.Network(), c.String())
 	internal.FailOnError(err)
 	c.commandDataConn = conn
 
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
-	c.SendPacket(icrp)
+	c.SendPacket(c.commandDataConn, icrp)
+	r, err := c.ReadResponse(c.commandDataConn)
 }
 
-func (c *Client) initEventConn() {
+func (c *Client) initEventConn(connNum uint32) {
 	conn, err := net.Dial(c.Network(), c.String())
 	internal.FailOnError(err)
-	c.commandDataConn = conn
+	c.eventConn = conn
 
+	ierp := NewInitEventRequestPacket(connNum)
+	c.SendPacket(c.eventConn, ierp)
 }
 
 // Not all devices will have a streamer service. When this connection fails, we will fail silently.

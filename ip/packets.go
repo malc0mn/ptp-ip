@@ -94,6 +94,13 @@ type InitEventRequestPacket struct {
 	ConnectionNumber uint32
 }
 
+func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
+	ierp := new(InitEventRequestPacket)
+	ierp.packetType = PKT_InitCommandRequest
+	ierp.ConnectionNumber = connNum
+	return ierp
+}
+
 // This packet is used by the Responder to inform the Initiator that the PTP-IP connection establishment has completed
 // successfully. It is transmitted on the Event TCP connection.
 type InitEventAckPacket struct {
