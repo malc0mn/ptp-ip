@@ -1,8 +1,9 @@
-package transport
+package ip
 
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/internal"
 )
 
 const (
@@ -33,7 +34,8 @@ func (r *Responder) String() string {
 
 func NewInitiator() *Inititor {
 	// TODO: handle error from uuid.NewRandom.
-	guid, _ := uuid.NewRandom()
+	guid, err := uuid.NewRandom()
+	internal.FailOnError(err)
 	i := Inititor{guid, InitiatorFriendlyName}
 	return &i
 }

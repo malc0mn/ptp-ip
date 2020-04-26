@@ -1,5 +1,87 @@
 package ptp
 
+type DataTypeCode uint16
+
+const(
+	// Undefined
+	DTC_UNDEF DataTypeCode = 0x0000
+	// Signed 8 bit integer
+	DTC_INT8 DataTypeCode = 0x0001
+	// Unsigned 8 bit integer
+	DTC_UINT8 DataTypeCode = 0x0002
+	// Signed 16 bit integer
+	DTC_INT16 DataTypeCode = 0x0003
+	// Unsigned 16 bit integer
+	DTC_UINT16 DataTypeCode = 0x0004
+	// Signed 32 bit integer
+	DTC_INT32 DataTypeCode = 0x0005
+	// Unsigned 32 bit integer
+	DTC_UINT32 DataTypeCode = 0x0006
+	// Signed 64 bit integer
+	DTC_INT64 DataTypeCode = 0x0007
+	// Unsigned 64 bit integer
+	DTC_UINT64 DataTypeCode = 0x0008
+	// Signed 128 bit integer
+	DTC_INT128 DataTypeCode = 0x0009
+	// Unsigned 128 bit integer
+	DTC_UINT128 DataTypeCode = 0x000A
+	// Array of Signed 8 bit integers
+	DTC_AINT8 DataTypeCode = 0x4001
+	// Array of Unsigned 8 bit integers
+	DTC_AUINT8 DataTypeCode = 0x4002
+	// Array of Signed 16 bit integers
+	DTC_AINT16 DataTypeCode = 0x4003
+	// Array of Unsigned 16 bit integers
+	DTC_AUINT16 DataTypeCode = 0x4004
+	// Array of Signed 32 bit integers
+	DTC_AINT32 DataTypeCode = 0x4005
+	// Array of Unsigned 32 bit integers
+	DTC_AUINT32 DataTypeCode = 0x4006
+	// Array of Signed 64 bit integers
+	DTC_AINT64 DataTypeCode = 0x4007
+	// Array of Unsigned 64 bit integers
+	DTC_AUINT64 DataTypeCode = 0x4008
+	// Array of Signed 128 bit integers
+	DTC_AINT128 DataTypeCode = 0x4009
+	// Array of Unsigned 128 bit integers
+	DTC_AUINT128 DataTypeCode = 0x400A
+	// Variable-length Unicode String
+	DTC_STR DataTypeCode = 0xFFFF
+)
+
+type DevicePropDesc struct {
+	// A specific DevicePropCode
+	DevicePropertyCode DevicePropCode
+	// This field identifies the DatatypeCode of the property
+	DataType DataTypeCode
+	// This field indicates whether the property is read-only (Get) or read-write (Get/Set).
+	GetSet DevicePropDescCode
+	// This field identifies the value of the factory default setting for the property.
+	FactoryDefaultValue interface{}
+	// This field identifies the current value of the property.
+	CurrentValue interface{}
+	// This field indicates the format of the next field.
+	FormFlag DevicePropFormFlag
+	// This dataset is the Enumeration-Form or the Range-Form, or is absent if Form Flag = 0
+	Form RangeForm
+}
+
+type RangeForm struct {
+	// Minimum value of property supported by the device.
+	MinimumValue interface{}
+	// Maximum value of property supported by the device.
+	MaximumValue interface{}
+	// A particular vendor's device shall support all values of a property defined by MinimumValue + N x StepSize which
+	// is less than or equal to MaximumValue where N=0 to a vendor defined maximum
+	StepSize interface{}
+}
+
+type EnumerationForm struct {
+	// This field indicates the number of values of size DTS of the particular property supported by the device.
+	NumberOfValues int
+	SupportedValues []interface{}
+}
+
 // This dataset is used to hold the description information for a device. The Initiator can obtain this dataset from the
 // Responder without opening a session with the device. This dataset holds data that describes the device and its
 // capabilities. This information is only static if the device capabilities cannot change during a session, which would

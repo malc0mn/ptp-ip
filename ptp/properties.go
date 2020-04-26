@@ -2,6 +2,7 @@ package ptp
 
 type DevicePropCode uint16
 type DevicePropDescCode uint16
+type DevicePropFormFlag uint16
 
 const (
 	DPC_Undefined DevicePropCode = 0x5000
@@ -10,7 +11,7 @@ const (
 	// power (example 100). The step field, or the individual thresholds in an enumerated list, are used to indicate
 	// when the device intends to generate a DevicePropChanged event to let the opposing device know a threshold has
 	// been reached, and therefore should be conservative (example 10). The value 0 may be realized in situations where
-	// the device has alternate power provided by the transport or some other means.
+	// the device has alternate power provided by the ip or some other means.
 	DPC_BatteryLevel DevicePropCode = 0x5001
 	// Allows the functional mode of the device to be controlled. All devices are assumed to default to a "standard
 	// mode." Alternate modes are typically used to indicate support for a reduced mode of operation (e.g. sleep state)
@@ -69,25 +70,25 @@ const (
 	// corresponds to a setting greater than 655 meters.
 	DPC_FocusDistance DevicePropCode = 0x5009
 	// The device enumerates the supported values of this property.
-	DPC_FocusMode DevicePropCode = 0x500a
+	DPC_FocusMode DevicePropCode = 0x500A
 	// The device enumerates the supported values of this property.
-	DPC_ExposureMeteringMode DevicePropCode = 0x500b
+	DPC_ExposureMeteringMode DevicePropCode = 0x500B
 	// The device enumerates the supported values of this property.
-	DPC_FlashMode DevicePropCode = 0x500c
+	DPC_FlashMode DevicePropCode = 0x500C
 	// This property corresponds to the shutter speed. It has units of seconds scaled by 10,000. When the device is in
 	// an automatic Exposure Program Mode, the setting of this property via SetDeviceProp may cause other properties to
 	// change. Like all properties that cause other properties to change, the device is required to issue
 	// DevicePropChanged events for the other properties that changed as the result of the initial change. This property
 	// is typically only used by the device when the ProgramExposureMode is set to Manual or Shutter Priority.
-	DPC_ExposureTime DevicePropCode = 0x500d
+	DPC_ExposureTime DevicePropCode = 0x500D
 	// This property allows the exposure program mode settings of the device, corresponding to the "Exposure Program"
 	// tag within an EXIF or a TIFF/EP image file, to be constrained by a list of allowed exposure program mode settings
 	// supported by the device.
-	DPC_ExposureProgramMode DevicePropCode = 0x500e
+	DPC_ExposureProgramMode DevicePropCode = 0x500E
 	// This property allows for the emulation of film speed settings on a Digital Camera. The settings correspond to the
 	// ISO designations (ASA/DIN). Typically, a device supports discrete enumerated values but continuous control over a
 	// range is possible. A value of 0xFFFF corresponds to Automatic ISO setting.
-	DPC_ExposureIndex DevicePropCode = 0x500f
+	DPC_ExposureIndex DevicePropCode = 0x500F
 	// This property allows for the adjustment of the set point of the digital camera's auto exposure control. For
 	// example, a setting of 0 will not change the factory set auto exposure level. The units are in "stops" scaled by a
 	// factor of 1000, in order to allow for fractional stop values. A setting of 2000 corresponds to 2 stops more
@@ -161,10 +162,11 @@ const (
 	DPD_Get DevicePropDescCode = 0x00
 	// Indicates a read-write property.
 	DPD_GetSet DevicePropDescCode = 0x01
+
 	// This is for properties like DateTime. In this case the FORM field is not present.
-	DPD_FormFlag_None DevicePropDescCode = 0x00
+	DPF_FormFlag_None DevicePropFormFlag = 0x00
 	// Range form
-	DPD_FormFlag_Range DevicePropDescCode = 0x01
+	DPF_FormFlag_Range DevicePropFormFlag = 0x01
 	// Enumeration form
-	DPD_FormFlag_Enum DevicePropDescCode = 0x02
+	DPF_FormFlag_Enum DevicePropFormFlag = 0x02
 )

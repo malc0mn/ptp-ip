@@ -61,7 +61,6 @@ const (
 	STT_Default SelfTestType = 0x0000
 
 	WB_Undefined WhiteBalance = 0x0000
-
 	// The white balance is set directly using the RGB Gain property and is static until changed.
 	WB_Manual WhiteBalance = 0x0001
 	// The device attempts to set the white balance using some kind of automatic mechanism.

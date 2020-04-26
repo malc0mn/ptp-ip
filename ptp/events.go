@@ -6,7 +6,7 @@ const (
 	EC_Undefined EventCode = 0x4000
 
 	// This formal event is used to cancel a transaction for transports that do not have a specified or standard way of
-	// canceling transactions. The particular method used to cancel transactions may be transport-specific. When an
+	// canceling transactions. The particular method used to cancel transactions may be ip-specific. When an
 	// Initiator or Responder receives a CancelTransaction event, it should abort the transaction referred to by the
 	// TransactionID in the event dataset. If that transaction is already complete, the event should be ignored.
 	// After receiving a CancelTransfer event from the Initiator, the Responder shall send an IncompleteTransfer
@@ -89,10 +89,32 @@ const (
 	// report events to the Initiator regarding changes in its internal status. When an Initiator receives this event,
 	// it is responsible for doing whatever is necessary to ensure that its knowledge of the Responder is up to date.
 	// This may include re-obtaining individual datasets, ObjectHandle lists, etc., or may even result in the session
-	// being closed and re-opened. This event is typically only needed in situations where the transport used by the
+	// being closed and re-opened. This event is typically only needed in situations where the ip used by the
 	// device supports a suspend/resume/remote-wakeup feature and the Responder has gone into a suspend state and has
 	// been unable to report state changes during that time period. This prevents the need for queuing of these
-	// unreportable events. The details of the use of this event are transport-specific and should be fully specified in
-	// the specific transport implementation specification.
+	// unreportable events. The details of the use of this event are ip-specific and should be fully specified in
+	// the specific ip implementation specification.
 	EC_UnreportedStatus EventCode = 0x400e
 )
+
+type Event struct {
+	// Indicates the event.
+	EventCode EventCode
+
+	// Indicates the SessionID of the session for which the event is relevant. If the event is relevant to all open
+	// sessions, this field should be set to 0xFFFFFFFF.
+	SessionID SessionID
+
+	// If the event corresponds to a previously initiated transaction, this field shall hold the TransactionID of that
+	// operation. If the event is not specific to a particular transaction, this field shall be set to 0xFFFFFFFF.
+	// Refer to Clause 9.3.1 for a description of TransactionID.
+	TransactionID TransactionID
+
+	// These fields hold the event-specific nth parameter. Events may have at most three parameters. The interpretation
+	// of any parameter is dependent upon the EventCode. Any unused parameter fields should be set to 0x00000000. If a
+	// parameter holds a value that is less than 32 bits, the lowest significant bits shall be used to store the value,
+	// with the most significant bits being set to zeros.
+	Parameter1 interface{}
+	Parameter2 interface{}
+	Parameter3 interface{}
+}
