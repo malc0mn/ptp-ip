@@ -325,7 +325,7 @@ func (prp *ProbeResponsePacket) Payload() []byte {
 
 // Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
 // uninitialised.
-func NewPacketFromPacketType(pt PacketType) (*Packet, error) {
+func NewPacketFromPacketType(pt PacketType) (Packet, error) {
 	var p Packet
 
 	switch pt {
@@ -360,7 +360,7 @@ func NewPacketFromPacketType(pt PacketType) (*Packet, error) {
 	}
 
 	if p != nil {
-		return &p, nil
+		return p, nil
 	}
 
 	return nil, fmt.Errorf(UnknownPacketType.Error(), pt)

@@ -125,7 +125,7 @@ func (c *Client) SendPacket(w io.Writer, packet Packet) error {
 	return nil
 }
 
-func (c *Client) ReadResponse(r io.Reader) (*Packet, error) {
+func (c *Client) ReadResponse(r io.Reader) (Packet, error) {
 	var h Header
 	if err := binary.Read(r, binary.LittleEndian, h); err != nil {
 		return nil, err
