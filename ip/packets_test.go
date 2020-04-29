@@ -19,6 +19,19 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 	}
 }
 
+func TestNewInitCommandRequestPacketForClient(t *testing.T)  {
+	c := NewClient(DefaultIpAddress, DefaultPort, "test")
+	got := NewInitCommandRequestPacketForClient(c)
+	want := "test"
+
+	if got.friendlyName != want {
+		t.Errorf("NewInitCommandRequestPacketForClient() friendlyName = %s; want %s", got.friendlyName, want)
+	}
+	if got.protocolVersion != PV_VersionOnePointZero {
+		t.Errorf("NewInitCommandRequestPacketForClient() protocolVersion = %x; want %x", got.protocolVersion, PV_VersionOnePointZero)
+	}
+}
+
 func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 	uuid, _ := uuid.NewRandom()
 	got := NewInitCommandRequestPacketWithVersion(uuid, "version", 0x00020005)

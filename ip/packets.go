@@ -88,6 +88,10 @@ func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitComma
 	return icrp
 }
 
+func NewInitCommandRequestPacketForClient(c *Client)  *InitCommandRequestPacket {
+	return NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
+}
+
 func NewInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) *InitCommandRequestPacket {
 	icrp := NewInitCommandRequestPacket(guid, friendlyName)
 	icrp.protocolVersion = protocolVersion
