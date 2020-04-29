@@ -19,7 +19,7 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 	}
 }
 
-func TestNewInitCommandRequestPacketForClient(t *testing.T)  {
+func TestNewInitCommandRequestPacketForClient(t *testing.T) {
 	c := NewClient(DefaultIpAddress, DefaultPort, "test")
 	got := NewInitCommandRequestPacketForClient(c)
 	want := "test"
