@@ -1,6 +1,8 @@
 package ip
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/google/uuid"
 	"testing"
 )
@@ -54,5 +56,19 @@ func TestNewClient(t *testing.T) {
 	}
 	if got.responder == nil {
 		t.Errorf("NewClient() responder = %v; want Responder", got.responder)
+	}
+}
+
+func TestClient_SendPacket(t *testing.T) {
+	c := NewClient(DefaultIpAddress, DefaultPort, "writèr")
+	p := NewInitCommandRequestPacketForClient(c)
+	want := "240000000100000077000000720000006900000074000000e80000007200000000000000"
+
+	var buf bytes.Buffer
+	c.sendPacket(&buf, p)
+	got := fmt.Sprintf("%x", buf.Bytes())
+
+	if got != want {
+		t.Errorf("SendPacket() buffer = %s; want %s", got, want)
 	}
 }

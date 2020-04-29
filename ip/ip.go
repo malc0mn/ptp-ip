@@ -100,11 +100,21 @@ func (c *Client) DialWithStreamer() {
 	c.initStreamerConn()
 }
 
-func (c *Client) SendPacket(w io.Writer, packet Packet) error {
-	pl := packet.Payload()
+// Sends a packet to the Command/Data connection.
+func (c *Client) SendPacketToCmdDataConn(p Packet) error {
+	return c.sendPacket(c.commandDataConn, p)
+}
+
+// Send a packet to the Event connection.
+func (c *Client) SendPacketToEventConn(p Packet) error {
+	return c.sendPacket(c.commandDataConn, p)
+}
+
+func (c *Client) sendPacket(w io.Writer, p Packet) error {
+	pl := p.Payload()
 	// The packet length MUST include the header, so we add 8 bytes for that!
 	lenBytes := 8
-	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), packet.PacketType()})
+	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), p.PacketType()})
 
 	// Send header.
 	n, err := w.Write(h)
@@ -160,7 +170,7 @@ func (c *Client) initCommandDataConn() uint32 {
 	c.commandDataConn = conn
 
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
-	c.SendPacket(c.commandDataConn, icrp)
+	c.SendPacketToCmdDataConn(icrp)
 	/*r, err :=*/ c.ReadResponse(c.commandDataConn)
 
 	return 0
@@ -172,7 +182,7 @@ func (c *Client) initEventConn(connNum uint32) {
 	c.eventConn = conn
 
 	ierp := NewInitEventRequestPacket(connNum)
-	c.SendPacket(c.eventConn, ierp)
+	c.SendPacketToEventConn(ierp)
 }
 
 // Not all devices will have a streamer service. When this connection fails, we will fail silently.
