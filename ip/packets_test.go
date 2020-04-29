@@ -2,8 +2,36 @@ package ip
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"testing"
 )
+
+func TestNewInitCommandRequestPacket(t *testing.T) {
+	uuid, _ := uuid.NewRandom()
+	got := NewInitCommandRequestPacket(uuid, "test")
+	want := "test"
+
+	if got.friendlyName != want {
+		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.friendlyName, want)
+	}
+	if got.protocolVersion != PV_VersionOnePointZero {
+		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.protocolVersion, PV_VersionOnePointZero)
+	}
+}
+
+func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
+	uuid, _ := uuid.NewRandom()
+	got := NewInitCommandRequestPacketWithVersion(uuid, "version", 0x00020005)
+	wantName := "version"
+	wantVersion := ProtocolVersion(0x00020005)
+
+	if got.friendlyName != wantName {
+		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.friendlyName, wantName)
+	}
+	if got.protocolVersion != wantVersion {
+		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.protocolVersion, wantVersion)
+	}
+}
 
 func TestNewPacketFromPacketType(t *testing.T) {
 	types := map[PacketType]string{
