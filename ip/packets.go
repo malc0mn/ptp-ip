@@ -50,26 +50,19 @@ type Packet interface {
 }
 
 type Header struct {
-	length     uint32
-	packetType PacketType
-}
-
-func (h *Header) Length() uint32 {
-	return h.length
-}
-func (h *Header) PacketType() PacketType {
-	return h.packetType
+	Length     uint32
+	PacketType PacketType
 }
 
 // This packet is used immediately after the Command/Data TCP ip channel is established. It is sent by the
 // Initiator to the Responder on the Data/Command TCP connection and is used to communicate the identity of the
 // Initiator to the Responder. The Responder can implement a filtering mechanism denying certain identities.
 type InitCommandRequestPacket struct {
-	guid uuid.UUID
+	GUID uuid.UUID
 	// A null terminated string.
-	friendlyName string
+	FriendlyName string
 	// The 16 most significant bits are the major number, the 16 least significant bits are the minor number.
-	protocolVersion ProtocolVersion
+	ProtocolVersion ProtocolVersion
 }
 
 func (icrp *InitCommandRequestPacket) PacketType() PacketType {
@@ -82,9 +75,9 @@ func (icrp *InitCommandRequestPacket) Payload() []byte {
 
 func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
 	icrp := new(InitCommandRequestPacket)
-	icrp.guid = guid
-	icrp.friendlyName = friendlyName
-	icrp.protocolVersion = PV_VersionOnePointZero
+	icrp.GUID = guid
+	icrp.FriendlyName = friendlyName
+	icrp.ProtocolVersion = PV_VersionOnePointZero
 	return icrp
 }
 
@@ -94,7 +87,7 @@ func NewInitCommandRequestPacketForClient(c *Client) *InitCommandRequestPacket {
 
 func NewInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) *InitCommandRequestPacket {
 	icrp := NewInitCommandRequestPacket(guid, friendlyName)
-	icrp.protocolVersion = protocolVersion
+	icrp.ProtocolVersion = protocolVersion
 	return icrp
 }
 

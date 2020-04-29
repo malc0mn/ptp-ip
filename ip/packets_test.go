@@ -11,11 +11,11 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 	got := NewInitCommandRequestPacket(uuid, "têst")
 	want := "têst"
 
-	if got.friendlyName != want {
-		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.friendlyName, want)
+	if got.FriendlyName != want {
+		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.FriendlyName, want)
 	}
-	if got.protocolVersion != PV_VersionOnePointZero {
-		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.protocolVersion, PV_VersionOnePointZero)
+	if got.ProtocolVersion != PV_VersionOnePointZero {
+		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.ProtocolVersion, PV_VersionOnePointZero)
 	}
 }
 
@@ -24,11 +24,11 @@ func TestNewInitCommandRequestPacketForClient(t *testing.T) {
 	got := NewInitCommandRequestPacketForClient(c)
 	want := "test"
 
-	if got.friendlyName != want {
-		t.Errorf("NewInitCommandRequestPacketForClient() friendlyName = %s; want %s", got.friendlyName, want)
+	if got.FriendlyName != want {
+		t.Errorf("NewInitCommandRequestPacketForClient() friendlyName = %s; want %s", got.FriendlyName, want)
 	}
-	if got.protocolVersion != PV_VersionOnePointZero {
-		t.Errorf("NewInitCommandRequestPacketForClient() protocolVersion = %x; want %x", got.protocolVersion, PV_VersionOnePointZero)
+	if got.ProtocolVersion != PV_VersionOnePointZero {
+		t.Errorf("NewInitCommandRequestPacketForClient() protocolVersion = %x; want %x", got.ProtocolVersion, PV_VersionOnePointZero)
 	}
 }
 
@@ -38,11 +38,11 @@ func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 	wantName := "versíon"
 	wantVersion := ProtocolVersion(0x00020005)
 
-	if got.friendlyName != wantName {
-		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.friendlyName, wantName)
+	if got.FriendlyName != wantName {
+		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.FriendlyName, wantName)
 	}
-	if got.protocolVersion != wantVersion {
-		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.protocolVersion, wantVersion)
+	if got.ProtocolVersion != wantVersion {
+		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.ProtocolVersion, wantVersion)
 	}
 }
 

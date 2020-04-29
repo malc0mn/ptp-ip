@@ -135,14 +135,22 @@ func (c *Client) sendPacket(w io.Writer, p Packet) error {
 	return nil
 }
 
-func (c *Client) ReadResponse(r io.Reader) (Packet, error) {
+func (c *Client) ReadPacketFromCmdDataConn() (Packet, error) {
+	return c.readResponse(c.commandDataConn)
+}
+
+func (c *Client) ReadPacketFromEventConn() (Packet, error) {
+	return c.readResponse(c.eventConn)
+}
+
+func (c *Client) readResponse(r io.Reader) (Packet, error) {
 	var h Header
-	if err := binary.Read(r, binary.LittleEndian, h); err != nil {
+	if err := binary.Read(r, binary.LittleEndian, &h); err != nil {
 		return nil, err
 	}
 
-	if h.Length() != 0 {
-		packet, err := NewPacketFromPacketType(h.PacketType())
+	if h.Length != 0 {
+		packet, err := NewPacketFromPacketType(h.PacketType)
 		if err != nil {
 			return nil, err
 		}
@@ -171,9 +179,11 @@ func (c *Client) initCommandDataConn() uint32 {
 
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 	c.SendPacketToCmdDataConn(icrp)
-	/*r, err :=*/ c.ReadResponse(c.commandDataConn)
-
-	return 0
+	r, err := c.ReadPacketFromCmdDataConn()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return r.(*InitCommandAckPacket).ConnectionNumber
 }
 
 func (c *Client) initEventConn(connNum uint32) {
