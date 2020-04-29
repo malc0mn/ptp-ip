@@ -301,12 +301,12 @@ func (cp *CancelPacket) Payload() []byte {
 type ProbeRequestPacket struct {
 }
 
-func (prp *ProbeRequestPacket) PacketType() PacketType {
+func (preqp *ProbeRequestPacket) PacketType() PacketType {
 	return PKT_ProbeRequest
 }
 
-func (prp *ProbeRequestPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(prp)
+func (preqp *ProbeRequestPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(preqp)
 }
 
 // This packet can be used in PTP-IP by both Initiator and Responder, as a response to a ProbeRequestPacket. Upon
@@ -315,12 +315,12 @@ func (prp *ProbeRequestPacket) Payload() []byte {
 type ProbeResponsePacket struct {
 }
 
-func (prp *ProbeResponsePacket) PacketType() PacketType {
+func (presp *ProbeResponsePacket) PacketType() PacketType {
 	return PKT_ProbeResponse
 }
 
-func (prp *ProbeResponsePacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(prp)
+func (presp *ProbeResponsePacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(presp)
 }
 
 // Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
