@@ -69,6 +69,21 @@ func TestClient_SendPacket(t *testing.T) {
 	got := fmt.Sprintf("%x", buf.Bytes())
 
 	if got != want {
-		t.Errorf("SendPacket() buffer = %s; want %s", got, want)
+		t.Errorf("sendPacket() buffer = %s; want %s", got, want)
 	}
+}
+
+func TestClient_ReadResponse(t *testing.T) {
+	c := NewClient(DefaultIpAddress, DefaultPort, "writèr")
+	guid, _ := uuid.NewRandom()
+	p := &InitCommandAckPacket{1, guid, "remote", uint32(PV_VersionOnePointZero)}
+
+	var buf bytes.Buffer
+	c.sendPacket(&buf, p)
+
+	rp, err := c.readResponse(&buf)
+	if err != nil {
+		t.Errorf("readResponse() error = %s; want <nil>", err)
+	}
+	fmt.Printf("%T", rp)
 }

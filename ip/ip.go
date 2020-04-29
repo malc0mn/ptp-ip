@@ -8,6 +8,7 @@ import (
 	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"io"
+	"log"
 	"net"
 )
 
@@ -90,8 +91,8 @@ func (c *Client) InitiatorGUID() uuid.UUID {
 }
 
 func (c *Client) Dial() {
-	c.initCommandDataConn()
-	c.initEventConn(1)
+	icap := c.initCommandDataConn()
+	c.initEventConn(icap)
 }
 
 func (c *Client) DialWithStreamer() {
