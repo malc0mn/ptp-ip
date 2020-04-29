@@ -101,10 +101,10 @@ func (c *Client) DialWithStreamer() {
 }
 
 func (c *Client) SendPacket(w io.Writer, packet Packet) error {
-	pt, pl := packet.Payload()
+	pl := packet.Payload()
 	// The packet length MUST include the header, so we add 8 bytes for that!
 	lenBytes := 8
-	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), pt})
+	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), packet.PacketType()})
 
 	// Send header.
 	n, err := w.Write(h)

@@ -45,8 +45,8 @@ var (
 )
 
 type Packet interface {
-	// Returns the PacketType and a payload for sending.
-	Payload() (PacketType, []byte)
+	PacketType() PacketType
+	Payload() []byte
 }
 
 type Header struct {
@@ -72,8 +72,12 @@ type InitCommandRequestPacket struct {
 	protocolVersion ProtocolVersion
 }
 
-func (icrp *InitCommandRequestPacket) Payload() (PacketType, []byte) {
-	return PKT_InitCommandRequest, ipInternal.ToBytesLittleEndian(icrp)
+func (icrp *InitCommandRequestPacket) PacketType() PacketType {
+	return PKT_InitCommandRequest
+}
+
+func (icrp *InitCommandRequestPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(icrp)
 }
 
 func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
@@ -102,8 +106,12 @@ type InitCommandAckPacket struct {
 	ResponderProtocolVersion uint32
 }
 
-func (icap *InitCommandAckPacket) Payload() (PacketType, []byte) {
-	return PKT_InitCommandAck, ipInternal.ToBytesLittleEndian(icap)
+func (icap *InitCommandAckPacket) PacketType() PacketType {
+	return PKT_InitCommandAck
+}
+
+func (icap *InitCommandAckPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(icap)
 }
 
 // After the Command/Data TCP Connection is established, this packet is used by the Initiator in order to establish the
@@ -114,8 +122,12 @@ type InitEventRequestPacket struct {
 	ConnectionNumber uint32
 }
 
-func (ierp *InitEventRequestPacket) Payload() (PacketType, []byte) {
-	return PKT_InitEventRequest, ipInternal.ToBytesLittleEndian(ierp)
+func (ierp *InitEventRequestPacket) PacketType() PacketType {
+	return PKT_InitEventRequest
+}
+
+func (ierp *InitEventRequestPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(ierp)
 }
 
 func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
@@ -129,8 +141,12 @@ func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
 type InitEventAckPacket struct {
 }
 
-func (ieap *InitEventAckPacket) Payload() (PacketType, []byte) {
-	return PKT_InitEventAck, ipInternal.ToBytesLittleEndian(ieap)
+func (ieap *InitEventAckPacket) PacketType() PacketType {
+	return PKT_InitEventAck
+}
+
+func (ieap *InitEventAckPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(ieap)
 }
 
 // This packet is used by the Responder to inform the Initiator that the PTP-IP connection establishment failed. The
@@ -142,8 +158,12 @@ type InitFailPacket struct {
 	Reason FailReason
 }
 
-func (ifp *InitFailPacket) Payload() (PacketType, []byte) {
-	return PKT_InitFail, ipInternal.ToBytesLittleEndian(ifp)
+func (ifp *InitFailPacket) PacketType() PacketType {
+	return PKT_InitFail
+}
+
+func (ifp *InitFailPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(ifp)
 }
 
 // This packet is used to ip PTP operation requests. PTP-IP Operation Request Packets are issued by the Initiator
@@ -161,8 +181,12 @@ type OperationRequestPacket struct {
 	ptp.OperationRequest
 }
 
-func (orp *OperationRequestPacket) Payload() (PacketType, []byte) {
-	return PKT_OperationRequest, ipInternal.ToBytesLittleEndian(orp)
+func (orp *OperationRequestPacket) PacketType() PacketType {
+	return PKT_OperationRequest
+}
+
+func (orp *OperationRequestPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(orp)
 }
 
 // This packet is used to ip Operation Responses by the Responder and are transported to the Initiator via the
@@ -172,8 +196,12 @@ type OperationResponsePacket struct {
 	ptp.OperationResponse
 }
 
-func (orp *OperationResponsePacket) Payload() (PacketType, []byte) {
-	return PKT_OperationResponse, ipInternal.ToBytesLittleEndian(orp)
+func (orp *OperationResponsePacket) PacketType() PacketType {
+	return PKT_OperationResponse
+}
+
+func (orp *OperationResponsePacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(orp)
 }
 
 // This packet is used to ip PTP Events on the Event TCP connection. The events are used to inform the Initiator
@@ -182,8 +210,12 @@ type EventPacket struct {
 	ptp.Event
 }
 
-func (ep *EventPacket) Payload() (PacketType, []byte) {
-	return PKT_Event, ipInternal.ToBytesLittleEndian(ep)
+func (ep *EventPacket) PacketType() PacketType {
+	return PKT_Event
+}
+
+func (ep *EventPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(ep)
 }
 
 // This type of packet is used to signal the beginning of a data transfer. It is a is bi-directional packet, so this
@@ -195,8 +227,12 @@ type StartDataPacket struct {
 	TotalDataLength uint64
 }
 
-func (sdp *StartDataPacket) Payload() (PacketType, []byte) {
-	return PKT_StartData, ipInternal.ToBytesLittleEndian(sdp)
+func (sdp *StartDataPacket) PacketType() PacketType {
+	return PKT_StartData
+}
+
+func (sdp *StartDataPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(sdp)
 }
 
 // This packet is used to ip data. DataPackets are only used during data phase of a transaction and can be
@@ -211,8 +247,12 @@ type DataPacket struct {
 	DataPayload   interface{}
 }
 
-func (dp *DataPacket) Payload() (PacketType, []byte) {
-	return PKT_Data, ipInternal.ToBytesLittleEndian(dp)
+func (dp *DataPacket) PacketType() PacketType {
+	return PKT_Data
+}
+
+func (dp *DataPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(dp)
 }
 
 // This packet is used to indicate the end of the data phase. The EndDataPacket can also carry useful data. This
@@ -224,8 +264,12 @@ type EndDataPacket struct {
 	DataPayload   interface{}
 }
 
-func (edp *EndDataPacket) Payload() (PacketType, []byte) {
-	return PKT_EndData, ipInternal.ToBytesLittleEndian(edp)
+func (edp *EndDataPacket) PacketType() PacketType {
+	return PKT_EndData
+}
+
+func (edp *EndDataPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(edp)
 }
 
 // This packet is used to cancel a transaction.
@@ -233,8 +277,12 @@ type CancelPacket struct {
 	TransactionId ptp.TransactionID
 }
 
-func (cp *CancelPacket) Payload() (PacketType, []byte) {
-	return PKT_Cancel, ipInternal.ToBytesLittleEndian(cp)
+func (cp *CancelPacket) PacketType() PacketType {
+	return PKT_Cancel
+}
+
+func (cp *CancelPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(cp)
 }
 
 // This packet can be used by both Initiator and Responder to check if a peer device is still active. Upon receiving
@@ -253,8 +301,12 @@ func (cp *CancelPacket) Payload() (PacketType, []byte) {
 type ProbeRequestPacket struct {
 }
 
-func (prp *ProbeRequestPacket) Payload() (PacketType, []byte) {
-	return PKT_ProbeRequest, ipInternal.ToBytesLittleEndian(prp)
+func (prp *ProbeRequestPacket) PacketType() PacketType {
+	return PKT_ProbeRequest
+}
+
+func (prp *ProbeRequestPacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(prp)
 }
 
 // This packet can be used in PTP-IP by both Initiator and Responder, as a response to a ProbeRequestPacket. Upon
@@ -263,8 +315,12 @@ func (prp *ProbeRequestPacket) Payload() (PacketType, []byte) {
 type ProbeResponsePacket struct {
 }
 
-func (prp *ProbeResponsePacket) Payload() (PacketType, []byte) {
-	return PKT_ProbeResponse, ipInternal.ToBytesLittleEndian(prp)
+func (prp *ProbeResponsePacket) PacketType() PacketType {
+	return PKT_ProbeResponse
+}
+
+func (prp *ProbeResponsePacket) Payload() []byte {
+	return ipInternal.ToBytesLittleEndian(prp)
 }
 
 // Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
