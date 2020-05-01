@@ -70,7 +70,7 @@ func (icrp *InitCommandRequestPacket) PacketType() PacketType {
 }
 
 func (icrp *InitCommandRequestPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(icrp)
+	return ipInternal.MarshalLittleEndian(icrp)
 }
 
 func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
@@ -108,7 +108,7 @@ func (icap *InitCommandAckPacket) PacketType() PacketType {
 }
 
 func (icap *InitCommandAckPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(icap)
+	return ipInternal.MarshalLittleEndian(icap)
 }
 
 // After the Command/Data TCP Connection is established, this packet is used by the Initiator in order to establish the
@@ -124,7 +124,7 @@ func (ierp *InitEventRequestPacket) PacketType() PacketType {
 }
 
 func (ierp *InitEventRequestPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(ierp)
+	return ipInternal.MarshalLittleEndian(ierp)
 }
 
 func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
@@ -143,7 +143,7 @@ func (ieap *InitEventAckPacket) PacketType() PacketType {
 }
 
 func (ieap *InitEventAckPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(ieap)
+	return ipInternal.MarshalLittleEndian(ieap)
 }
 
 // This packet is used by the Responder to inform the Initiator that the PTP-IP connection establishment failed. The
@@ -160,7 +160,7 @@ func (ifp *InitFailPacket) PacketType() PacketType {
 }
 
 func (ifp *InitFailPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(ifp)
+	return ipInternal.MarshalLittleEndian(ifp)
 }
 
 // This packet is used to ip PTP operation requests. PTP-IP Operation Request Packets are issued by the Initiator
@@ -183,7 +183,7 @@ func (orp *OperationRequestPacket) PacketType() PacketType {
 }
 
 func (orp *OperationRequestPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(orp)
+	return ipInternal.MarshalLittleEndian(orp)
 }
 
 // This packet is used to ip Operation Responses by the Responder and are transported to the Initiator via the
@@ -198,7 +198,7 @@ func (orp *OperationResponsePacket) PacketType() PacketType {
 }
 
 func (orp *OperationResponsePacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(orp)
+	return ipInternal.MarshalLittleEndian(orp)
 }
 
 // This packet is used to ip PTP Events on the Event TCP connection. The events are used to inform the Initiator
@@ -212,7 +212,7 @@ func (ep *EventPacket) PacketType() PacketType {
 }
 
 func (ep *EventPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(ep)
+	return ipInternal.MarshalLittleEndian(ep)
 }
 
 // This type of packet is used to signal the beginning of a data transfer. It is a is bi-directional packet, so this
@@ -229,7 +229,7 @@ func (sdp *StartDataPacket) PacketType() PacketType {
 }
 
 func (sdp *StartDataPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(sdp)
+	return ipInternal.MarshalLittleEndian(sdp)
 }
 
 // This packet is used to ip data. DataPackets are only used during data phase of a transaction and can be
@@ -249,7 +249,7 @@ func (dp *DataPacket) PacketType() PacketType {
 }
 
 func (dp *DataPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(dp)
+	return ipInternal.MarshalLittleEndian(dp)
 }
 
 // This packet is used to indicate the end of the data phase. The EndDataPacket can also carry useful data. This
@@ -266,7 +266,7 @@ func (edp *EndDataPacket) PacketType() PacketType {
 }
 
 func (edp *EndDataPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(edp)
+	return ipInternal.MarshalLittleEndian(edp)
 }
 
 // This packet is used to cancel a transaction.
@@ -279,7 +279,7 @@ func (cp *CancelPacket) PacketType() PacketType {
 }
 
 func (cp *CancelPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(cp)
+	return ipInternal.MarshalLittleEndian(cp)
 }
 
 // This packet can be used by both Initiator and Responder to check if a peer device is still active. Upon receiving
@@ -303,7 +303,7 @@ func (prqp *ProbeRequestPacket) PacketType() PacketType {
 }
 
 func (prqp *ProbeRequestPacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(prqp)
+	return ipInternal.MarshalLittleEndian(prqp)
 }
 
 // This packet can be used in PTP-IP by both Initiator and Responder, as a response to a ProbeRequestPacket. Upon
@@ -317,7 +317,7 @@ func (prsp *ProbeResponsePacket) PacketType() PacketType {
 }
 
 func (prsp *ProbeResponsePacket) Payload() []byte {
-	return ipInternal.ToBytesLittleEndian(prsp)
+	return ipInternal.MarshalLittleEndian(prsp)
 }
 
 // Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left

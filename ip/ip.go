@@ -123,7 +123,7 @@ func (c *Client) sendPacket(w io.Writer, p Packet) error {
 
 	// The packet length MUST include the header, so we add 8 bytes for that!
 	lenBytes := 8
-	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), p.PacketType()})
+	h := ipInternal.MarshalLittleEndian(Header{uint32(len(pl) + lenBytes), p.PacketType()})
 
 	// Send header.
 	n, err := w.Write(h)
@@ -164,18 +164,11 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 			return nil, err
 		}
 
-		if err := ipInternal.FromBytesLittleEndian(r, p); err != nil && err != io.EOF {
+		if err := ipInternal.UnmarshalLittleEndian(r, p); err != nil && err != io.EOF {
 			return nil, err
 		}
 
 		return p, nil
-		/*
-			payload := make([]byte, length - 8)
-			n, err := io.ReadFull(r, payload)
-			internal.FailOnError(err)
-			internal.LogDebug(fmt.Errorf("bytes read %d", n))
-			return payload, nil
-		*/
 	}
 
 	return nil, ReadResponseError
