@@ -82,10 +82,10 @@ func TestClient_ReadResponse(t *testing.T) {
 	guidR, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
 	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(PV_VersionOnePointZero)}
 
-	var buf bytes.Buffer
-	c.sendPacket(&buf, p)
+	var b bytes.Buffer
+	c.sendPacket(&b, p)
 
-	rp, err := c.readResponse(&buf)
+	rp, err := c.readResponse(&b)
 	if err != nil {
 		t.Errorf("readResponse() error = %s; want <nil>", err)
 	}

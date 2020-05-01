@@ -9,7 +9,7 @@ import (
 	"unicode/utf8"
 )
 
-func Marshal(s interface{}, bo binary.ByteOrder) []byte {
+func marshal(s interface{}, bo binary.ByteOrder) []byte {
 	var b bytes.Buffer
 
 	// binary.Write can only cope with fixed length values so we'll need to handle anything else ourselves.
@@ -37,11 +37,12 @@ func Marshal(s interface{}, bo binary.ByteOrder) []byte {
 	return b.Bytes()
 }
 
+// Marshal data to a byte array, Little Endian formant, for transport.
 func MarshalLittleEndian(s interface{}) []byte {
-	return Marshal(s, binary.LittleEndian)
+	return marshal(s, binary.LittleEndian)
 }
 
-func Unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
+func unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
 	// binary.Read can only cope with fixed length values so we'll need to handle anything else ourselves.
 	if binary.Size(s) < 0 {
 		v := reflect.Indirect(reflect.ValueOf(s))
@@ -72,6 +73,7 @@ func Unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
 	return nil
 }
 
+// Unmarshal a byte array, Little Endian formant, upon reception.
 func UnmarshalLittleEndian(r io.Reader, s interface{}) error {
-	return Unmarshal(r, s, binary.LittleEndian)
+	return unmarshal(r, s, binary.LittleEndian)
 }
