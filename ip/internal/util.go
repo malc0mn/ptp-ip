@@ -17,16 +17,17 @@ func Marshal(s interface{}, bo binary.ByteOrder) []byte {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
 		for i := 0; i < v.NumField(); i++ {
-			switch v.Field(i).Kind() {
+			f := v.Field(i)
+			switch f.Kind() {
 			case reflect.String:
 				// Add one to account for the null char.
-				l := utf8.RuneCountInString(v.Field(i).String()) + 1
+				l := utf8.RuneCountInString(f.String()) + 1
 				r := make([]byte, l)
 				// Convert string to runes.
-				copy(r, v.Field(i).String())
+				copy(r, f.String())
 				binary.Write(&b, bo, r)
 			default:
-				binary.Write(&b, bo, v.Field(i).Addr().Interface())
+				binary.Write(&b, bo, f.Addr().Interface())
 			}
 		}
 	} else {
@@ -46,7 +47,8 @@ func Unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
 		for i := 0; i < v.NumField(); i++ {
-			switch v.Field(i).Kind() {
+			f := v.Field(i)
+			switch f.Kind() {
 			case reflect.String:
 				// Strings are null terminated!
 				br := bufio.NewReader(r)
@@ -54,9 +56,9 @@ func Unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
 				if err != nil {
 					return err
 				}
-				v.Field(i).SetString(b[:len(b)-1]) // -1 to drop the null termination!
+				f.SetString(b[:len(b)-1]) // -1 to drop the null termination!
 			default:
-				if err := binary.Read(r, bo, v.Field(i).Addr().Interface()); err != nil {
+				if err := binary.Read(r, bo, f.Addr().Interface()); err != nil {
 					return err
 				}
 			}
