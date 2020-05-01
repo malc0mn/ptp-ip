@@ -158,20 +158,20 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 		return nil, err
 	}
 
-	if h.Length != 0 {
-		p, err := NewPacketFromPacketType(h.PacketType)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := ipInternal.UnmarshalLittleEndian(r, p); err != nil && err != io.EOF {
-			return nil, err
-		}
-
-		return p, nil
+	if h.Length == 0 {
+		return nil, ReadResponseError
 	}
 
-	return nil, ReadResponseError
+	p, err := NewPacketFromPacketType(h.PacketType)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ipInternal.UnmarshalLittleEndian(r, p); err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (c *Client) initCommandDataConn() uint32 {
