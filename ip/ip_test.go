@@ -80,7 +80,7 @@ func TestClient_ReadResponse(t *testing.T) {
 	guidC, _ := uuid.Parse("d6555687-a599-44b8-a4af-279d599a92f6")
 	c := NewClient(DefaultIpAddress, DefaultPort, "writèr", guidC)
 	guidR, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
-	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(PV_VersionOnePointZero)}
+	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)}
 
 	var b bytes.Buffer
 	c.sendPacket(&b, p)
@@ -120,8 +120,8 @@ func TestClient_ReadResponse(t *testing.T) {
 	}
 
 	gotVer := rp.(*InitCommandAckPacket).ResponderProtocolVersion
-	wantVer := uint32(PV_VersionOnePointZero)
+	wantVer := uint32(0x00020005)
 	if gotVer != wantVer {
-		t.Errorf("readResponse() ResponderProtocolVersion = %x; want %x", gotVer, wantVer)
+		t.Errorf("readResponse() ResponderProtocolVersion = %#x; want %#x", gotVer, wantVer)
 	}
 }

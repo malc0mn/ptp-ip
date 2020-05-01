@@ -15,7 +15,7 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.FriendlyName, want)
 	}
 	if got.ProtocolVersion != PV_VersionOnePointZero {
-		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.ProtocolVersion, PV_VersionOnePointZero)
+		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %#x; want %#x", got.ProtocolVersion, PV_VersionOnePointZero)
 	}
 }
 
@@ -28,7 +28,7 @@ func TestNewInitCommandRequestPacketForClient(t *testing.T) {
 		t.Errorf("NewInitCommandRequestPacketForClient() friendlyName = %s; want %s", got.FriendlyName, want)
 	}
 	if got.ProtocolVersion != PV_VersionOnePointZero {
-		t.Errorf("NewInitCommandRequestPacketForClient() protocolVersion = %x; want %x", got.ProtocolVersion, PV_VersionOnePointZero)
+		t.Errorf("NewInitCommandRequestPacketForClient() protocolVersion = %#x; want %#x", got.ProtocolVersion, PV_VersionOnePointZero)
 	}
 }
 
@@ -42,7 +42,7 @@ func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.FriendlyName, wantName)
 	}
 	if got.ProtocolVersion != wantVersion {
-		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %x; want %x", got.ProtocolVersion, wantVersion)
+		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %#x; want %#x", got.ProtocolVersion, wantVersion)
 	}
 }
 
@@ -77,7 +77,7 @@ func TestNewPacketFromPacketType(t *testing.T) {
 		}
 
 		if got.PacketType() != typ {
-			t.Errorf("NewPacketFromPacketType() type = %x; want %x", got.PacketType(), typ)
+			t.Errorf("NewPacketFromPacketType() type = %#x; want %#x", got.PacketType(), typ)
 		}
 	}
 }
