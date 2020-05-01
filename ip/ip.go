@@ -28,12 +28,19 @@ type Initiator struct {
 	FriendlyName string
 }
 
-func NewInitiator(friendlyName string) *Initiator {
+func NewDefaultInitiator() *Initiator {
+	return NewInitiator("", uuid.Nil)
+}
+
+func NewInitiator(friendlyName string, guid uuid.UUID) *Initiator {
 	if friendlyName == "" {
 		friendlyName = InitiatorFriendlyName
 	}
-	guid, err := uuid.NewRandom()
-	internal.FailOnError(err)
+	if guid == uuid.Nil {
+		var err error
+		guid, err = uuid.NewRandom()
+		internal.FailOnError(err)
+	}
 	i := Initiator{guid, friendlyName}
 	return &i
 }
@@ -113,6 +120,7 @@ func (c *Client) SendPacketToEventConn(p Packet) error {
 
 func (c *Client) sendPacket(w io.Writer, p Packet) error {
 	pl := p.Payload()
+
 	// The packet length MUST include the header, so we add 8 bytes for that!
 	lenBytes := 8
 	h := ipInternal.ToBytesLittleEndian(Header{uint32(len(pl) + lenBytes), p.PacketType()})
@@ -123,7 +131,7 @@ func (c *Client) sendPacket(w io.Writer, p Packet) error {
 	if n != lenBytes {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, lenBytes)
 	}
-	internal.LogDebug(fmt.Errorf("bytes written %d", n))
+	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
 
 	// Send payload.
 	n, err = w.Write(pl)
@@ -131,7 +139,7 @@ func (c *Client) sendPacket(w io.Writer, p Packet) error {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, len(pl))
 	}
 	internal.FailOnError(err)
-	internal.LogDebug(fmt.Errorf("bytes written %d", n))
+	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
 
 	return nil
 }
@@ -151,16 +159,16 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 	}
 
 	if h.Length != 0 {
-		packet, err := NewPacketFromPacketType(h.PacketType)
+		p, err := NewPacketFromPacketType(h.PacketType)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := binary.Read(r, binary.LittleEndian, packet); err != nil {
+		if err := ipInternal.FromBytesLittleEndian(r, p); err != nil && err != io.EOF {
 			return nil, err
 		}
 
-		return packet, nil
+		return p, nil
 		/*
 			payload := make([]byte, length - 8)
 			n, err := io.ReadFull(r, payload)
@@ -206,9 +214,9 @@ func (c *Client) initStreamerConn() {
 	c.streamConn = conn
 }
 
-func NewClient(ip string, port int, friendlyName string) *Client {
+func NewClient(ip string, port int, friendlyName string, guid uuid.UUID) *Client {
 	r := NewResponder(ip, port)
-	i := NewInitiator(friendlyName)
+	i := NewInitiator(friendlyName, guid)
 
 	c := Client{nil, nil, nil, i, r}
 	return &c

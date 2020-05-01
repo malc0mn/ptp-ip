@@ -20,7 +20,7 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 }
 
 func TestNewInitCommandRequestPacketForClient(t *testing.T) {
-	c := NewClient(DefaultIpAddress, DefaultPort, "test")
+	c := NewClient(DefaultIpAddress, DefaultPort, "test", uuid.Nil)
 	got := NewInitCommandRequestPacketForClient(c)
 	want := "test"
 

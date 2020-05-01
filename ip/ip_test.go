@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewInitiator(t *testing.T) {
-	got := NewInitiator("")
+	got := NewDefaultInitiator()
 	if got.GUID == uuid.Nil {
 		t.Errorf("NewInitiator() GUID = %s; want valid non-empty UUID", got.GUID)
 	}
@@ -18,12 +18,13 @@ func TestNewInitiator(t *testing.T) {
 }
 
 func TestNewInitiatorWithFriendlyName(t *testing.T) {
-	got := NewInitiator("Friendly test")
+	got := NewInitiator("Friendly test", uuid.Nil)
 	if got.GUID == uuid.Nil {
 		t.Errorf("NewInitiator() GUID = %s; want valid non-empty UUID", got.GUID)
 	}
-	if got.FriendlyName != "Friendly test" {
-		t.Errorf("NewInitiator() Friendlyname = %s; want %s", got.FriendlyName, "Friendly test")
+	wantName := "Friendly test"
+	if got.FriendlyName != wantName {
+		t.Errorf("NewInitiator() Friendlyname = %s; want %s", got.FriendlyName, wantName)
 	}
 }
 
@@ -44,7 +45,7 @@ func TestNewResponder(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	got := NewClient(DefaultIpAddress, DefaultPort, "")
+	got := NewClient(DefaultIpAddress, DefaultPort, "", uuid.Nil)
 	if got.commandDataConn != nil {
 		t.Errorf("NewClient() commandDataConn = %v; want <nil>", got.commandDataConn)
 	}
@@ -60,13 +61,15 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_SendPacket(t *testing.T) {
-	c := NewClient(DefaultIpAddress, DefaultPort, "writèr")
+	guid, _ := uuid.Parse("e462b590-b516-474a-9db8-a465b370fabd")
+	c := NewClient(DefaultIpAddress, DefaultPort, "writèr", guid)
 	p := NewInitCommandRequestPacketForClient(c)
-	want := "240000000100000077000000720000006900000074000000e80000007200000000000000"
+
+	want := "[00100011 00000000 00000000 00000000 00000001 00000000 00000000 00000000 11100100 01100010 10110101 10010000 10110101 00010110 01000111 01001010 10011101 10111000 10100100 01100101 10110011 01110000 11111010 10111101 01110111 01110010 01101001 01110100 11000011 10101000 01110010 00000000 00000000 00000001 00000000]"
 
 	var buf bytes.Buffer
 	c.sendPacket(&buf, p)
-	got := fmt.Sprintf("%x", buf.Bytes())
+	got := fmt.Sprintf("%.8b", buf.Bytes())
 
 	if got != want {
 		t.Errorf("sendPacket() buffer = %s; want %s", got, want)
@@ -74,9 +77,10 @@ func TestClient_SendPacket(t *testing.T) {
 }
 
 func TestClient_ReadResponse(t *testing.T) {
-	c := NewClient(DefaultIpAddress, DefaultPort, "writèr")
-	guid, _ := uuid.NewRandom()
-	p := &InitCommandAckPacket{1, guid, "remote", uint32(PV_VersionOnePointZero)}
+	guidC, _ := uuid.Parse("d6555687-a599-44b8-a4af-279d599a92f6")
+	c := NewClient(DefaultIpAddress, DefaultPort, "writèr", guidC)
+	guidR, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
+	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(PV_VersionOnePointZero)}
 
 	var buf bytes.Buffer
 	c.sendPacket(&buf, p)
@@ -85,5 +89,39 @@ func TestClient_ReadResponse(t *testing.T) {
 	if err != nil {
 		t.Errorf("readResponse() error = %s; want <nil>", err)
 	}
-	fmt.Printf("%T", rp)
+
+	want := "*ip.InitCommandAckPacket"
+	if fmt.Sprintf("%T", rp) != want {
+		t.Errorf("readResponse() PaketType = %T; want %s", rp, want)
+	}
+
+	gotType := rp.PacketType()
+	wantType := PKT_InitCommandAck
+	if gotType != wantType {
+		t.Errorf("readResponse() PaketType = %x; want %x", gotType, wantType)
+	}
+
+	gotNum := rp.(*InitCommandAckPacket).ConnectionNumber
+	wantNum := uint32(1)
+	if gotNum != wantNum {
+		t.Errorf("readResponse() ConnectionNumber = %d; want %d", gotNum, wantNum)
+	}
+
+	gotGuid := rp.(*InitCommandAckPacket).ResponderGUID
+	wantGuid, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
+	if gotGuid != wantGuid {
+		t.Errorf("readResponse() ResponderGUID = %s; want %s", gotGuid, wantGuid)
+	}
+
+	gotName := rp.(*InitCommandAckPacket).ResponderFriendlyName
+	wantName := "remôte"
+	if gotName != wantName {
+		t.Errorf("readResponse() ResponderFriendlyName = %s; want %s", gotName, wantName)
+	}
+
+	gotVer := rp.(*InitCommandAckPacket).ResponderProtocolVersion
+	wantVer := uint32(PV_VersionOnePointZero)
+	if gotVer != wantVer {
+		t.Errorf("readResponse() ResponderProtocolVersion = %x; want %x", gotVer, wantVer)
+	}
 }
