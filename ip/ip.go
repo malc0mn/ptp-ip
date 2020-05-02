@@ -109,34 +109,34 @@ func (c *Client) DialWithStreamer() {
 }
 
 // Sends a packet to the Command/Data connection.
-func (c *Client) SendPacketToCmdDataConn(p Packet) error {
+func (c *Client) SendPacketToCmdDataConn(p PacketOut) error {
 	return c.sendPacket(c.commandDataConn, p)
 }
 
 // Send a packet to the Event connection.
-func (c *Client) SendPacketToEventConn(p Packet) error {
+func (c *Client) SendPacketToEventConn(p PacketOut) error {
 	return c.sendPacket(c.commandDataConn, p)
 }
 
-func (c *Client) sendPacket(w io.Writer, p Packet) error {
+func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	pl := p.Payload()
+	pll := len(pl)
 
 	// The packet length MUST include the header, so we add 8 bytes for that!
-	lenBytes := 8
-	h := ipInternal.MarshalLittleEndian(Header{uint32(len(pl) + lenBytes), p.PacketType()})
+	h := ipInternal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
 
 	// Send header.
 	n, err := w.Write(h)
 	internal.FailOnError(err)
-	if n != lenBytes {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, lenBytes)
+	if n != HeaderSize {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
 	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
 
 	// Send payload.
 	n, err = w.Write(pl)
-	if n != len(pl) {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, len(pl))
+	if n != pll {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 	internal.FailOnError(err)
 	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
@@ -162,7 +162,7 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 		return nil, ReadResponseError
 	}
 
-	p, err := NewPacketFromPacketType(h.PacketType)
+	p, err := NewPacketInFromPacketType(h.PacketType)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 	// TODO: this vs calculation works for now, but there must be a better way to handle this!
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
-	vs := int(h.Length) - h.Size() - p.TotalFixedFieldSize()
+	vs := int(h.Length) - HeaderSize - p.TotalFixedFieldSize()
 	if err := ipInternal.UnmarshalLittleEndian(r, p, vs); err != nil && err != io.EOF {
 		return nil, err
 	}

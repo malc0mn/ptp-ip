@@ -14,6 +14,8 @@ type FailReason uint32
 type ProtocolVersion uint32
 
 const (
+	HeaderSize int = 8
+
 	DP_NoDataOrDataIn DataPhase = 0x00000001
 	DP_DataOut        DataPhase = 0x00000002
 	DP_Unknown        DataPhase = 0x00000003
@@ -41,22 +43,26 @@ const (
 )
 
 var (
-	UnknownPacketType = errors.New("unknown packet type %v")
+	UnknownPacketType = errors.New("unknown packet type %#x")
 )
 
 type Packet interface {
 	PacketType() PacketType
+}
+
+type PacketOut interface {
+	Packet
 	Payload() []byte
+}
+
+type PacketIn interface {
+	Packet
 	TotalFixedFieldSize() int
 }
 
 type Header struct {
 	Length     uint32
 	PacketType PacketType
-}
-
-func (h *Header) Size() int {
-	return 8
 }
 
 // This packet is used immediately after the Command/Data TCP ip channel is established. It is sent by the
@@ -76,10 +82,6 @@ func (icrp *InitCommandRequestPacket) PacketType() PacketType {
 
 func (icrp *InitCommandRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(icrp)
-}
-
-func (icrp *InitCommandRequestPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(icrp)
 }
 
 func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
@@ -116,10 +118,6 @@ func (icap *InitCommandAckPacket) PacketType() PacketType {
 	return PKT_InitCommandAck
 }
 
-func (icap *InitCommandAckPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(icap)
-}
-
 func (icap *InitCommandAckPacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(icap)
 }
@@ -140,10 +138,6 @@ func (ierp *InitEventRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ierp)
 }
 
-func (ierp *InitEventRequestPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(ierp)
-}
-
 func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
 	ierp := new(InitEventRequestPacket)
 	ierp.ConnectionNumber = connNum
@@ -157,10 +151,6 @@ type InitEventAckPacket struct {
 
 func (ieap *InitEventAckPacket) PacketType() PacketType {
 	return PKT_InitEventAck
-}
-
-func (ieap *InitEventAckPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(ieap)
 }
 
 func (ieap *InitEventAckPacket) TotalFixedFieldSize() int {
@@ -178,10 +168,6 @@ type InitFailPacket struct {
 
 func (ifp *InitFailPacket) PacketType() PacketType {
 	return PKT_InitFail
-}
-
-func (ifp *InitFailPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(ifp)
 }
 
 func (ifp *InitFailPacket) TotalFixedFieldSize() int {
@@ -211,10 +197,6 @@ func (orp *OperationRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(orp)
 }
 
-func (orp *OperationRequestPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(orp)
-}
-
 // This packet is used to ip Operation Responses by the Responder and are transported to the Initiator via the
 // Command/Data TCP connection. PTP-IP Operation Response Packets are only issued by the Responder to indicate that the
 // requested operation transaction has been completed and to pass the operation result.
@@ -226,15 +208,11 @@ func (orp *OperationResponsePacket) PacketType() PacketType {
 	return PKT_OperationResponse
 }
 
-func (orp *OperationResponsePacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(orp)
-}
-
 func (orp *OperationResponsePacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(orp)
 }
 
-// This packet is used to ip PTP Events on the Event TCP connection. The events are used to inform the Initiator
+// This packet is used to send PTP Events on the Event TCP connection. The events are used to inform the Initiator
 // about the Responder state change.
 type EventPacket struct {
 	ptp.Event
@@ -242,10 +220,6 @@ type EventPacket struct {
 
 func (ep *EventPacket) PacketType() PacketType {
 	return PKT_Event
-}
-
-func (ep *EventPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(ep)
 }
 
 func (ep *EventPacket) TotalFixedFieldSize() int {
@@ -383,22 +357,49 @@ func (prsp *ProbeResponsePacket) TotalFixedFieldSize() int {
 
 // Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
 // uninitialised.
-func NewPacketFromPacketType(pt PacketType) (Packet, error) {
-	var p Packet
+func NewPacketOutFromPacketType(pt PacketType) (PacketOut, error) {
+	var p PacketOut
 
 	switch pt {
 	case PKT_InitCommandRequest:
 		p = new(InitCommandRequestPacket)
-	case PKT_InitCommandAck:
-		p = new(InitCommandAckPacket)
 	case PKT_InitEventRequest:
 		p = new(InitEventRequestPacket)
+	case PKT_OperationRequest:
+		p = new(OperationRequestPacket)
+	case PKT_StartData:
+		p = new(StartDataPacket)
+	case PKT_Data:
+		p = new(DataPacket)
+	case PKT_Cancel:
+		p = new(CancelPacket)
+	case PKT_EndData:
+		p = new(EndDataPacket)
+	case PKT_ProbeRequest:
+		p = new(ProbeRequestPacket)
+	case PKT_ProbeResponse:
+		p = new(ProbeResponsePacket)
+	}
+
+	if p != nil {
+		return p, nil
+	}
+
+	return nil, fmt.Errorf(UnknownPacketType.Error(), pt)
+}
+
+// Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
+// uninitialised.
+func NewPacketInFromPacketType(pt PacketType) (PacketIn, error) {
+	var p PacketIn
+
+	switch pt {
+	case PKT_InitCommandAck:
+		p = new(InitCommandAckPacket)
 	case PKT_InitEventAck:
 		p = new(InitEventAckPacket)
 	case PKT_InitFail:
 		p = new(InitFailPacket)
-	case PKT_OperationRequest:
-		p = new(OperationRequestPacket)
 	case PKT_OperationResponse:
 		p = new(OperationResponsePacket)
 	case PKT_Event:

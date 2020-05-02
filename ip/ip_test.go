@@ -4,8 +4,37 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/internal"
+	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"io"
 	"testing"
 )
+
+func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
+	pl := ipInternal.MarshalLittleEndian(p)
+	pll := len(pl)
+
+	// The packet length MUST include the header, so we add 8 bytes for that!
+	h := ipInternal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
+
+	// Send header.
+	n, err := w.Write(h)
+	internal.FailOnError(err)
+	if n != HeaderSize {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
+	}
+	internal.LogDebug(fmt.Errorf("[ip_test sendAnyPacket] bytes written %d", n))
+
+	// Send payload.
+	n, err = w.Write(pl)
+	if n != pll {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
+	}
+	internal.FailOnError(err)
+	internal.LogDebug(fmt.Errorf("[ip_test sendAnyPacket] bytes written %d", n))
+
+	return nil
+}
 
 func TestNewInitiator(t *testing.T) {
 	got := NewDefaultInitiator()
@@ -83,7 +112,7 @@ func TestClient_ReadResponse(t *testing.T) {
 	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)}
 
 	var b bytes.Buffer
-	c.sendPacket(&b, p)
+	c.sendAnyPacket(&b, p)
 
 	rp, err := c.readResponse(&b)
 	if err != nil {
