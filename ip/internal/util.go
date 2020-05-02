@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/binary"
 	"io"
@@ -42,7 +41,7 @@ func MarshalLittleEndian(s interface{}) []byte {
 	return marshal(s, binary.LittleEndian)
 }
 
-func unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
+func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
 	// binary.Read can only cope with fixed length values so we'll need to handle anything else ourselves.
 	if binary.Size(s) < 0 {
 		v := reflect.Indirect(reflect.ValueOf(s))
@@ -52,12 +51,11 @@ func unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
 			switch f.Kind() {
 			case reflect.String:
 				// Strings are null terminated!
-				br := bufio.NewReader(r)
-				b, err := br.ReadString(0)
-				if err != nil {
+				b := make([]byte, vs)
+				if err := binary.Read(r, bo, b); err != nil {
 					return err
 				}
-				f.SetString(b[:len(b)-1]) // -1 to drop the null termination!
+				f.SetString(string(b[:]))
 			default:
 				if err := binary.Read(r, bo, f.Addr().Interface()); err != nil {
 					return err
@@ -74,6 +72,28 @@ func unmarshal(r io.Reader, s interface{}, bo binary.ByteOrder) error {
 }
 
 // Unmarshal a byte array, Little Endian formant, upon reception.
-func UnmarshalLittleEndian(r io.Reader, s interface{}) error {
-	return unmarshal(r, s, binary.LittleEndian)
+// We will need a reader, a destination container and a "variable size" integer indicating the variable sized portion
+// of the packet.
+func UnmarshalLittleEndian(r io.Reader, s interface{}, vs int) error {
+	return unmarshal(r, s, vs, binary.LittleEndian)
+}
+
+func TotalSizeOfFixedFields(s interface{}) int {
+	tfs := binary.Size(s)
+	if tfs < 0 {
+		tfs = 0
+		v := reflect.Indirect(reflect.ValueOf(s))
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			switch f.Kind() {
+			case reflect.String:
+				// Skip string fields, we do not calculate their size.
+				continue
+			default:
+				tfs += binary.Size(f.Addr().Interface())
+			}
+		}
+	}
+
+	return tfs
 }

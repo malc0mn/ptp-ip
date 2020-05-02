@@ -47,11 +47,16 @@ var (
 type Packet interface {
 	PacketType() PacketType
 	Payload() []byte
+	TotalFixedFieldSize() int
 }
 
 type Header struct {
 	Length     uint32
 	PacketType PacketType
+}
+
+func (h *Header) Size() int {
+	return 8
 }
 
 // This packet is used immediately after the Command/Data TCP ip channel is established. It is sent by the
@@ -71,6 +76,10 @@ func (icrp *InitCommandRequestPacket) PacketType() PacketType {
 
 func (icrp *InitCommandRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(icrp)
+}
+
+func (icrp *InitCommandRequestPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(icrp)
 }
 
 func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
@@ -111,6 +120,10 @@ func (icap *InitCommandAckPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(icap)
 }
 
+func (icap *InitCommandAckPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(icap)
+}
+
 // After the Command/Data TCP Connection is established, this packet is used by the Initiator in order to establish the
 // Event TCP Connection. When the Initiator receives a valid InitCommandAckPacket it establishes the Event TCP
 // connection and transmits this packet on the Event TCP connection. The connection number received via the
@@ -125,6 +138,10 @@ func (ierp *InitEventRequestPacket) PacketType() PacketType {
 
 func (ierp *InitEventRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ierp)
+}
+
+func (ierp *InitEventRequestPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(ierp)
 }
 
 func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
@@ -146,6 +163,10 @@ func (ieap *InitEventAckPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ieap)
 }
 
+func (ieap *InitEventAckPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(ieap)
+}
+
 // This packet is used by the Responder to inform the Initiator that the PTP-IP connection establishment failed. The
 // reason of failure is reported in the Reason field. Upon receiving the packet, the Initiator MUST close the
 // Command/Data TCP Connection with the Responder that rejects the event connection request. After issuing an
@@ -161,6 +182,10 @@ func (ifp *InitFailPacket) PacketType() PacketType {
 
 func (ifp *InitFailPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ifp)
+}
+
+func (ifp *InitFailPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(ifp)
 }
 
 // This packet is used to ip PTP operation requests. PTP-IP Operation Request Packets are issued by the Initiator
@@ -186,6 +211,10 @@ func (orp *OperationRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(orp)
 }
 
+func (orp *OperationRequestPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(orp)
+}
+
 // This packet is used to ip Operation Responses by the Responder and are transported to the Initiator via the
 // Command/Data TCP connection. PTP-IP Operation Response Packets are only issued by the Responder to indicate that the
 // requested operation transaction has been completed and to pass the operation result.
@@ -201,6 +230,10 @@ func (orp *OperationResponsePacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(orp)
 }
 
+func (orp *OperationResponsePacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(orp)
+}
+
 // This packet is used to ip PTP Events on the Event TCP connection. The events are used to inform the Initiator
 // about the Responder state change.
 type EventPacket struct {
@@ -213,6 +246,10 @@ func (ep *EventPacket) PacketType() PacketType {
 
 func (ep *EventPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ep)
+}
+
+func (ep *EventPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(ep)
 }
 
 // This type of packet is used to signal the beginning of a data transfer. It is a is bi-directional packet, so this
@@ -230,6 +267,10 @@ func (sdp *StartDataPacket) PacketType() PacketType {
 
 func (sdp *StartDataPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(sdp)
+}
+
+func (sdp *StartDataPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(sdp)
 }
 
 // This packet is used to ip data. DataPackets are only used during data phase of a transaction and can be
@@ -252,6 +293,10 @@ func (dp *DataPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(dp)
 }
 
+func (dp *DataPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(dp)
+}
+
 // This packet is used to indicate the end of the data phase. The EndDataPacket can also carry useful data. This
 // packet is only used during data phase of a transaction and can be issued either by the Initiator or Responder in the
 // direction of the data flow: for the data-in phase - from the Responder to the Initiator; for the data-out phase -
@@ -269,6 +314,10 @@ func (edp *EndDataPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(edp)
 }
 
+func (edp *EndDataPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(edp)
+}
+
 // This packet is used to cancel a transaction.
 type CancelPacket struct {
 	TransactionId ptp.TransactionID
@@ -280,6 +329,10 @@ func (cp *CancelPacket) PacketType() PacketType {
 
 func (cp *CancelPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(cp)
+}
+
+func (cp *CancelPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(cp)
 }
 
 // This packet can be used by both Initiator and Responder to check if a peer device is still active. Upon receiving
@@ -306,6 +359,10 @@ func (prqp *ProbeRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(prqp)
 }
 
+func (prqp *ProbeRequestPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(prqp)
+}
+
 // This packet can be used in PTP-IP by both Initiator and Responder, as a response to a ProbeRequestPacket. Upon
 // receiving a ProbeRequestPacket, a Probe Response Packet MUST be issued immediately. The Probe Response Packet is
 // shown in Figure 20 and it is sent on the Event TCP connection.
@@ -318,6 +375,10 @@ func (prsp *ProbeResponsePacket) PacketType() PacketType {
 
 func (prsp *ProbeResponsePacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(prsp)
+}
+
+func (prsp *ProbeResponsePacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(prsp)
 }
 
 // Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left

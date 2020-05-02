@@ -167,7 +167,10 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 		return nil, err
 	}
 
-	if err := ipInternal.UnmarshalLittleEndian(r, p); err != nil && err != io.EOF {
+	// We calculate the size of the variable portion of the packet here!
+	// If there is no variable portion, vs will be 0.
+	vs := int(h.Length) - h.Size() - p.TotalFixedFieldSize()
+	if err := ipInternal.UnmarshalLittleEndian(r, p, vs); err != nil && err != io.EOF {
 		return nil, err
 	}
 

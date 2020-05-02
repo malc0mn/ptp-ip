@@ -116,7 +116,7 @@ func TestClient_ReadResponse(t *testing.T) {
 	gotName := rp.(*InitCommandAckPacket).ResponderFriendlyName
 	wantName := "remôte"
 	if gotName != wantName {
-		t.Errorf("readResponse() ResponderFriendlyName = %s; want %s", gotName, wantName)
+		t.Errorf("readResponse() ResponderFriendlyName = %s (%#x); want %s (%#x)", gotName, gotName, wantName, wantName)
 	}
 
 	gotVer := rp.(*InitCommandAckPacket).ResponderProtocolVersion
