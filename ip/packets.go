@@ -273,7 +273,7 @@ func (sdp *StartDataPacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(sdp)
 }
 
-// This packet is used to ip data. DataPackets are only used during data phase of a transaction and can be
+// This packet is used to transport data. DataPackets are only used during data phase of a transaction and can be
 // issued either by the Initiator or Responder in the direction of the data flow:
 //   1. for the data-in phase - from the Responder to the Initiator
 //   2. for the data-out phase - from the Initiator to the Responder.
