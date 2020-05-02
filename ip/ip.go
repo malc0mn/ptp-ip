@@ -167,6 +167,7 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 		return nil, err
 	}
 
+	// TODO: this vs calculation works for now, but there must be a better way to handle this!
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
 	vs := int(h.Length) - h.Size() - p.TotalFixedFieldSize()

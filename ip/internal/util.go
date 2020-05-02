@@ -11,7 +11,7 @@ import (
 func marshal(s interface{}, bo binary.ByteOrder) []byte {
 	var b bytes.Buffer
 
-	// binary.Write can only cope with fixed length values so we'll need to handle anything else ourselves.
+	// binary.Write() can only cope with fixed length values so we'll need to handle anything else ourselves.
 	if binary.Size(s) < 0 {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
@@ -42,7 +42,7 @@ func MarshalLittleEndian(s interface{}) []byte {
 }
 
 func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
-	// binary.Read can only cope with fixed length values so we'll need to handle anything else ourselves.
+	// binary.Read() can only cope with fixed length values so we'll need to handle anything else ourselves.
 	if binary.Size(s) < 0 {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
@@ -50,7 +50,6 @@ func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
 			f := v.Field(i)
 			switch f.Kind() {
 			case reflect.String:
-				// Strings are null terminated!
 				b := make([]byte, vs)
 				if err := binary.Read(r, bo, b); err != nil {
 					return err
@@ -72,7 +71,7 @@ func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
 }
 
 // Unmarshal a byte array, Little Endian formant, upon reception.
-// We will need a reader, a destination container and a "variable size" integer indicating the variable sized portion
+// We need a reader, a destination container and a "variable size" integer indicating the variable sized portion
 // of the packet.
 func UnmarshalLittleEndian(r io.Reader, s interface{}, vs int) error {
 	return unmarshal(r, s, vs, binary.LittleEndian)
