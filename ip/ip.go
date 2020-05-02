@@ -8,7 +8,6 @@ import (
 	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"io"
-	"log"
 	"net"
 )
 
@@ -28,21 +27,29 @@ type Initiator struct {
 	FriendlyName string
 }
 
-func NewDefaultInitiator() *Initiator {
+func NewDefaultInitiator() (*Initiator, error) {
 	return NewInitiator("", uuid.Nil)
 }
 
-func NewInitiator(friendlyName string, guid uuid.UUID) *Initiator {
+func NewInitiator(friendlyName string, guid uuid.UUID) (*Initiator, error) {
 	if friendlyName == "" {
 		friendlyName = InitiatorFriendlyName
 	}
+
 	if guid == uuid.Nil {
 		var err error
 		guid, err = uuid.NewRandom()
-		internal.FailOnError(err)
+		if err != nil {
+			return nil, err
+		}
 	}
-	i := Initiator{guid, friendlyName}
-	return &i
+
+	i := Initiator{
+		GUID:         guid,
+		FriendlyName: friendlyName,
+	}
+
+	return &i, nil
 }
 
 type Responder struct {
@@ -61,16 +68,24 @@ func (r Responder) String() string {
 }
 
 func NewResponder(ip string, port int) *Responder {
-	r := Responder{ip, port, uuid.Nil, ""}
+	r := Responder{
+		IpAddress: ip,
+		Port:      port,
+	}
 	return &r
 }
 
 type Client struct {
-	commandDataConn net.Conn
-	eventConn       net.Conn
-	streamConn      net.Conn
-	initiator       *Initiator
-	responder       *Responder
+	connectionNumber uint32
+	commandDataConn  net.Conn
+	eventConn        net.Conn
+	streamConn       net.Conn
+	initiator        *Initiator
+	responder        *Responder
+}
+
+func (c *Client) ConnectionNumber() uint32 {
+	return c.connectionNumber
 }
 
 // Implement the net.Addr interface
@@ -97,15 +112,41 @@ func (c *Client) InitiatorGUID() uuid.UUID {
 	return c.initiator.GUID
 }
 
-func (c *Client) Dial() {
-	icap := c.initCommandDataConn()
-	c.initEventConn(icap)
+func (c *Client) Dial() error {
+	var err error
+
+	err = c.initCommandDataConn()
+	if err != nil {
+		return err
+	}
+
+	err = c.initEventConn()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (c *Client) DialWithStreamer() {
-	c.initCommandDataConn()
-	c.initEventConn(1)
-	c.initStreamerConn()
+func (c *Client) DialWithStreamer() error {
+	var err error
+
+	err = c.initCommandDataConn()
+	if err != nil {
+		return err
+	}
+
+	err = c.initEventConn()
+	if err != nil {
+		return err
+	}
+
+	err = c.initStreamerConn()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Sends a packet to the Command/Data connection.
@@ -127,7 +168,10 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 
 	// Send header.
 	n, err := w.Write(h)
-	internal.FailOnError(err)
+	if err != nil {
+		return err
+	}
+
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
@@ -138,21 +182,24 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
-	internal.FailOnError(err)
+	if err != nil {
+		return err
+	}
+
 	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
 
 	return nil
 }
 
-func (c *Client) ReadPacketFromCmdDataConn() (Packet, error) {
+func (c *Client) ReadPacketFromCmdDataConn() (PacketIn, error) {
 	return c.readResponse(c.commandDataConn)
 }
 
-func (c *Client) ReadPacketFromEventConn() (Packet, error) {
+func (c *Client) ReadPacketFromEventConn() (PacketIn, error) {
 	return c.readResponse(c.eventConn)
 }
 
-func (c *Client) readResponse(r io.Reader) (Packet, error) {
+func (c *Client) readResponse(r io.Reader) (PacketIn, error) {
 	var h Header
 	if err := binary.Read(r, binary.LittleEndian, &h); err != nil {
 		return nil, err
@@ -178,45 +225,96 @@ func (c *Client) readResponse(r io.Reader) (Packet, error) {
 	return p, nil
 }
 
-func (c *Client) initCommandDataConn() uint32 {
-	conn, err := net.Dial(c.Network(), c.String())
-	internal.FailOnError(err)
-	c.commandDataConn = conn
+func (c *Client) initCommandDataConn() error {
+	var err error
+
+	c.commandDataConn, err = net.Dial(c.Network(), c.String())
+	if err != nil {
+		return err
+	}
 
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
-	c.SendPacketToCmdDataConn(icrp)
-	r, err := c.ReadPacketFromCmdDataConn()
+	err = c.SendPacketToCmdDataConn(icrp)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	return r.(*InitCommandAckPacket).ConnectionNumber
+
+	var res PacketIn
+	res, err = c.ReadPacketFromCmdDataConn()
+	if err != nil {
+		return err
+	}
+
+	switch pkt := res.(type) {
+	case *InitFailPacket:
+		err = pkt.ReasonAsError()
+	case *InitCommandAckPacket:
+		c.connectionNumber = pkt.ConnectionNumber
+		return nil
+	default:
+		err = fmt.Errorf("unexpected packet received %T", res)
+	}
+
+	c.commandDataConn.Close()
+	return err
 }
 
-func (c *Client) initEventConn(connNum uint32) {
-	conn, err := net.Dial(c.Network(), c.String())
-	internal.FailOnError(err)
-	c.eventConn = conn
+func (c *Client) initEventConn() error {
+	var err error
+	c.eventConn, err = net.Dial(c.Network(), c.String())
+	if err != nil {
+		return err
+	}
 
-	ierp := NewInitEventRequestPacket(connNum)
-	c.SendPacketToEventConn(ierp)
+	ierp := NewInitEventRequestPacket(c.connectionNumber)
+	err = c.SendPacketToEventConn(ierp)
+	if err != nil {
+		return err
+	}
+
+	var res PacketIn
+	res, err = c.ReadPacketFromEventConn()
+	if err != nil {
+		return err
+	}
+
+	switch pkt := res.(type) {
+	case *InitFailPacket:
+		err = pkt.ReasonAsError()
+	case *InitEventAckPacket:
+		return nil
+	default:
+		err = fmt.Errorf("unexpected packet received %T", res)
+	}
+
+	c.eventConn.Close()
+	return err
 }
 
 // Not all devices will have a streamer service. When this connection fails, we will fail silently.
-func (c *Client) initStreamerConn() {
-	conn, err := net.Dial(c.Network(), c.String())
+func (c *Client) initStreamerConn() error {
+	var err error
+
+	c.streamConn, err = net.Dial(c.Network(), c.String())
 	if err != nil {
-		internal.LogInfo(err)
-		return
+		return err
 	}
-	c.streamConn = conn
+
+	return nil
 }
 
-func NewClient(ip string, port int, friendlyName string, guid uuid.UUID) *Client {
+func NewClient(ip string, port int, friendlyName string, guid uuid.UUID) (*Client, error) {
 	r := NewResponder(ip, port)
-	i := NewInitiator(friendlyName, guid)
+	i, err := NewInitiator(friendlyName, guid)
+	if err != nil {
+		return nil, err
+	}
 
-	c := Client{nil, nil, nil, i, r}
-	return &c
+	c := Client{
+		initiator: i,
+		responder: r,
+	}
+	return &c, nil
 }
 
 /*

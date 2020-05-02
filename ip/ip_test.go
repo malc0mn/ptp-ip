@@ -36,18 +36,24 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 	return nil
 }
 
-func TestNewInitiator(t *testing.T) {
-	got := NewDefaultInitiator()
+func TestNewDefaultInitiator(t *testing.T) {
+	got, err := NewDefaultInitiator()
+	if err != nil {
+		t.Errorf("NewDefaultInitiator() err = %s; want <nil>", err)
+	}
 	if got.GUID == uuid.Nil {
-		t.Errorf("NewInitiator() GUID = %s; want valid non-empty UUID", got.GUID)
+		t.Errorf("NewDefaultInitiator() GUID = %s; want valid non-empty UUID", got.GUID)
 	}
 	if got.FriendlyName != InitiatorFriendlyName {
-		t.Errorf("NewInitiator() Friendlyname = %s; want %s", got.FriendlyName, InitiatorFriendlyName)
+		t.Errorf("NewDefaultInitiator() Friendlyname = %s; want %s", got.FriendlyName, InitiatorFriendlyName)
 	}
 }
 
 func TestNewInitiatorWithFriendlyName(t *testing.T) {
-	got := NewInitiator("Friendly test", uuid.Nil)
+	got, err := NewInitiator("Friendly test", uuid.Nil)
+	if err != nil {
+		t.Errorf("NewInitiator() err = %s; want <nil>", err)
+	}
 	if got.GUID == uuid.Nil {
 		t.Errorf("NewInitiator() GUID = %s; want valid non-empty UUID", got.GUID)
 	}
@@ -74,7 +80,10 @@ func TestNewResponder(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	got := NewClient(DefaultIpAddress, DefaultPort, "", uuid.Nil)
+	got, err := NewClient(DefaultIpAddress, DefaultPort, "", uuid.Nil)
+	if err != nil {
+		t.Errorf("NewClient() err = %s; want <nil>", err)
+	}
 	if got.commandDataConn != nil {
 		t.Errorf("NewClient() commandDataConn = %v; want <nil>", got.commandDataConn)
 	}
@@ -91,7 +100,11 @@ func TestNewClient(t *testing.T) {
 
 func TestClient_SendPacket(t *testing.T) {
 	guid, _ := uuid.Parse("e462b590-b516-474a-9db8-a465b370fabd")
-	c := NewClient(DefaultIpAddress, DefaultPort, "writèr", guid)
+	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", guid)
+	if err != nil {
+		t.Errorf("sendPacket() err = %s; want <nil>", err)
+	}
+
 	p := NewInitCommandRequestPacketForClient(c)
 
 	want := "[00100011 00000000 00000000 00000000 00000001 00000000 00000000 00000000 11100100 01100010 10110101 10010000 10110101 00010110 01000111 01001010 10011101 10111000 10100100 01100101 10110011 01110000 11111010 10111101 01110111 01110010 01101001 01110100 11000011 10101000 01110010 00000000 00000000 00000001 00000000]"
@@ -107,7 +120,11 @@ func TestClient_SendPacket(t *testing.T) {
 
 func TestClient_ReadResponse(t *testing.T) {
 	guidC, _ := uuid.Parse("d6555687-a599-44b8-a4af-279d599a92f6")
-	c := NewClient(DefaultIpAddress, DefaultPort, "writèr", guidC)
+	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", guidC)
+	if err != nil {
+		t.Errorf("readResponse() err = %s; want <nil>", err)
+	}
+
 	guidR, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
 	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)}
 

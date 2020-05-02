@@ -20,7 +20,11 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 }
 
 func TestNewInitCommandRequestPacketForClient(t *testing.T) {
-	c := NewClient(DefaultIpAddress, DefaultPort, "test", uuid.Nil)
+	c, err := NewClient(DefaultIpAddress, DefaultPort, "test", uuid.Nil)
+	if err != nil {
+		t.Errorf("NewInitCommandRequestPacketForClient() err = %s; want <nil>", err)
+	}
+
 	got := NewInitCommandRequestPacketForClient(c)
 	want := "test"
 

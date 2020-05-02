@@ -174,6 +174,22 @@ func (ifp *InitFailPacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(ifp)
 }
 
+func (ifp *InitFailPacket) ReasonAsError() error {
+	var msg string
+	switch ifp.Reason {
+	case FR_FailBusy:
+		msg = "busy: too many active connections"
+	case FR_FailRejectedInitiator:
+		msg = "rejected: device not allowed"
+	case FR_FailUnspecified:
+		msg = "reason unspecified"
+	default:
+		msg = fmt.Sprintf("uknown failure reason returned %#x", ifp.Reason)
+	}
+
+	return errors.New(msg)
+}
+
 // This packet is used to ip PTP operation requests. PTP-IP Operation Request Packets are issued by the Initiator
 // and are transported to the Responder device via the PTP-IP Command/Data ip channel. The direction of this
 // packet is from Initiator to Responder.
