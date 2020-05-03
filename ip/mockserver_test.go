@@ -1,8 +1,10 @@
 package ip
 
 import (
+	"bufio"
 	"encoding/binary"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"net"
 	"strconv"
@@ -28,16 +30,31 @@ func newLocalResponder(address string, port int) {
 		go func(conn net.Conn) {
 			log.Printf("%s received message", lmp)
 			defer conn.Close()
+			rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+
 			var h Header
 			log.Printf("%s reading packet header...", lmp)
-			err = binary.Read(conn, binary.LittleEndian, &h)
+			err = binary.Read(rw, binary.LittleEndian, &h)
 			if err != nil {
 				log.Printf("%s error reading header: %s", lmp, err)
 				return
 			}
+
+			var res PacketIn
 			switch h.PacketType {
 			case PKT_InitCommandRequest:
-				log.Printf("%s need to respond to %#x", lmp, h.PacketType)
+				log.Printf("%s responding to InitCommandRequest", lmp)
+				uuid, _ := uuid.Parse("3e8626cc-5059-4225-bdd6-d160b2e6a60f")
+				res = &InitCommandAckPacket{
+					ConnectionNumber:         1,
+					ResponderGUID:            uuid,
+					ResponderFriendlyName:    lmp,
+					ResponderProtocolVersion: uint32(PV_VersionOnePointZero),
+				}
+			}
+			if res != nil {
+				binary.Write(rw, binary.LittleEndian, res)
+				rw.Flush()
 			}
 		}(conn)
 	}

@@ -98,7 +98,7 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
-func TestClient_SendPacket(t *testing.T) {
+func TestClient_sendPacket(t *testing.T) {
 	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd")
 	if err != nil {
 		t.Errorf("sendPacket() err = %s; want <nil>", err)
@@ -117,7 +117,7 @@ func TestClient_SendPacket(t *testing.T) {
 	}
 }
 
-func TestClient_ReadResponse(t *testing.T) {
+func TestClient_readResponse(t *testing.T) {
 	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6")
 	if err != nil {
 		t.Errorf("readResponse() err = %s; want <nil>", err)
