@@ -28,24 +28,31 @@ type Initiator struct {
 }
 
 func NewDefaultInitiator() (*Initiator, error) {
-	return NewInitiator("", uuid.Nil)
+	return NewInitiator("", "")
 }
 
-func NewInitiator(friendlyName string, guid uuid.UUID) (*Initiator, error) {
+func NewInitiator(friendlyName string, guid string) (*Initiator, error) {
+	var err error
+	var id uuid.UUID
+
 	if friendlyName == "" {
 		friendlyName = InitiatorFriendlyName
 	}
 
-	if guid == uuid.Nil {
-		var err error
-		guid, err = uuid.NewRandom()
+	if guid == "" {
+		id, err = uuid.NewRandom()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		id, err = uuid.Parse(guid)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	i := Initiator{
-		GUID:         guid,
+		GUID:         id,
 		FriendlyName: friendlyName,
 	}
 
@@ -108,8 +115,16 @@ func (c *Client) ResponderGUID() uuid.UUID {
 	return c.responder.GUID
 }
 
+func (c *Client) ResponderGUIDAsString() string {
+	return c.responder.GUID.String()
+}
+
 func (c *Client) InitiatorGUID() uuid.UUID {
 	return c.initiator.GUID
+}
+
+func (c *Client) InitiatorGUIDAsString() string {
+	return c.initiator.GUID.String()
 }
 
 func (c *Client) Dial() error {
@@ -303,8 +318,10 @@ func (c *Client) initStreamerConn() error {
 	return nil
 }
 
-func NewClient(ip string, port int, friendlyName string, guid uuid.UUID) (*Client, error) {
-	r := NewResponder(ip, port)
+// Creates a new PTP/IP client.
+// Passing an empty string to friendlyName will use the default friendly name.
+// Passing an empty string as guid will generate a random V4 UUID upon initialisation.
+func NewClient(ip string, port int, friendlyName string, guid string) (*Client, error) {
 	i, err := NewInitiator(friendlyName, guid)
 	if err != nil {
 		return nil, err
@@ -312,8 +329,9 @@ func NewClient(ip string, port int, friendlyName string, guid uuid.UUID) (*Clien
 
 	c := Client{
 		initiator: i,
-		responder: r,
+		responder: NewResponder(ip, port),
 	}
+
 	return &c, nil
 }
 

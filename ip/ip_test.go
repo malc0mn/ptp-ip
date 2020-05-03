@@ -50,7 +50,7 @@ func TestNewDefaultInitiator(t *testing.T) {
 }
 
 func TestNewInitiatorWithFriendlyName(t *testing.T) {
-	got, err := NewInitiator("Friendly test", uuid.Nil)
+	got, err := NewInitiator("Friendly test", "")
 	if err != nil {
 		t.Errorf("NewInitiator() err = %s; want <nil>", err)
 	}
@@ -80,7 +80,7 @@ func TestNewResponder(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	got, err := NewClient(DefaultIpAddress, DefaultPort, "", uuid.Nil)
+	got, err := NewClient(DefaultIpAddress, DefaultPort, "", "")
 	if err != nil {
 		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
@@ -99,8 +99,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_SendPacket(t *testing.T) {
-	guid, _ := uuid.Parse("e462b590-b516-474a-9db8-a465b370fabd")
-	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", guid)
+	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd")
 	if err != nil {
 		t.Errorf("sendPacket() err = %s; want <nil>", err)
 	}
@@ -119,8 +118,7 @@ func TestClient_SendPacket(t *testing.T) {
 }
 
 func TestClient_ReadResponse(t *testing.T) {
-	guidC, _ := uuid.Parse("d6555687-a599-44b8-a4af-279d599a92f6")
-	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", guidC)
+	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6")
 	if err != nil {
 		t.Errorf("readResponse() err = %s; want <nil>", err)
 	}
