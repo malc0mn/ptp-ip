@@ -170,14 +170,18 @@ func (c *Client) DialWithStreamer() error {
 func (c *Client) Close() error {
 	var err error
 
-	err = c.commandDataConn.Close()
-	if err != nil {
-		return err
+	if c.commandDataConn != nil {
+		err = c.commandDataConn.Close()
+		if err != nil {
+			return err
+		}
 	}
 
-	err = c.eventConn.Close()
-	if err != nil {
-		return err
+	if c.eventConn != nil {
+		err = c.eventConn.Close()
+		if err != nil {
+			return err
+		}
 	}
 
 	if c.streamConn != nil {
