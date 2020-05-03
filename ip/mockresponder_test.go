@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/ip/internal"
 	"log"
 	"net"
 	"strconv"
@@ -37,6 +38,18 @@ func newLocalResponder(address string, port int) {
 			err = binary.Read(rw, binary.LittleEndian, &h)
 			if err != nil {
 				log.Printf("%s error reading header: %s", lmp, err)
+				return
+			}
+			pkt, err := NewPacketOutFromPacketType(h.PacketType)
+			if err != nil {
+				log.Printf("%s error creating packet: %s", lmp, err)
+				return
+			}
+
+			vs := int(h.Length) - HeaderSize - internal.TotalSizeOfFixedFields(pkt)
+			err = internal.UnmarshalLittleEndian(rw, pkt, vs)
+			if err != nil {
+				log.Printf("%s error reading packet %T data %s", lmp, pkt, err)
 				return
 			}
 
