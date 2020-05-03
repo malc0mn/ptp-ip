@@ -9,9 +9,12 @@ import (
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"io"
 	"net"
+	"time"
 )
 
 const (
+	DefaultDialTimeout           = 10 * time.Second
+	DefaultReadTimeout           = 30 * time.Second
 	DefaultPort           int    = 15740
 	DefaultIpAddress      string = "192.168.0.1"
 	InitiatorFriendlyName string = "Golang PTP/IP client"
@@ -194,7 +197,7 @@ func (c *Client) SendPacketToCmdDataConn(p PacketOut) error {
 
 // Send a packet to the Event connection.
 func (c *Client) SendPacketToEventConn(p PacketOut) error {
-	return c.sendPacket(c.commandDataConn, p)
+	return c.sendPacket(c.eventConn, p)
 }
 
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
@@ -230,10 +233,12 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 }
 
 func (c *Client) ReadPacketFromCmdDataConn() (PacketIn, error) {
+	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.commandDataConn)
 }
 
 func (c *Client) ReadPacketFromEventConn() (PacketIn, error) {
+	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.eventConn)
 }
 
@@ -266,7 +271,7 @@ func (c *Client) readResponse(r io.Reader) (PacketIn, error) {
 func (c *Client) initCommandDataConn() error {
 	var err error
 
-	c.commandDataConn, err = net.Dial(c.Network(), c.String())
+	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -299,7 +304,7 @@ func (c *Client) initCommandDataConn() error {
 
 func (c *Client) initEventConn() error {
 	var err error
-	c.eventConn, err = net.Dial(c.Network(), c.String())
+	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -333,7 +338,7 @@ func (c *Client) initEventConn() error {
 func (c *Client) initStreamerConn() error {
 	var err error
 
-	c.streamConn, err = net.Dial(c.Network(), c.String())
+	c.streamConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}

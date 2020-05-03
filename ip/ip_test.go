@@ -169,3 +169,20 @@ func TestClient_ReadResponse(t *testing.T) {
 		t.Errorf("readResponse() ResponderProtocolVersion = %#x; want %#x", gotVer, wantVer)
 	}
 }
+
+func TestClient_Dial(t *testing.T) {
+	address := "127.0.0.1"
+	port := DefaultPort
+	go newLocalResponder(address, port)
+
+	c, err := NewClient(address, port, "tester", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Close()
+}

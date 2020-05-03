@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"net"
 	"reflect"
+	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -95,4 +98,29 @@ func TotalSizeOfFixedFields(s interface{}) int {
 	}
 
 	return tfs
+}
+
+// A wrapper around net.Dial() that will retry dialing 10 times on a "connection refused" error with a 500ms delay
+// between retries.
+func RetryDialer(network, address string, timeout time.Duration) (net.Conn, error) {
+	var err error
+	var retries = 10
+	var wait = 500 * time.Millisecond
+	var conn net.Conn
+
+	for {
+		conn, err = net.DialTimeout(network, address, timeout)
+		// Insane isn't it? No "typed errors" from net.Dial()!
+		if err != nil && strings.Contains(err.Error(), "connection refused") && retries > 0 {
+			retries--
+			time.Sleep(wait)
+			continue
+		}
+		break
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
