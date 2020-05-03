@@ -164,6 +164,29 @@ func (c *Client) DialWithStreamer() error {
 	return nil
 }
 
+func (c *Client) Close() error {
+	var err error
+
+	err = c.commandDataConn.Close()
+	if err != nil {
+		return err
+	}
+
+	err = c.eventConn.Close()
+	if err != nil {
+		return err
+	}
+
+	if c.streamConn != nil {
+		c.streamConn.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Sends a packet to the Command/Data connection.
 func (c *Client) SendPacketToCmdDataConn(p PacketOut) error {
 	return c.sendPacket(c.commandDataConn, p)
