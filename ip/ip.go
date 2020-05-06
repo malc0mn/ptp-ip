@@ -220,7 +220,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
+	internal.LogDebug(fmt.Errorf("[sendPacket] header bytes written %d", n))
 
 	// Send payload.
 	n, err = w.Write(pl)
@@ -231,7 +231,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		return err
 	}
 
-	internal.LogDebug(fmt.Errorf("[sendPacket] bytes written %d", n))
+	internal.LogDebug(fmt.Errorf("[sendPacket] payload bytes written %d", n))
 
 	return nil
 }
@@ -261,7 +261,7 @@ func (c *Client) readResponse(r io.Reader) (PacketIn, error) {
 		return nil, err
 	}
 
-	// TODO: this vs calculation works for now, but there must be a better way to handle this!
+	// TODO: this variable string calculation works for now, but there MUST be a better way to handle this!
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
 	vs := int(h.Length) - HeaderSize - p.TotalFixedFieldSize()
