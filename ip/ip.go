@@ -54,12 +54,12 @@ func NewInitiator(friendlyName string, guid string) (*Initiator, error) {
 		}
 	}
 
-	i := Initiator{
+	i := &Initiator{
 		GUID:         id,
 		FriendlyName: friendlyName,
 	}
 
-	return &i, nil
+	return i, nil
 }
 
 type Responder struct {
@@ -78,11 +78,11 @@ func (r Responder) String() string {
 }
 
 func NewResponder(ip string, port int) *Responder {
-	r := Responder{
+	r := &Responder{
 		IpAddress: ip,
 		Port:      port,
 	}
-	return &r
+	return r
 }
 
 type Client struct {
@@ -359,12 +359,12 @@ func NewClient(ip string, port int, friendlyName string, guid string) (*Client, 
 		return nil, err
 	}
 
-	c := Client{
+	c := &Client{
 		initiator: i,
 		responder: NewResponder(ip, port),
 	}
 
-	return &c, nil
+	return c, nil
 }
 
 /*
