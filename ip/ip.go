@@ -81,11 +81,10 @@ func (r Responder) String() string {
 }
 
 func NewResponder(ip string, port int) *Responder {
-	r := &Responder{
+	return &Responder{
 		IpAddress: ip,
 		Port:      port,
 	}
-	return r
 }
 
 type Client struct {

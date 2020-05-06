@@ -85,13 +85,11 @@ func (icrp *InitCommandRequestPacket) Payload() []byte {
 }
 
 func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
-	icrp := &InitCommandRequestPacket{
+	return &InitCommandRequestPacket{
 		GUID:            guid,
 		FriendlyName:    friendlyName,
 		ProtocolVersion: PV_VersionOnePointZero,
 	}
-
-	return icrp
 }
 
 func NewInitCommandRequestPacketForClient(c *Client) *InitCommandRequestPacket {
@@ -142,11 +140,9 @@ func (ierp *InitEventRequestPacket) Payload() []byte {
 }
 
 func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
-	ierp := &InitEventRequestPacket{
+	return &InitEventRequestPacket{
 		ConnectionNumber: connNum,
 	}
-
-	return ierp
 }
 
 // This packet is used by the Responder to inform the Initiator that the PTP-IP connection establishment has completed
