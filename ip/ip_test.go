@@ -7,8 +7,21 @@ import (
 	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"io"
+	"log"
+	"os"
 	"testing"
 )
+
+var (
+	address = "127.0.0.1"
+	port = DefaultPort
+)
+
+func TestMain(m *testing.M) {
+	go newLocalResponder(address, port)
+	code := m.Run()
+	os.Exit(code)
+}
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 	pl := ipInternal.MarshalLittleEndian(p)
@@ -23,7 +36,7 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	internal.LogDebug(fmt.Errorf("[ip_test sendAnyPacket] bytes written %d", n))
+	log.Printf("[ip_test] sendAnyPacket bytes written %d", n)
 
 	// Send payload.
 	n, err = w.Write(pl)
@@ -31,7 +44,7 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 	internal.FailOnError(err)
-	internal.LogDebug(fmt.Errorf("[ip_test sendAnyPacket] bytes written %d", n))
+	log.Printf("[ip_test] sendAnyPacket bytes written %d", n)
 
 	return nil
 }
@@ -173,7 +186,6 @@ func TestClient_readResponse(t *testing.T) {
 func TestClient_initCommandDataConn(t *testing.T) {
 	address := "127.0.0.1"
 	port := DefaultPort
-	go newLocalResponder(address, port)
 
 	c, err := NewClient(address, port, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
 	defer c.Close()
@@ -186,10 +198,24 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	}
 }
 
-/*func TestClient_Dial(t *testing.T) {
+func TestClient_initEventConn(t *testing.T) {
 	address := "127.0.0.1"
 	port := DefaultPort
-	go newLocalResponder(address, port)
+
+	c, err := NewClient(address, port, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = c.initEventConn()
+	if err != nil {
+		t.Errorf("initEventConn() error = %s; want <nil>", err)
+	}
+}
+
+func TestClient_Dial(t *testing.T) {
+	address := "127.0.0.1"
+	port := DefaultPort
 
 	c, err := NewClient(address, port, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
 	defer c.Close()
@@ -201,4 +227,4 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-}*/
+}

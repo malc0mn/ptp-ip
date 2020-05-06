@@ -23,6 +23,7 @@ const (
 var (
 	BytesWrittenMismatch = errors.New("bytes written mismatch: written %d wanted %d")
 	ReadResponseError    = errors.New("unable to read response packet")
+	WaitForResponseError = errors.New("timeout reached when waiting for response")
 )
 
 type Initiator struct {
@@ -35,8 +36,10 @@ func NewDefaultInitiator() (*Initiator, error) {
 }
 
 func NewInitiator(friendlyName string, guid string) (*Initiator, error) {
-	var err error
-	var id uuid.UUID
+	var (
+		err error
+		id uuid.UUID
+	)
 
 	if friendlyName == "" {
 		friendlyName = InitiatorFriendlyName
@@ -231,19 +234,72 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		return err
 	}
 
-	internal.LogDebug(fmt.Errorf("[sendPacket] payload bytes written %d", n))
+	internal.LogDebug(fmt.Errorf("[sendPacket] %T payload bytes written %d", p, n))
 
 	return nil
 }
 
+// Reads a packet from the Command/Data connection.
 func (c *Client) ReadPacketFromCmdDataConn() (PacketIn, error) {
 	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.commandDataConn)
 }
 
+// Waits 30 seconds for a packet on the Command/Data connection.
+func (c *Client) WaitForPacketFromCmdDataConn() (PacketIn, error) {
+	var (
+		res PacketIn
+		err error
+	)
+
+	for wait, timeout := true, time.After(DefaultReadTimeout); wait; {
+		select {
+		case <-timeout:
+			wait = false
+			err = WaitForResponseError
+		default:
+			res, err = c.ReadPacketFromCmdDataConn()
+			if err != io.EOF || res != nil {
+				wait = false
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// Reads a packet from the Event connection.
 func (c *Client) ReadPacketFromEventConn() (PacketIn, error) {
 	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.eventConn)
+}
+
+// Waits 30 seconds for a packet on the Event connection.
+func (c *Client) WaitForPacketFromEventConn() (PacketIn, error) {
+	var (
+		res PacketIn
+		err error
+	)
+
+	for wait, timeout := true, time.After(DefaultReadTimeout); wait; {
+		select {
+		case <-timeout:
+			wait = false
+			err = WaitForResponseError
+		default:
+			res, err = c.ReadPacketFromEventConn()
+			if err == nil {
+				wait = false
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+	}
+
+	return res, nil
 }
 
 func (c *Client) readResponse(r io.Reader) (PacketIn, error) {
@@ -286,8 +342,7 @@ func (c *Client) initCommandDataConn() error {
 		return err
 	}
 
-	var res PacketIn
-	res, err = c.ReadPacketFromCmdDataConn()
+	res, err := c.WaitForPacketFromCmdDataConn()
 	if err != nil {
 		return err
 	}
@@ -308,6 +363,7 @@ func (c *Client) initCommandDataConn() error {
 
 func (c *Client) initEventConn() error {
 	var err error
+
 	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
 	if err != nil {
 		return err
@@ -319,8 +375,7 @@ func (c *Client) initEventConn() error {
 		return err
 	}
 
-	var res PacketIn
-	res, err = c.ReadPacketFromEventConn()
+	res, err := c.WaitForPacketFromEventConn()
 	if err != nil {
 		return err
 	}
