@@ -31,11 +31,15 @@ type Initiator struct {
 	FriendlyName string
 }
 
+// Creates a new Initiator using InitiatorFriendlyName as name and a randomly generated GUID.
+// This is the same as calling NewInitiator with two empty strings as arguments.
 func NewDefaultInitiator() (*Initiator, error) {
 	return NewInitiator("", "")
 }
 
-func NewInitiator(friendlyName string, guid string) (*Initiator, error) {
+// Creates a new Initiator with a friendlyName and GUID of your choosing.
+// Passing an empt
+func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 	var (
 		err error
 		id  uuid.UUID
@@ -420,13 +424,3 @@ func NewClient(ip string, port int, friendlyName string, guid string) (*Client, 
 
 	return c, nil
 }
-
-/*
-func InitCommandRequest() {
-
-}
-
-func InitCommandAck() {
-
-}
-*/
