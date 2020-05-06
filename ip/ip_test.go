@@ -14,7 +14,7 @@ import (
 
 var (
 	address = "127.0.0.1"
-	port = DefaultPort
+	port    = DefaultPort
 )
 
 func TestMain(m *testing.M) {

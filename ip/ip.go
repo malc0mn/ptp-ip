@@ -38,7 +38,7 @@ func NewDefaultInitiator() (*Initiator, error) {
 func NewInitiator(friendlyName string, guid string) (*Initiator, error) {
 	var (
 		err error
-		id uuid.UUID
+		id  uuid.UUID
 	)
 
 	if friendlyName == "" {

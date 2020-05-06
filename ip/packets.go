@@ -101,6 +101,7 @@ func NewInitCommandRequestPacketForClient(c *Client) *InitCommandRequestPacket {
 func NewInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) *InitCommandRequestPacket {
 	icrp := NewInitCommandRequestPacket(guid, friendlyName)
 	icrp.ProtocolVersion = protocolVersion
+
 	return icrp
 }
 
