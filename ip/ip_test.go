@@ -13,12 +13,14 @@ import (
 )
 
 var (
-	address = "127.0.0.1"
-	port    = DefaultPort
+	address  = "127.0.0.1"
+	okPort   = DefaultPort
+	failPort = 25740
 )
 
 func TestMain(m *testing.M) {
-	go newLocalResponder(address, port)
+	go newLocalOkResponder(address, okPort)
+	go newLocalFailResponder(address, failPort)
 	code := m.Run()
 	os.Exit(code)
 }
@@ -184,10 +186,7 @@ func TestClient_readResponse(t *testing.T) {
 }
 
 func TestClient_initCommandDataConn(t *testing.T) {
-	address := "127.0.0.1"
-	port := DefaultPort
-
-	c, err := NewClient(address, port, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	c, err := NewClient(address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -196,13 +195,20 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	if err != nil {
 		t.Errorf("initCommandDataConn() error = %s; want <nil>", err)
 	}
+
+	c, err = NewClient(address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6")
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = c.initCommandDataConn()
+	if err == nil {
+		t.Errorf("initCommandDataConn() error = %s; want rejected: device not allowed", err)
+	}
 }
 
 func TestClient_initEventConn(t *testing.T) {
-	address := "127.0.0.1"
-	port := DefaultPort
-
-	c, err := NewClient(address, port, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	c, err := NewClient(address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -211,13 +217,20 @@ func TestClient_initEventConn(t *testing.T) {
 	if err != nil {
 		t.Errorf("initEventConn() error = %s; want <nil>", err)
 	}
+
+	c, err = NewClient(address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278")
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = c.initEventConn()
+	if err == nil {
+		t.Errorf("initEventConn() error = %s; want rejected: device not allowed", err)
+	}
 }
 
 func TestClient_Dial(t *testing.T) {
-	address := "127.0.0.1"
-	port := DefaultPort
-
-	c, err := NewClient(address, port, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
+	c, err := NewClient(address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -225,6 +238,17 @@ func TestClient_Dial(t *testing.T) {
 
 	err = c.Dial()
 	if err != nil {
+		t.Errorf("Dial() err = %s; want <nil>", err)
+	}
+
+	c, err = NewClient(address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024")
+	defer c.Close()
+	if err != nil {
 		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err == nil {
+		t.Errorf("Dial() err = %s; want rejected: device not allowed", err)
 	}
 }

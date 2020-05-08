@@ -11,51 +11,92 @@ import (
 	"net"
 )
 
-var lmp = "[Mocked responder]"
+type MockedResponder struct {
+	address string
+	port int
+	handler func(net.Conn, string)
+	lmp string
+}
 
-func newLocalResponder(address string, port int) {
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
+func runResponder(address string, port int, handler func(net.Conn, string), lmp string) {
+	mr := &MockedResponder{
+		address: address,
+		port:    port,
+		handler: handler,
+		lmp:     lmp,
+	}
+
+	mr.run()
+}
+
+func newLocalOkResponder(address string, port int) {
+	runResponder(address, port, handleMessage, "[Mocked OK responder]")
+}
+
+func newLocalFailResponder(address string, port int)  {
+	runResponder(address, port, alwaysFailMessage, "[Mocked FAIL responder]")
+}
+
+func (mr *MockedResponder) run() {
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", mr.address, mr.port))
 	defer ln.Close()
 	if err != nil {
-		log.Printf("%s error %s...", lmp, err)
+		log.Printf("%s error %s...", mr.lmp, err)
 		return
 	}
-	log.Printf("%s listening on %s...", lmp, ln.Addr().String())
+	log.Printf("%s listening on %s...", mr.lmp, ln.Addr().String())
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Printf("%s accept error %s...", lmp, err)
+			log.Printf("%s accept error %s...", mr.lmp, err)
 			continue
 		}
-		go handleMessage(conn)
+		go mr.handler(conn, mr.lmp)
 	}
 }
 
-func handleMessage(conn net.Conn) {
+func readMessage(rw *bufio.ReadWriter, lmp string) (Header, PacketOut) {
 	var err error
 
 	log.Printf("%s received message", lmp)
-	defer conn.Close()
-	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 
 	var h Header
 	log.Printf("%s reading packet header...", lmp)
 	err = binary.Read(rw, binary.LittleEndian, &h)
 	if err != nil {
 		log.Printf("%s error reading header: %s", lmp, err)
-		return
+		return h, nil
 	}
 	pkt, err := NewPacketOutFromPacketType(h.PacketType)
 	if err != nil {
 		log.Printf("%s error creating packet: %s", lmp, err)
-		return
+		return h, nil
 	}
 
 	vs := int(h.Length) - HeaderSize - internal.TotalSizeOfFixedFields(pkt)
 	err = internal.UnmarshalLittleEndian(rw, pkt, vs)
 	if err != nil {
 		log.Printf("%s error reading packet %T data %s", lmp, pkt, err)
+		return h, nil
+	}
+
+	return h, pkt
+}
+
+func writeMessage(rw *bufio.ReadWriter, pkt Packet, lmp string) {
+	err := sendPacket(rw, pkt, lmp)
+	if err != nil {
+		log.Printf("%s error responding: %s", lmp, err)
+	}
+	rw.Flush()
+}
+
+func handleMessage(conn net.Conn, lmp string) {
+	defer conn.Close()
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	h, pkt := readMessage(rw, lmp)
+	if pkt == nil {
 		return
 	}
 
@@ -78,15 +119,24 @@ func handleMessage(conn net.Conn) {
 		return
 	}
 	if res != nil {
-		err = sendPacket(rw, res)
-		if err != nil {
-			log.Printf("%s error responding: %s", lmp, err)
-		}
-		rw.Flush()
+		writeMessage(rw, res, lmp)
 	}
 }
 
-func sendPacket(w io.Writer, p Packet) error {
+func alwaysFailMessage(conn net.Conn, lmp string)  {
+	defer conn.Close()
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	_, pkt := readMessage(rw, lmp)
+	if pkt == nil {
+		return
+	}
+
+	writeMessage(rw, &InitFailPacket{
+		Reason: FR_FailRejectedInitiator,
+	}, lmp)
+}
+
+func sendPacket(w io.Writer, p Packet, lmp string) error {
 	pl := internal.MarshalLittleEndian(p)
 	pll := len(pl)
 
