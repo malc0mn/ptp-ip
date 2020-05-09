@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
 	"os"
@@ -113,6 +114,31 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
+func TestClient_incrementTransactionId(t *testing.T) {
+	c := Client{}
+
+	got := c.TransactionId()
+	want := ptp.TransactionID(0)
+	if got != want {
+		t.Errorf("TransactionId() = %#x; want %#x", got, want)
+	}
+
+	c.incrementTransactionId()
+	got = c.TransactionId()
+	want = ptp.TransactionID(1)
+	if got != want {
+		t.Errorf("TransactionId() = %#x; want %#x", got, want)
+	}
+
+	c.transactionId = 0xFFFFFFFE
+	c.incrementTransactionId()
+	got = c.TransactionId()
+	want = ptp.TransactionID(1)
+	if got != want {
+		t.Errorf("TransactionId() = %#x; want %#x", got, want)
+	}
+}
+
 func TestClient_sendPacket(t *testing.T) {
 	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd")
 	if err != nil {
@@ -196,7 +222,14 @@ func TestClient_initCommandDataConn(t *testing.T) {
 		t.Errorf("initCommandDataConn() error = %s; want <nil>", err)
 	}
 
-	c, err = NewClient(address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6")
+	got := c.TransactionId()
+	want := ptp.TransactionID(0)
+	if got != want {
+		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
+	}
+}
+func TestClient_initCommandDataConnFail(t *testing.T) {
+	c, err := NewClient(address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -204,6 +237,12 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	err = c.initCommandDataConn()
 	if err == nil {
 		t.Errorf("initCommandDataConn() error = %s; want rejected: device not allowed", err)
+	}
+
+	got := c.TransactionId()
+	want := ptp.TransactionID(0)
+	if got != want {
+		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
 	}
 }
 
@@ -218,7 +257,15 @@ func TestClient_initEventConn(t *testing.T) {
 		t.Errorf("initEventConn() error = %s; want <nil>", err)
 	}
 
-	c, err = NewClient(address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278")
+	got := c.TransactionId()
+	want := ptp.TransactionID(1)
+	if got != want {
+		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
+	}
+}
+
+func TestClient_initEventConnFail(t *testing.T) {
+	c, err := NewClient(address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -226,6 +273,12 @@ func TestClient_initEventConn(t *testing.T) {
 	err = c.initEventConn()
 	if err == nil {
 		t.Errorf("initEventConn() error = %s; want rejected: device not allowed", err)
+	}
+
+	got := c.TransactionId()
+	want := ptp.TransactionID(0)
+	if got != want {
+		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
 	}
 }
 

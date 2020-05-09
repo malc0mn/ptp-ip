@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"net"
 	"time"
@@ -93,6 +94,7 @@ func NewResponder(ip string, port int) *Responder {
 
 type Client struct {
 	connectionNumber uint32
+	transactionId    ptp.TransactionID
 	commandDataConn  net.Conn
 	eventConn        net.Conn
 	streamConn       net.Conn
@@ -102,6 +104,18 @@ type Client struct {
 
 func (c *Client) ConnectionNumber() uint32 {
 	return c.connectionNumber
+}
+
+func (c *Client) TransactionId() ptp.TransactionID {
+	return c.transactionId
+}
+
+func (c *Client) incrementTransactionId() {
+	c.transactionId++
+	// The min and max values are considered 'invalid', so we roll over to 1 when we reach the max value.
+	if c.transactionId == 0xFFFFFFFF {
+		c.transactionId = 0x00000001
+	}
 }
 
 // Implement the net.Addr interface
@@ -387,6 +401,7 @@ func (c *Client) initEventConn() error {
 	case *InitFailPacket:
 		err = pkt.ReasonAsError()
 	case *InitEventAckPacket:
+		c.incrementTransactionId()
 		return nil
 	default:
 		err = fmt.Errorf("unexpected packet received %T", res)
