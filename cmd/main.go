@@ -17,9 +17,13 @@ func main() {
 
 	exe = filepath.Base(os.Args[0])
 
-	if help == true || len(os.Args) < 2 {
+	if noArgs := len(os.Args) < 2; noArgs || help == true {
 		usage()
-		os.Exit(0)
+		exit := 0
+		if noArgs {
+			exit = 1
+		}
+		os.Exit(exit)
 	}
 
 	if version == true {
