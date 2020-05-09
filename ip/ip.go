@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	DefaultDialTimeout           = 10 * time.Second
-	DefaultReadTimeout           = 30 * time.Second
-	DefaultPort           int    = 15740
-	DefaultIpAddress      string = "192.168.0.1"
-	InitiatorFriendlyName string = "Golang PTP/IP client"
+	DefaultDialTimeout    = 10 * time.Second
+	DefaultReadTimeout    = 30 * time.Second
+	DefaultPort           = 15740
+	DefaultIpAddress      = "192.168.0.1"
+	InitiatorFriendlyName = "Golang PTP/IP client"
 )
 
 var (
