@@ -44,6 +44,7 @@ func main() {
 	err = c.Dial()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)
+		os.Exit(2)
 	}
 
 	if server == true {
