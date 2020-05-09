@@ -162,12 +162,12 @@ func GetDeviceInfo() DeviceInfo {
 // Device_Busy.
 // The SessionID and TransactionID fields of the operation dataset should both be set to 0x00000000 for this operation.
 func OpenSession() {
-
+	panic("Not implemented yet!")
 }
 
 // Closes the session. Causes device to perform any session-specific cleanup.
 func CloseSession() {
-
+	panic("Not implemented yet!")
 }
 
 // This operation returns a list of the currently valid StorageIDs. This array shall contain one StorageID for each
@@ -246,13 +246,13 @@ func GetObjectInfo() ObjectInfo {
 // being sent is removed during the object transfer, the Incomplete_Transfer response should be used, along with the
 // Store_Removed event.
 func GetObject(handle ObjectHandle) {
-
+	panic("Not implemented yet!")
 }
 
 // Retrieves the thumbnail from the device that is associated with the ObjectHandle that is indicated in the first
 // parameter.
 func GetThumb(handle ObjectHandle) {
-
+	panic("Not implemented yet!")
 }
 
 // Deletes the data object specified by the ObjectHandle from the device if it is not protected. If the ObjectHandle
@@ -274,7 +274,7 @@ func GetThumb(handle ObjectHandle) {
 // association are to be deleted, then individual DeleteObject operations should be issued on each object or
 // sub-association individually.
 func DeleteObject(handle ObjectHandle) {
-
+	panic("Not implemented yet!")
 }
 
 // This operation is used as the first operation when the Initiator wishes to send an object to the Responder. This
@@ -328,7 +328,7 @@ func DeleteObject(handle ObjectHandle) {
 // ObjectHandle in the third response parameter for the ParentObject that is returned in the SendObjectInfo response as
 // the second operation parameter for a child's SendObjectInfo operation.
 func SendObjectInfo(info ObjectInfo) {
-
+	panic("Not implemented yet!")
 }
 
 // This operation is used as the second operation when the Initiator wishes to send an object to the Responder,
@@ -344,7 +344,7 @@ func SendObjectInfo(info ObjectInfo) {
 // the session. If the destination store is removed during object transmission, the Incomplete_Transfer response should
 // be issued along with the StoreRemoved event.
 func SendObject() {
-
+	panic("Not implemented yet!")
 }
 
 // Causes the device to initiate the capture of one or more new data objects according to its current device properties,
@@ -402,7 +402,7 @@ func SendObject() {
 //    ->    GetObjectInfo Operation(n)       ->
 //    <-    ObjectInfo Dataset/Response(n)   <-
 func InitiateCapture() {
-
+	panic("Not implemented yet!")
 }
 
 // Formats the media specified by the StorageID. The second parameter is optional and may be used to indicate the format
@@ -411,7 +411,7 @@ func InitiateCapture() {
 // objects to the store, or is otherwise unable to format due to concurrent access, the Device_Busy operation should be
 // returned.
 func FormatStore() {
-
+	panic("Not implemented yet!")
 }
 
 // Resets the device to its device-dependent default state. This does not include resetting any device properties, which
@@ -420,25 +420,25 @@ func FormatStore() {
 // supporting the DeviceReset event, which should be sent to all open sessions excluding the one within which the
 // ResetDevice operation was initiated prior to closing the sessions.
 func ResetDevice() {
-
+	panic("Not implemented yet!")
 }
 
 // Causes the device to initiate a device-dependent self-test. The first parameter is used to indicate the type of
 // self-test that should be performed.
 func SelfTest(testType SelfTestType) {
-
+	panic("Not implemented yet!")
 }
 
 // Sets the write-protection status for the data object referred to in the first parameter to the value indicated in the
 // second parameter. If the ProtectionStatus field does not hold a legal value, the ResponseCode should be
 // Invalid_Parameter.
 func SetObjectProtection(handle ObjectHandle, status ProtectionStatus) {
-
+	panic("Not implemented yet!")
 }
 
 // Causes the device to power down. This will cause all currently open sessions to close.
 func PowerDown() {
-
+	panic("Not implemented yet!")
 }
 
 // Returns the appropriate Property Describing Dataset as indicated by the first parameter.
@@ -451,7 +451,7 @@ func GetDevicePropDesc(code DevicePropCode) DevicePropDesc {
 // value of a property can also be retrieved directly from the DevicePropDesc, so this operation is not typically
 // required unless a DevicePropChanged event occurs.
 func GetDevicePropValue(code DevicePropCode) {
-
+	panic("Not implemented yet!")
 }
 
 // Sets the current value of the device property indicated by parameter 1 to the value indicated in the data phase of
@@ -460,13 +460,13 @@ func GetDevicePropValue(code DevicePropCode) {
 // Access_Denied should be returned. If the value is not allowed by the device, Invalid_DeviceProp_Value should be
 // returned. If the format or size of the property value is incorrect, Invalid_DeviceProp_Format should be returned.
 func SetDevicePropValue(code DevicePropCode) {
-
+	panic("Not implemented yet!")
 }
 
 // Sets the value of the indicated device property to the factory default setting. The first parameter may be set to
 // 0xFFFFFFFF to indicate that all properties should be reset to their factory default settings.
 func ResetDevicePropValue() {
-
+	panic("Not implemented yet!")
 }
 
 // This operation is used after an InitiateOpenCapture operation for situations where the capture operation length is
@@ -479,7 +479,7 @@ func ResetDevicePropValue() {
 // TransactionID parameter does not refer to transaction that was an InitiateOpenCapture, this operation should return
 // Invalid_TransactionID.
 func TerminateOpenCapture(id TransactionID) {
-
+	panic("Not implemented yet!")
 }
 
 // This operation causes the object to be moved from its location within the hierarchy to a new location indicated by
@@ -488,7 +488,7 @@ func TerminateOpenCapture(id TransactionID) {
 // should be returned. If a store is read-only (with or without deletion) the response Store_Read_Only should be
 // returned. This operation does not cause the ObjectHandle of the object that is being moved to change.
 func MoveObject(handle ObjectHandle, id StorageID, newParent ObjectHandle) {
-
+	panic("Not implemented yet!")
 }
 
 // This operation causes the object to be replicated within the Responder. The first parameter refers to the
@@ -496,7 +496,7 @@ func MoveObject(handle ObjectHandle, id StorageID, newParent ObjectHandle) {
 // copied object should be placed. The third parameter refers to the ParentObject of where the newly replicated copy
 // should be placed. If the object is to be copied into the root of the store, this value should be set to 0x00000000.
 func CopyObject(handle ObjectHandle, id StorageID, newParent ObjectHandle) {
-
+	panic("Not implemented yet!")
 }
 
 // Retrieves a partial object from the device. This operation is optional, and may be used in place of the GetObject
@@ -511,7 +511,7 @@ func CopyObject(handle ObjectHandle, id StorageID, newParent ObjectHandle) {
 // desired is from the offset to the end, the third parameter may be set to 0xFFFFFFFF. The first response parameter
 // should contain the actual number of bytes of the object sent, not including any wrappers or overhead structures.
 func GetPartialObject(handle ObjectHandle, offset int, end int) {
-
+	panic("Not implemented yet!")
 }
 
 // Causes the device to initiate the capture of one or more new data objects according to its current device properties,
@@ -576,5 +576,5 @@ func GetPartialObject(handle ObjectHandle, offset int, end int) {
 //    ->    GetObjectInfo Operation(n)       ->
 //    <-    ObjectInfo Dataset/Response(n)   <-
 func InitiateOpenCapture(id StorageID, format ObjectFormatCode) {
-
+	panic("Not implemented yet!")
 }
