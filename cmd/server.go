@@ -23,6 +23,7 @@ func launchServer() {
 		return
 	}
 	log.Printf("%s listening on %s...", lmp, sock.Addr().String())
+	log.Printf("%s awaiting messages... (CTRL+C to quit)", lmp)
 
 	for {
 		conn, err := sock.Accept()
