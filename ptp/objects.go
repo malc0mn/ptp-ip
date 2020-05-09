@@ -4,7 +4,11 @@ import "time"
 
 type AssociationDesc uint16
 type AssociationType uint16
+
+// The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
+// standard or vendor-extended: 0011 = standard, 1011 = vendor-extended.
 type ObjectFormatCode uint16
+
 type ObjectHandle uint32
 
 const (

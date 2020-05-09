@@ -1,7 +1,11 @@
 package ptp
 
 type DataTypeCode uint16
+
+// The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
+// standard or vendor-extended: 0101 = standard, 1101 = vendor-extended.
 type DevicePropCode uint16
+
 type DevicePropDescCode uint16
 type DevicePropFormFlag uint16
 

@@ -1,6 +1,11 @@
 package ptp
 
+// The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
+// standard or vendor-extended: 0001 = standard, 1001 = vendor-extended.
 type OperationCode uint16
+
+// The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
+// standard or vendor-extended: 0010 = standard, 1010 = vendor-extended.
 type OperationResponseCode uint16
 
 // Each session has a SessionID that consists of one device-unique 32-bit unsigned integer (UINT32). SessionIDs are
