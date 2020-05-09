@@ -38,13 +38,15 @@ func main() {
 	c, err := ip.NewClient(host, int(port), fname, guid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)
+		os.Exit(2)
 	}
+
 	fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", c.InitiatorFriendlyName(), c.InitiatorGUIDAsString())
 	fmt.Printf("Attempting to connect to: %s\n", c.String())
 	err = c.Dial()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)
-		os.Exit(2)
+		os.Exit(3)
 	}
 
 	if server == true {
