@@ -10,7 +10,7 @@ import (
 var (
 	Version   = "0.0.0"
 	BuildTime = "unknown"
-	exe string
+	exe       string
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 	/*sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)*/
 
-	c, err := ip.NewClient(host, int(port), fname, guid)
+	c, err := ip.NewClient(host, uint16(port), fname, guid)
 	defer c.Close()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)

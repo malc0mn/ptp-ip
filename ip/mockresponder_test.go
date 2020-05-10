@@ -13,12 +13,12 @@ import (
 
 type MockedResponder struct {
 	address string
-	port int
+	port    uint16
 	handler func(net.Conn, string)
-	lmp string
+	lmp     string
 }
 
-func runResponder(address string, port int, handler func(net.Conn, string), lmp string) {
+func runResponder(address string, port uint16, handler func(net.Conn, string), lmp string) {
 	mr := &MockedResponder{
 		address: address,
 		port:    port,
@@ -29,11 +29,11 @@ func runResponder(address string, port int, handler func(net.Conn, string), lmp 
 	mr.run()
 }
 
-func newLocalOkResponder(address string, port int) {
+func newLocalOkResponder(address string, port uint16) {
 	runResponder(address, port, handleMessage, "[Mocked OK responder]")
 }
 
-func newLocalFailResponder(address string, port int)  {
+func newLocalFailResponder(address string, port uint16) {
 	runResponder(address, port, alwaysFailMessage, "[Mocked FAIL responder]")
 }
 
@@ -123,7 +123,7 @@ func handleMessage(conn net.Conn, lmp string) {
 	}
 }
 
-func alwaysFailMessage(conn net.Conn, lmp string)  {
+func alwaysFailMessage(conn net.Conn, lmp string) {
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	_, pkt := readMessage(rw, lmp)

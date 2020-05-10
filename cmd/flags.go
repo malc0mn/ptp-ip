@@ -14,16 +14,17 @@ const (
 )
 
 var (
-	host string
-	port uint16Value = ip.DefaultPort
+	host  string
+	port  = uint16Value(ip.DefaultPort)
 	fname string
-	guid string
+	guid  string
 
-	cmd string
+	cmd    string
+	config string
 
 	server bool
 	saddr  string
-	sport  uint16Value = ip.DefaultPort
+	sport  = uint16Value(ip.DefaultPort)
 
 	help    bool
 	version bool

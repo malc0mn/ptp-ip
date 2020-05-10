@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	address  = "127.0.0.1"
-	okPort   = DefaultPort
-	failPort = 25740
+	address         = "127.0.0.1"
+	okPort          = DefaultPort
+	failPort uint16 = 25740
 )
 
 func TestMain(m *testing.M) {

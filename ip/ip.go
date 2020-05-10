@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	DefaultDialTimeout    = 10 * time.Second
-	DefaultReadTimeout    = 30 * time.Second
-	DefaultPort           = 15740
-	DefaultIpAddress      = "192.168.0.1"
-	InitiatorFriendlyName = "Golang PTP/IP client"
+	DefaultDialTimeout           = 10 * time.Second
+	DefaultReadTimeout           = 30 * time.Second
+	DefaultPort           uint16 = 15740
+	DefaultIpAddress             = "192.168.0.1"
+	InitiatorFriendlyName        = "Golang PTP/IP client"
 )
 
 var (
@@ -72,7 +72,7 @@ func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 
 type Responder struct {
 	IpAddress    string
-	Port         int
+	Port         uint16
 	GUID         uuid.UUID
 	FriendlyName string
 }
@@ -85,7 +85,7 @@ func (r Responder) String() string {
 	return fmt.Sprintf("%s:%d", r.IpAddress, r.Port)
 }
 
-func NewResponder(ip string, port int) *Responder {
+func NewResponder(ip string, port uint16) *Responder {
 	return &Responder{
 		IpAddress: ip,
 		Port:      port,
@@ -426,7 +426,7 @@ func (c *Client) initStreamerConn() error {
 // Creates a new PTP/IP client.
 // Passing an empty string to friendlyName will use the default friendly name.
 // Passing an empty string as guid will generate a random V4 UUID upon initialisation.
-func NewClient(ip string, port int, friendlyName string, guid string) (*Client, error) {
+func NewClient(ip string, port uint16, friendlyName string, guid string) (*Client, error) {
 	i, err := NewInitiator(friendlyName, guid)
 	if err != nil {
 		return nil, err
