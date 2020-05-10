@@ -32,6 +32,10 @@ func main() {
 		os.Exit(0)
 	}
 
+	if config != "" {
+		panic("Config file support is not implemented yet!")
+	}
+
 	/*sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)*/
 
