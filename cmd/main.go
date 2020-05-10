@@ -36,6 +36,7 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)*/
 
 	c, err := ip.NewClient(host, int(port), fname, guid)
+	defer c.Close()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)
 		os.Exit(2)
@@ -45,7 +46,7 @@ func main() {
 	fmt.Printf("Attempting to connect to: %s\n", c.String())
 	err = c.Dial()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error connecting to responder: %s\n", err)
 		os.Exit(3)
 	}
 
