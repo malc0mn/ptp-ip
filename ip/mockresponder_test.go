@@ -152,7 +152,7 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	fmt.Errorf("%s sendPacket bytes written %d", lmp, n)
+	log.Printf("%s sendPacket bytes written %d", lmp, n)
 
 	// Send payload.
 	n, err = w.Write(pl)
@@ -163,7 +163,7 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 		return err
 	}
 
-	fmt.Errorf("%s sendPacket bytes written %d", lmp, n)
+	log.Printf("%s sendPacket bytes written %d", lmp, n)
 
 	return nil
 }
