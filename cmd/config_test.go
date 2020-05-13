@@ -1,10 +1,12 @@
 package main
 
 import (
+	"os"
+	"os/exec"
 	"testing"
 )
 
-func TestLoadconfig(t *testing.T) {
+func TestLoadconfigOk(t *testing.T) {
 	file = "testdata/test.conf"
 	loadConfig()
 
@@ -44,3 +46,34 @@ func TestLoadconfig(t *testing.T) {
 	}
 }
 
+func TestLoadConfigWrongPath(t *testing.T) {
+	if os.Getenv("CONF_FAIL") == "1" {
+		file = "does-not-exist.conf"
+		loadConfig()
+		return
+	}
+
+	want := 102
+	cmd := exec.Command(os.Args[0], "-test.run=TestLoadConfigWrongPath")
+	cmd.Env = append(os.Environ(), "CONF_FAIL=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() && e.ExitCode() != want {
+		t.Fatalf("loadConfig() ran with err %v, want exit status %d", err, want)
+	}
+}
+
+func TestLoadConfigFail(t *testing.T) {
+	if os.Getenv("CONF_FAIL") == "1" {
+		file = "testdata/test_fail.conf"
+		loadConfig()
+		return
+	}
+
+	want := 1
+	cmd := exec.Command(os.Args[0], "-test.run=TestLoadConfigFail")
+	cmd.Env = append(os.Environ(), "CONF_FAIL=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() && e.ExitCode() != want {
+		t.Fatalf("loadConfig() ran with err %v, want exit status %d", err, want)
+	}
+}

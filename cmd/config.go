@@ -31,7 +31,7 @@ func loadConfig() {
 	f, err := ini.Load(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening config file - %s\n", err)
-		os.Exit(2)
+		os.Exit(102)
 	}
 
 	// Initiator

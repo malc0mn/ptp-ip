@@ -42,7 +42,7 @@ func main() {
 	cl, err := ip.NewClient(conf.host, uint16(conf.port), conf.fname, conf.guid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client - %s\n", err)
-		os.Exit(4)
+		os.Exit(104)
 	}
 	defer cl.Close()
 
@@ -51,7 +51,7 @@ func main() {
 	err = cl.Dial()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error connecting to responder - %s\n", err)
-		os.Exit(5)
+		os.Exit(105)
 	}
 
 	if server == true {
