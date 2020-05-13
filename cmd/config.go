@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/malc0mn/ptp-ip/ip"

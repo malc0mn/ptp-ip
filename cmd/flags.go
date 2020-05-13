@@ -58,13 +58,13 @@ func initFlags() {
 	flag.BoolVar(&version, "v", false, "Display version info.")
 
 	// Set a custom usage function.
-	flag.Usage = usage
+	flag.Usage = printUsage
 
 	flag.Parse()
 }
 
 // TODO: customise.
-func usage() {
+func printUsage() {
 	fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", exe)
 	flag.PrintDefaults()
 }
