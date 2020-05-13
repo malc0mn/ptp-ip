@@ -16,8 +16,6 @@ var (
 func main() {
 	exe = filepath.Base(os.Args[0])
 
-	initFlags()
-
 	if noArgs := len(os.Args) < 2; noArgs || help == true {
 		usage()
 		exit := 0
@@ -27,31 +25,33 @@ func main() {
 		os.Exit(exit)
 	}
 
+	initFlags()
+
 	if version == true {
 		fmt.Printf("%s version %s built on %s\n", exe, Version, BuildTime)
 		os.Exit(0)
 	}
 
-	if config != "" {
-		panic("Config file support is not implemented yet!")
+	if file != "" {
+		loadConfig()
 	}
 
 	/*sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)*/
 
-	c, err := ip.NewClient(host, uint16(port), fname, guid)
-	defer c.Close()
+	cl, err := ip.NewClient(conf.host, uint16(conf.port), conf.fname, conf.guid)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client: %s\n", err)
-		os.Exit(2)
+		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client - %s\n", err)
+		os.Exit(4)
 	}
+	defer cl.Close()
 
-	fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", c.InitiatorFriendlyName(), c.InitiatorGUIDAsString())
-	fmt.Printf("Attempting to connect to: %s\n", c.String())
-	err = c.Dial()
+	fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", cl.InitiatorFriendlyName(), cl.InitiatorGUIDAsString())
+	fmt.Printf("Attempting to connect to %s\n", cl.String())
+	err = cl.Dial()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error connecting to responder: %s\n", err)
-		os.Exit(3)
+		fmt.Fprintf(os.Stderr, "Error connecting to responder - %s\n", err)
+		os.Exit(5)
 	}
 
 	if server == true {

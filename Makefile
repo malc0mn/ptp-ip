@@ -1,5 +1,5 @@
 SOURCEDIR=cmd
-SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
+SOURCES := ${SOURCEDIR}/*.go
 BINARY=ptpip
 VERSION := $(shell git describe --tags)
 BUILD_TIME := $(shell date +%FT%T%z)

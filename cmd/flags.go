@@ -9,22 +9,16 @@ import (
 )
 
 const (
-	binary    = "ptpip"
 	defaultIp = "127.0.0.1"
 )
 
 var (
-	host  string
-	port  = uint16Value(ip.DefaultPort)
-	fname string
-	guid  string
+	valueOutOfRange = errors.New("value out of range")
 
-	cmd    string
-	config string
+	cmd  string
+	file string
 
 	server bool
-	saddr  string
-	sport  = uint16Value(ip.DefaultPort)
 
 	help    bool
 	version bool
@@ -35,8 +29,8 @@ type uint16Value uint64
 
 func (i *uint16Value) Set(s string) error {
 	v, err := strconv.ParseUint(s, 0, 16)
-	if err != nil {
-		err = errors.New("value out of range")
+	if err != nil || v == 0 {
+		err = valueOutOfRange
 	}
 	*i = uint16Value(v)
 
@@ -48,17 +42,17 @@ func (i *uint16Value) String() string {
 }
 
 func initFlags() {
-	flag.StringVar(&host, "h", ip.DefaultIpAddress, "The responder host to connect to.")
-	flag.Var(&port, "p", "The responder port to connect to.")
-	flag.StringVar(&fname, "n", "", "A custom friendly name to use for the initiator.")
-	flag.StringVar(&guid, "g", "", "A custom GUID to use for the initiator. (default random)")
+	flag.StringVar(&conf.host, "h", ip.DefaultIpAddress, "The responder host to connect to.")
+	flag.Var(&conf.port, "p", "The responder port to connect to.")
+	flag.StringVar(&conf.fname, "n", "", "A custom friendly name to use for the initiator.")
+	flag.StringVar(&conf.guid, "g", "", "A custom GUID to use for the initiator. (default random)")
 
 	flag.StringVar(&cmd, "c", "", "The command to send to the responder.")
-	flag.StringVar(&config, "f", "", "Read all settings from a config file.")
+	flag.StringVar(&file, "f", "", "Read all settings from a config file.")
 
 	flag.BoolVar(&server, "s", false, fmt.Sprintf("This will run the %s command as a server", exe))
-	flag.StringVar(&saddr, "sa", defaultIp, "To be used in combination with '-s': this defines the server address to listen on.")
-	flag.Var(&sport, "sp", "To be used in combination with '-s': this defines the server port to listen on.")
+	flag.StringVar(&conf.saddr, "sa", defaultIp, "To be used in combination with '-s': this defines the server address to listen on.")
+	flag.Var(&conf.sport, "sp", "To be used in combination with '-s': this defines the server port to listen on.")
 
 	flag.BoolVar(&help, "?", false, "Display usage information.")
 	flag.BoolVar(&version, "v", false, "Display version info.")

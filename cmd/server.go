@@ -7,8 +7,8 @@ import (
 )
 
 func validateAddress() {
-	if ip := net.ParseIP(saddr); ip == nil {
-		log.Fatalf("Invalid IP address '%s'", saddr)
+	if ip := net.ParseIP(conf.saddr); ip == nil {
+		log.Fatalf("Invalid IP address '%s'", conf.saddr)
 	}
 }
 
@@ -16,7 +16,7 @@ func launchServer() {
 	validateAddress()
 
 	lmp := "[Local server]"
-	sock, err := net.Listen("tcp", net.JoinHostPort(saddr, sport.String()))
+	sock, err := net.Listen("tcp", net.JoinHostPort(conf.saddr, conf.sport.String()))
 	defer sock.Close()
 	if err != nil {
 		log.Printf("%s error %s...", lmp, err)
