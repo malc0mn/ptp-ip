@@ -1,6 +1,7 @@
 The Picture Transfer Protocol (PTP) ISO-15740
 The PTP over IP protocol (PTP-IP) DC-X005-2005
 
+## CLI command
 ### Config file
 The config file is in the classic INI file format.
 ```ini
@@ -23,17 +24,24 @@ address = "127.0.0.1"
 port = 15740
 ```
 
+### Exit codes
+Depending on the error, the exit code of the `ptpip` command will differ:
+1. Unspecified: `1`
+2. Error opening config file: `102`
+3. Error creating client: `104`
+4. Error connecting to responder: `105`
+
+## Library
 ### Usage examples
 Start by creating a new PTP IP client:
 ```go
 package main
 
 import(
-    "github.com/google/uuid"
     "github.com/malc0mn/ptp-ip/ip"
 )
 
-c := NewClient("192.168.0.1", ip.DefaultPort, "MyClient", uuid.Nil)
+c := NewClient("192.168.0.1", ip.DefaultPort, "MyClient", "")
 ```
 
 ### Credits
