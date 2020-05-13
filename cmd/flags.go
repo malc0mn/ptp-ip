@@ -48,7 +48,7 @@ func initFlags() {
 	flag.StringVar(&conf.guid, "g", "", "A custom GUID to use for the initiator. (default random)")
 
 	flag.StringVar(&cmd, "c", "", "The command to send to the responder.")
-	flag.StringVar(&file, "f", "", "Read all settings from a config file.")
+	flag.StringVar(&file, "f", "", "Read all settings from a config file. The config file will override any command line flags present.")
 
 	flag.BoolVar(&server, "s", false, fmt.Sprintf("This will run the %s command as a server", exe))
 	flag.StringVar(&conf.saddr, "sa", defaultIp, "To be used in combination with '-s': this defines the server address to listen on.")
