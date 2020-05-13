@@ -16,6 +16,8 @@ var (
 func main() {
 	exe = filepath.Base(os.Args[0])
 
+	initFlags()
+
 	if noArgs := len(os.Args) < 2; noArgs || help == true {
 		usage()
 		exit := 0
@@ -24,8 +26,6 @@ func main() {
 		}
 		os.Exit(exit)
 	}
-
-	initFlags()
 
 	if version == true {
 		fmt.Printf("%s version %s built on %s\n", exe, Version, BuildTime)
