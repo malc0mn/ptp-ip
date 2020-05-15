@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"net"
 	"reflect"
@@ -14,11 +15,18 @@ import (
 func marshal(s interface{}, bo binary.ByteOrder) []byte {
 	var b bytes.Buffer
 
+	_, hasSession := s.(ptp.Session)
+
 	// binary.Write() can only cope with fixed length values so we'll need to handle anything else ourselves.
-	if binary.Size(s) < 0 {
+	// When a packet has a SessionID, we must skip sending it in the PTP/IP protocol.
+	if binary.Size(s) < 0 || hasSession {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
 		for i := 0; i < v.NumField(); i++ {
+			if v.Type().Field(i).Name == "SessionID" {
+				continue
+			}
+
 			f := v.Field(i)
 			switch f.Kind() {
 			case reflect.String:
