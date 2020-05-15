@@ -120,3 +120,7 @@ type Event struct {
 	Parameter2 interface{}
 	Parameter3 interface{}
 }
+
+func (e *Event) Session() SessionID {
+	return e.SessionID
+}

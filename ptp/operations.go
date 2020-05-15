@@ -23,6 +23,10 @@ type SessionID uint32
 // their describing datasets, and aid in debugging.
 type TransactionID uint32
 
+type Session interface {
+	Session() SessionID
+}
+
 const (
 	OC_Undefinded           OperationCode = 0x1000
 	OC_GetDeviceInfo        OperationCode = 0x1001
@@ -116,6 +120,10 @@ type OperationRequest struct {
 	Parameter5 interface{}
 }
 
+func (oreq *OperationRequest) Session() SessionID {
+	return oreq.SessionID
+}
+
 // The response phase consists of the ip-specific transmission of a 30-byte response dataset from the Responder
 // to the Initiator.
 type OperationResponse struct {
@@ -141,6 +149,10 @@ type OperationResponse struct {
 	Parameter3 interface{}
 	Parameter4 interface{}
 	Parameter5 interface{}
+}
+
+func (ores *OperationResponse) Session() SessionID {
+	return ores.SessionID
 }
 
 // This operation returns information and capabilities about the Responder device by returning a DeviceInfo dataset.
