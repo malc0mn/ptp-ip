@@ -137,6 +137,8 @@ func alwaysFailMessage(conn net.Conn, lmp string) {
 }
 
 func sendPacket(w io.Writer, p Packet, lmp string) error {
+	log.Printf("%s sendPacket %T", lmp, p)
+
 	pl := internal.MarshalLittleEndian(p)
 	pll := len(pl)
 
@@ -152,10 +154,11 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	log.Printf("%s sendPacket bytes written %d", lmp, n)
+	log.Printf("%s sendPacket header bytes written %d", lmp, n)
 
 	// Send payload.
 	if pll == 0 {
+		log.Printf("%s packet has no payload", lmp)
 		return nil
 	}
 
@@ -167,7 +170,7 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 
-	log.Printf("%s sendPacket bytes written %d", lmp, n)
+	log.Printf("%s sendPacket payload bytes written %d", lmp, n)
 
 	return nil
 }

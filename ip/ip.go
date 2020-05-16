@@ -245,6 +245,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 
 	// Send payload.
 	if pll == 0 {
+		internal.LogDebug(errors.New("[sendPacket] packet has no payload"))
 		return nil
 	}
 
