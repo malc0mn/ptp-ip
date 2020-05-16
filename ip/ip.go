@@ -225,6 +225,8 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 }
 
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
+	internal.LogDebug(fmt.Errorf("[sendPacket] sending %T", p))
+
 	pl := p.Payload()
 	pll := len(pl)
 
@@ -253,7 +255,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
-	internal.LogDebug(fmt.Errorf("[sendPacket] %T payload bytes written %d", p, n))
+	internal.LogDebug(fmt.Errorf("[sendPacket] payload bytes written %d", n))
 
 	return nil
 }
