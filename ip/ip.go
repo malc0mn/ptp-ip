@@ -358,6 +358,12 @@ func (c *Client) initCommandDataConn() error {
 		return err
 	}
 
+	err = c.commandDataConn.(*net.TCPConn).SetKeepAlive(true)
+	if err != nil {
+		internal.LogError(fmt.Errorf("TCP keepalive not enabled for command/data connection: %s", err))
+		return err
+	}
+
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 	err = c.SendPacketToCmdDataConn(icrp)
 	if err != nil {
@@ -388,6 +394,12 @@ func (c *Client) initEventConn() error {
 
 	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
 	if err != nil {
+		return err
+	}
+
+	err = c.eventConn.(*net.TCPConn).SetKeepAlive(true)
+	if err != nil {
+		internal.LogError(fmt.Errorf("TCP keepalive not enabled for event connection: %s", err))
 		return err
 	}
 
@@ -423,6 +435,11 @@ func (c *Client) initStreamerConn() error {
 	c.streamConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
 	if err != nil {
 		return err
+	}
+
+	err = c.streamConn.(*net.TCPConn).SetKeepAlive(true)
+	if err != nil {
+		internal.LogError(fmt.Errorf("TCP keepalive not enabled foor streamer connection: %s", err))
 	}
 
 	return nil
