@@ -473,7 +473,7 @@ func (c *Client) GetDeviceInfo() (*OperationResponsePacket, error) {
 		return nil, err
 	}
 
-	res, err := c.WaitForPacketFromEventConn()
+	res, err := c.WaitForPacketFromCmdDataConn()
 	if err != nil {
 		return nil, err
 	}
