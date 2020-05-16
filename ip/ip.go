@@ -439,7 +439,7 @@ func (c *Client) initStreamerConn() error {
 
 	err = c.streamConn.(*net.TCPConn).SetKeepAlive(true)
 	if err != nil {
-		internal.LogError(fmt.Errorf("TCP keepalive not enabled foor streamer connection: %s", err))
+		internal.LogError(fmt.Errorf("TCP keepalive not enabled for streamer connection: %s", err))
 	}
 
 	return nil
