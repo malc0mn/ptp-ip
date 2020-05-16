@@ -16,8 +16,19 @@ type ProtocolVersion uint32
 const (
 	HeaderSize int = 8
 
+	// Data-In is data being transferred from the Responder to the Initiator.
 	DP_NoDataOrDataIn DataPhase = 0x00000001
+	// Data-Out is data being transferred from the Initiator to the Responder.
 	DP_DataOut        DataPhase = 0x00000002
+	// The use of the "Unknown Data Phase" value in the Operation Request Packet may significantly complicate the
+	// implementation of the protocol. When a packet with such value is issued by the Initiator neither side of the
+	// communication "knows" what type of packet to expect next, and, more importantly, in what direction. The knowledge
+	// may be available at higher levels of the communication stack (PTP or application) or may not be available at all
+	// until the next packet arrives for transmission at a later time. The latter is an important case of a "bridge" or
+	// "repeater" type of application that translates PTP communication between USB and PTP-IP channels. In case of
+	// implementations for devices with limited processing capabilities it may not always be possible to fully support
+	// this feature. In those cases, if the Responder cannot handle the "Unknown Data Phase" value properly, it is
+	// recommended that it closes the connection upon receipt of such packets.
 	DP_Unknown        DataPhase = 0x00000003
 
 	FR_FailRejectedInitiator FailReason = 0x00000001
