@@ -3,6 +3,7 @@ package ip
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"testing"
 )
 
@@ -147,5 +148,19 @@ func TestNewPacketInFromPacketTypeFail(t *testing.T) {
 		if got != nil {
 			t.Errorf("NewPacketInFromPacketType() got = %T; want <nil>", got)
 		}
+	}
+}
+
+func TestOperationRequestPacket_Payload(t *testing.T) {
+	oreq := &OperationRequestPacket{
+		DataPhaseInfo:    DP_NoDataOrDataIn,
+		OperationRequest: ptp.GetDeviceInfo(),
+	}
+
+	pl := oreq.Payload()
+	got := fmt.Sprintf("%.8b", pl)
+	want := "[00000001 00000000 00000000 00000000 00000001 00010000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000]"
+	if got != want {
+		t.Errorf("payload() buffer = %s; want %s", got, want)
 	}
 }

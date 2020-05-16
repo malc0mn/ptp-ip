@@ -12,44 +12,43 @@ import (
 	"unicode/utf8"
 )
 
-func marshal(s interface{}, bo binary.ByteOrder) []byte {
-	var b bytes.Buffer
-
-	_, hasSession := s.(ptp.Session)
-
+func marshal(s interface{}, bo binary.ByteOrder, b *bytes.Buffer) {
 	// binary.Write() can only cope with fixed length values so we'll need to handle anything else ourselves.
-	// When a packet has a SessionID, we must skip sending it in the PTP/IP protocol.
-	if binary.Size(s) < 0 || hasSession {
+	if _, hasSession := s.(ptp.Session); binary.Size(s) < 0 || hasSession {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
 		for i := 0; i < v.NumField(); i++ {
+			// When a data set has a SessionID, we must skip sending it according to the PTP/IP protocol.
 			if v.Type().Field(i).Name == "SessionID" {
 				continue
 			}
 
 			f := v.Field(i)
 			switch f.Kind() {
+			case reflect.Struct:
+				marshal(f.Addr().Interface(), bo, b)
 			case reflect.String:
 				// Add one to account for the null char.
 				l := utf8.RuneCountInString(f.String()) + 1
 				r := make([]byte, l)
 				// Convert string to runes.
 				copy(r, f.String())
-				binary.Write(&b, bo, r)
+				binary.Write(b, bo, r)
 			default:
-				binary.Write(&b, bo, f.Addr().Interface())
+				binary.Write(b, bo, f.Addr().Interface())
 			}
 		}
 	} else {
-		binary.Write(&b, bo, s)
+		binary.Write(b, bo, s)
 	}
-
-	return b.Bytes()
 }
 
 // Marshal data to a byte array, Little Endian formant, for transport.
 func MarshalLittleEndian(s interface{}) []byte {
-	return marshal(s, binary.LittleEndian)
+	var b bytes.Buffer
+	marshal(s, binary.LittleEndian, &b)
+
+	return b.Bytes()
 }
 
 func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
