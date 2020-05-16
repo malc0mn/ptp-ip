@@ -202,7 +202,7 @@ func (ifp *InitFailPacket) ReasonAsError() error {
 	return errors.New(msg)
 }
 
-// This packet is used to ip PTP operation requests. PTP-IP Operation Request Packets are issued by the Initiator
+// This packet is used to transport operation requests. PTP-IP Operation Request Packets are issued by the Initiator
 // and are transported to the Responder device via the PTP-IP Command/Data ip channel. The direction of this
 // packet is from Initiator to Responder.
 // If the DataPhaseInfo field is set to DP_DataOut, then this packet MUST be followed by a StartDataPacket.
@@ -225,7 +225,7 @@ func (orp *OperationRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(orp)
 }
 
-// This packet is used to ip Operation Responses by the Responder and are transported to the Initiator via the
+// This packet is used to transport Operation Responses by the Responder and are transported to the Initiator via the
 // Command/Data TCP connection. PTP-IP Operation Response Packets are only issued by the Responder to indicate that the
 // requested operation transaction has been completed and to pass the operation result.
 type OperationResponsePacket struct {
