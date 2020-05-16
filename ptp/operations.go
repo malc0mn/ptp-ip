@@ -113,11 +113,11 @@ type OperationRequest struct {
 	// interpretation of any parameter is dependent upon the OperationCode. Any unused parameter fields should be set to
 	// 0x00000000. If a parameter holds a value that is less than 32 bits, the lowest significant bits shall be used to
 	// store the value, with the most significant bits being set to zeros.
-	Parameter1 interface{}
-	Parameter2 interface{}
-	Parameter3 interface{}
-	Parameter4 interface{}
-	Parameter5 interface{}
+	Parameter1 uint32
+	Parameter2 uint32
+	Parameter3 uint32
+	Parameter4 uint32
+	Parameter5 uint32
 }
 
 func (oreq *OperationRequest) Session() SessionID {
@@ -144,11 +144,11 @@ type OperationResponse struct {
 	// been generated, and secondarily may be a function of the particular ResponseCode itself. Any unused parameter
 	// fields should be set to 0x00000000. If a parameter holds a value that is less than 32 bits, the lowest
 	// significant bits shall be used to store the value, with the most significant bits being set to zeros.
-	Parameter1 interface{}
-	Parameter2 interface{}
-	Parameter3 interface{}
-	Parameter4 interface{}
-	Parameter5 interface{}
+	Parameter1 uint32
+	Parameter2 uint32
+	Parameter3 uint32
+	Parameter4 uint32
+	Parameter5 uint32
 }
 
 func (ores *OperationResponse) Session() SessionID {
@@ -178,7 +178,7 @@ func GetDeviceInfo() OperationRequest {
 func OpenSession(sid SessionID) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_OpenSession,
-		Parameter1:    sid,
+		Parameter1:    uint32(sid),
 	}
 }
 
@@ -202,7 +202,7 @@ func GetStorageIDs() OperationRequest {
 func GetStorageInfo(sid StorageID) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetStorageInfo,
-		Parameter1:    sid,
+		Parameter1:    uint32(sid),
 	}
 }
 
@@ -230,9 +230,9 @@ func GetStorageInfo(sid StorageID) OperationRequest {
 func GetNumObjects(sid StorageID, code ObjectFormatCode, handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetNumObjects,
-		Parameter1:    sid,
-		Parameter2:    code,
-		Parameter3:    handle,
+		Parameter1:    uint32(sid),
+		Parameter2:    uint32(code),
+		Parameter3:    uint32(handle),
 	}
 }
 
@@ -258,9 +258,9 @@ func GetNumObjects(sid StorageID, code ObjectFormatCode, handle ObjectHandle) Op
 func GetObjectHandles(sid StorageID, code ObjectFormatCode, handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetObjectHandles,
-		Parameter1:    sid,
-		Parameter2:    code,
-		Parameter3:    handle,
+		Parameter1:    uint32(sid),
+		Parameter2:    uint32(code),
+		Parameter3:    uint32(handle),
 	}
 }
 
@@ -272,7 +272,7 @@ func GetObjectHandles(sid StorageID, code ObjectFormatCode, handle ObjectHandle)
 func GetObjectInfo(handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetObjectInfo,
-		Parameter1:    handle,
+		Parameter1:    uint32(handle),
 	}
 }
 
@@ -285,7 +285,7 @@ func GetObjectInfo(handle ObjectHandle) OperationRequest {
 func GetObject(handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetObject,
-		Parameter1:    handle,
+		Parameter1:    uint32(handle),
 	}
 }
 
@@ -294,7 +294,7 @@ func GetObject(handle ObjectHandle) OperationRequest {
 func GetThumb(handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetThumb,
-		Parameter1:    handle,
+		Parameter1:    uint32(handle),
 	}
 }
 
@@ -319,8 +319,8 @@ func GetThumb(handle ObjectHandle) OperationRequest {
 func DeleteObject(handle ObjectHandle, code ObjectFormatCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_DeleteObject,
-		Parameter1:    handle,
-		Parameter2:    code,
+		Parameter1:    uint32(handle),
+		Parameter2:    uint32(code),
 	}
 }
 
@@ -377,8 +377,8 @@ func DeleteObject(handle ObjectHandle, code ObjectFormatCode) OperationRequest {
 func SendObjectInfo(dest StorageID, parent ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_SendObjectInfo,
-		Parameter1:    dest,
-		Parameter2:    parent,
+		Parameter1:    uint32(dest),
+		Parameter2:    uint32(parent),
 	}
 }
 
@@ -457,8 +457,8 @@ func SendObject() OperationRequest {
 func InitiateCapture(dest StorageID, code ObjectFormatCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_InitiateCapture,
-		Parameter1:    dest,
-		Parameter2:    code,
+		Parameter1:    uint32(dest),
+		Parameter2:    uint32(code),
 	}
 }
 
@@ -470,8 +470,8 @@ func InitiateCapture(dest StorageID, code ObjectFormatCode) OperationRequest {
 func FormatStore(dest StorageID, fst FilesystemType) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_FormatStore,
-		Parameter1:    dest,
-		Parameter2:    fst,
+		Parameter1:    uint32(dest),
+		Parameter2:    uint32(fst),
 	}
 }
 
@@ -491,7 +491,7 @@ func ResetDevice() OperationRequest {
 func SelfTest(testType SelfTestType) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_SelfTest,
-		Parameter1:    testType,
+		Parameter1:    uint32(testType),
 	}
 }
 
@@ -501,8 +501,8 @@ func SelfTest(testType SelfTestType) OperationRequest {
 func SetObjectProtection(handle ObjectHandle, status ProtectionStatus) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_SetObjectProtection,
-		Parameter1:    handle,
-		Parameter2:    status,
+		Parameter1:    uint32(handle),
+		Parameter2:    uint32(status),
 	}
 }
 
@@ -517,7 +517,7 @@ func PowerDown() OperationRequest {
 func GetDevicePropDesc(code DevicePropCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetDevicePropDesc,
-		Parameter1:    code,
+		Parameter1:    uint32(code),
 	}
 }
 
@@ -528,7 +528,7 @@ func GetDevicePropDesc(code DevicePropCode) OperationRequest {
 func GetDevicePropValue(code DevicePropCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetDevicePropValue,
-		Parameter1:    code,
+		Parameter1:    uint32(code),
 	}
 }
 
@@ -540,7 +540,7 @@ func GetDevicePropValue(code DevicePropCode) OperationRequest {
 func SetDevicePropValue(code DevicePropCode, value interface{}) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_SetDevicePropValue,
-		Parameter1:    code,
+		Parameter1:    uint32(code),
 	}
 }
 
@@ -549,7 +549,7 @@ func SetDevicePropValue(code DevicePropCode, value interface{}) OperationRequest
 func ResetDevicePropValue(code DevicePropCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_ResetDevicePropValue,
-		Parameter1:    code,
+		Parameter1:    uint32(code),
 	}
 }
 
@@ -565,7 +565,7 @@ func ResetDevicePropValue(code DevicePropCode) OperationRequest {
 func TerminateOpenCapture(tid TransactionID) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_TerminateOpenCapture,
-		Parameter1:    tid,
+		Parameter1:    uint32(tid),
 	}
 }
 
@@ -577,9 +577,9 @@ func TerminateOpenCapture(tid TransactionID) OperationRequest {
 func MoveObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_MoveObject,
-		Parameter1:    handle,
-		Parameter2:    dest,
-		Parameter3:    newParent,
+		Parameter1:    uint32(handle),
+		Parameter2:    uint32(dest),
+		Parameter3:    uint32(newParent),
 	}
 }
 
@@ -590,9 +590,9 @@ func MoveObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) Ope
 func CopyObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_CopyObject,
-		Parameter1:    handle,
-		Parameter2:    dest,
-		Parameter3:    newParent,
+		Parameter1:    uint32(handle),
+		Parameter2:    uint32(dest),
+		Parameter3:    uint32(newParent),
 	}
 }
 
@@ -607,10 +607,10 @@ func CopyObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) Ope
 // and the number of bytes to obtain starting from the offset, respectively. If the portion of the object that is
 // desired is from the offset to the end, the third parameter may be set to 0xFFFFFFFF. The first response parameter
 // should contain the actual number of bytes of the object sent, not including any wrappers or overhead structures.
-func GetPartialObject(handle ObjectHandle, offset int, maxBytes int) OperationRequest {
+func GetPartialObject(handle ObjectHandle, offset uint32, maxBytes uint32) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetPartialObject,
-		Parameter1:    handle,
+		Parameter1:    uint32(handle),
 		Parameter2:    offset,
 		Parameter3:    maxBytes,
 	}
@@ -680,7 +680,7 @@ func GetPartialObject(handle ObjectHandle, offset int, maxBytes int) OperationRe
 func InitiateOpenCapture(sid StorageID, format ObjectFormatCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_InitiateOpenCapture,
-		Parameter1:    sid,
-		Parameter2:    format,
+		Parameter1:    uint32(sid),
+		Parameter2:    uint32(format),
 	}
 }
