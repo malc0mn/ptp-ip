@@ -461,3 +461,29 @@ func NewClient(ip string, port uint16, friendlyName string, guid string) (*Clien
 
 	return c, nil
 }
+
+// Request the Responder's device information.
+func (c *Client) GetDeviceInfo() (*OperationResponsePacket, error) {
+	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
+		DataPhaseInfo:    DP_NoDataOrDataIn,
+		OperationRequest: ptp.GetDeviceInfo(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.WaitForPacketFromEventConn()
+	if err != nil {
+		return nil, err
+	}
+
+	switch pkt := res.(type) {
+	case *OperationResponsePacket:
+		return pkt, nil
+	default:
+		err = fmt.Errorf("unexpected packet received %T", res)
+	}
+
+	return nil, err
+}

@@ -93,7 +93,8 @@ func writeMessage(rw *bufio.ReadWriter, pkt Packet, lmp string) {
 }
 
 func handleMessage(conn net.Conn, lmp string) {
-	defer conn.Close()
+	// NO defer conn.Close() here since we need to mock a real responder and thus need to keep the connections open
+	// when established.
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	h, pkt := readMessage(rw, lmp)
 	if pkt == nil {
@@ -114,6 +115,9 @@ func handleMessage(conn net.Conn, lmp string) {
 	case PKT_InitEventRequest:
 		log.Printf("%s responding to InitEventRequest", lmp)
 		res = &InitEventAckPacket{}
+	case PKT_OperationRequest:
+		log.Printf("%s responding to OperationRequest", lmp)
+		res = &OperationResponsePacket{}
 	default:
 		log.Printf("%s unknown packet type %#x", lmp, h.PacketType)
 		return
@@ -124,6 +128,7 @@ func handleMessage(conn net.Conn, lmp string) {
 }
 
 func alwaysFailMessage(conn net.Conn, lmp string) {
+	// TCP connections are closed by the Responder on failure!
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	_, pkt := readMessage(rw, lmp)
