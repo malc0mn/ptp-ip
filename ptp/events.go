@@ -109,7 +109,6 @@ type Event struct {
 
 	// If the event corresponds to a previously initiated transaction, this field shall hold the TransactionID of that
 	// operation. If the event is not specific to a particular transaction, this field shall be set to 0xFFFFFFFF.
-	// Refer to Clause 9.3.1 for a description of TransactionID.
 	TransactionID TransactionID
 
 	// These fields hold the event-specific nth parameter. Events may have at most three parameters. The interpretation

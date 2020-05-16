@@ -115,9 +115,9 @@ const (
 	// This value describes the amount of time delay that should be inserted between the capture trigger and the actual
 	// initiation of the data capture. This value shall be interpreted as milliseconds. This property is not intended to
 	// be used to describe the time between frames for single-initiation multiple captures such as burst or time-lapse,
-	// which have separate interval properties outlined in Clauses 13.4.25 and 13.4.27. In those cases it would still
-	// serve as an initial delay before the first image in the series was captured, independent of the time between
-	// frames. For no pre-capture delay, this property should be set to zero.
+	// which have separate interval properties. In those cases it would still serve as an initial delay before the first
+	// image in the series was captured, independent of the time between frames. For no pre-capture delay, this property
+	// should be set to zero.
 	DPC_CaptureDelay DevicePropCode = 0x5012
 	// This property allows for the specification of the type of still capture that is performed upon a still capture
 	// initiation.
@@ -270,7 +270,7 @@ type DeviceInfo struct {
 
 	// Provides the context for interpretation of any vendor extensions used by this device. If no extensions are
 	// supported, this field shall be set to 0x00000000. If vendor-specific codes of any type are used, this field is
-	// mandatory, and should not be set to 0x00000000. These IDs are assigned by PIMA, as described in Clause 9.5.
+	// mandatory, and should not be set to 0x00000000. These IDs are assigned by PIMA.
 	VendorExtensionID uint32
 
 	// The vendor-specific version number of extensions that are supported. This shall be expressed in hundredths (e.g.

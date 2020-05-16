@@ -105,8 +105,8 @@ type OperationRequest struct {
 	SessionID SessionID
 
 	// The identifier of this particular transaction. This value shall be a value that is unique within a particular
-	// session, and shall increment by one for each subsequent transaction. Refer to Clause 9.3.1 for a description of
-	// transaction identifiers. This field should be set to 0x00000000 for the OpenSession operation.
+	// session, and shall increment by one for each subsequent transaction. This field should be set to 0x00000000 for
+	// the OpenSession operation.
 	TransactionID TransactionID
 
 	// These fields hold the operation-specific nth parameter. Operations may have at most five parameters. The
@@ -417,11 +417,11 @@ func SendObject() OperationRequest {
 // captured is not specified as part of the InitiateCapture operation, but is determined by the state of the capturing
 // device, and may optionally be set by the Initiator using an appropriate DeviceProperty. As each of the newly captured
 // objects becomes available, the Responder is required to send an ObjectAdded event to the Initiator, indicating the
-// ObjectHandle that is assigned to each as described in Clause 12.5.2. This ObjectAdded event shall contain the
-// TransactionID of the InitiateCapture operation with which it is associated. If, at any time, the store becomes full,
-// the device shall invoke a Store_Full event, which shall contain the TransactionID of the InitiateCapture operation
-// that failed to cause a new object to be stored. In the case of multiple objects being captured, each object shall be
-// handled separately, so any object captured before the store becomes full should be retained.
+// ObjectHandle that is assigned to each. This ObjectAdded event shall contain the TransactionID of the InitiateCapture
+// operation with which it is associated. If, at any time, the store becomes full, the device shall invoke a Store_Full
+// event, which shall contain the TransactionID of the InitiateCapture operation that failed to cause a new object to be
+// stored. In the case of multiple objects being captured, each object shall be handled separately, so any object
+// captured before the store becomes full should be retained.
 // When all objects have been captured, the Responder shall send a CaptureComplete event to the Initiator. If the
 // Store_Full event was issued, the CaptureComplete event should not be issued. If another capture is occurring when
 // this operation is invoked, the Device_Busy response should be used.
@@ -463,10 +463,9 @@ func InitiateCapture(dest StorageID, code ObjectFormatCode) OperationRequest {
 }
 
 // Formats the media specified by the StorageID. The second parameter is optional and may be used to indicate the format
-// that the store should be formatted in, according to the FilesystemFormat codes described in Clause 5.5.3. If a given
-// format is not supported, the response Invalid_Parameter should be returned. If the device is currently capturing
-// objects to the store, or is otherwise unable to format due to concurrent access, the Device_Busy operation should be
-// returned.
+// that the store should be formatted in, according to the FilesystemFormat codes. If a given format is not supported,
+// the response Invalid_Parameter should be returned. If the device is currently capturing objects to the store, or is
+// otherwise unable to format due to concurrent access, the Device_Busy operation should be returned.
 func FormatStore(dest StorageID, fst FilesystemType) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_FormatStore,
@@ -555,12 +554,12 @@ func ResetDevicePropValue(code DevicePropCode) OperationRequest {
 
 // This operation is used after an InitiateOpenCapture operation for situations where the capture operation length is
 // open-ended, and determined by the Initiator. This operation is not used for trigger captures, which are invoked using
-// a separate operation, InitiateCapture, described in Clause 10.4.14. This operation allows the termination of one
-// capture operation that is being used to capture many objects over some period of time, such as a burst, or for long
-// single objects such as manually-controlled image exposures, audio captures, or video clips. The first parameter of
-// this operation indicates the TransactionID of the InitiateOpenCapture operation that is being terminated. If the
-// capture has already terminated for some other reason, this operation should return Capture_Already_Terminated. If the
-// TransactionID parameter does not refer to transaction that was an InitiateOpenCapture, this operation should return
+// a separate operation, InitiateCapture. This operation allows the termination of one capture operation that is being
+// used to capture many objects over some period of time, such as a burst, or for long single objects such as
+// manually-controlled image exposures, audio captures, or video clips. The first parameter of this operation indicates
+// the TransactionID of the InitiateOpenCapture operation that is being terminated. If the capture has already
+// terminated for some other reason, this operation should return Capture_Already_Terminated. If the TransactionID
+// parameter does not refer to transaction that was an InitiateOpenCapture, this operation should return
 // Invalid_TransactionID.
 func TerminateOpenCapture(tid TransactionID) OperationRequest {
 	return OperationRequest{
@@ -625,8 +624,8 @@ func GetPartialObject(handle ObjectHandle, offset uint32, maxBytes uint32) Opera
 // single long still exposure, a series of stills, audio capture, etc. Whether the time period controls the time of
 // capture for a single object or the number of fixed-time objects that are captured is determined by the Responder, and
 // may be a function of the ObjectFormatCode as well as any appropriate DeviceProperties.
-// A separate operation, InitiateCapture, described in Clause 10.4.14, can be used to support captures that do not
-// require the Initiator to indicate when the capture should terminate.
+// A separate operation, InitiateCapture, can be used to support captures that do not require the Initiator to indicate
+// when the capture should terminate.
 // If the ObjectFormatCode in the second operation parameter is 0x00000000, the device shall capture an image in the
 // format that is the default for the device. A successful response to an InitiateOpenCapture operation indicates the
 // Responder's acceptance of the InitiateOpenCapture operation, and not the completion status of the capture operation.
