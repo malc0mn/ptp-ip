@@ -242,6 +242,10 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	internal.LogDebug(fmt.Errorf("[sendPacket] header bytes written %d", n))
 
 	// Send payload.
+	if pll == 0 {
+		return nil
+	}
+
 	n, err = w.Write(pl)
 	if err != nil {
 		return err

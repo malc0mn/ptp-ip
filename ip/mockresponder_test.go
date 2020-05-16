@@ -155,12 +155,16 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 	log.Printf("%s sendPacket bytes written %d", lmp, n)
 
 	// Send payload.
-	n, err = w.Write(pl)
-	if n != pll {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
+	if pll == 0 {
+		return nil
 	}
+
+	n, err = w.Write(pl)
 	if err != nil {
 		return err
+	}
+	if n != pll {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 
 	log.Printf("%s sendPacket bytes written %d", lmp, n)
