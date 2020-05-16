@@ -241,14 +241,13 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
 	internal.LogDebug(fmt.Errorf("[sendPacket] header bytes written %d", n))
-
 	// Send payload.
 	n, err = w.Write(pl)
-	if n != pll {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
-	}
 	if err != nil {
 		return err
+	}
+	if n != pll {
+		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 
 	internal.LogDebug(fmt.Errorf("[sendPacket] %T payload bytes written %d", p, n))
