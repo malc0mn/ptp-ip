@@ -1,7 +1,6 @@
 package ip
 
 import (
-	"bufio"
 	"encoding/binary"
 	"fmt"
 	"github.com/google/uuid"
@@ -30,7 +29,7 @@ func runResponder(address string, port uint16, handler func(net.Conn, string), l
 }
 
 func newLocalOkResponder(address string, port uint16) {
-	runResponder(address, port, handleMessage, "[Mocked OK responder]")
+	runResponder(address, port, handleMessages, "[Mocked OK responder]")
 }
 
 func newLocalFailResponder(address string, port uint16) {
@@ -52,91 +51,97 @@ func (mr *MockedResponder) run() {
 			log.Printf("%s accept error %s...", mr.lmp, err)
 			continue
 		}
+		log.Printf("%s new connection %v...", mr.lmp, conn)
 		go mr.handler(conn, mr.lmp)
 	}
 }
 
-func readMessage(rw *bufio.ReadWriter, lmp string) (Header, PacketOut) {
+func readMessage(r io.Reader, lmp string) (Header, PacketOut, error) {
 	var err error
 
-	log.Printf("%s received message", lmp)
-
 	var h Header
-	log.Printf("%s reading packet header...", lmp)
-	err = binary.Read(rw, binary.LittleEndian, &h)
+	log.Printf("%s awaiting packet header...", lmp)
+	err = binary.Read(r, binary.LittleEndian, &h)
 	if err != nil {
-		log.Printf("%s error reading header: %s", lmp, err)
-		return h, nil
+		if err == io.EOF {
+			log.Printf("%s client disconnected", lmp)
+		} else {
+			log.Printf("%s error reading header: %s", lmp, err)
+		}
+		return h, nil, err
 	}
 	pkt, err := NewPacketOutFromPacketType(h.PacketType)
 	if err != nil {
 		log.Printf("%s error creating packet: %s", lmp, err)
-		return h, nil
+		return h, nil, err
 	}
 
 	vs := int(h.Length) - HeaderSize - internal.TotalSizeOfFixedFields(pkt)
-	err = internal.UnmarshalLittleEndian(rw, pkt, vs)
+	err = internal.UnmarshalLittleEndian(r, pkt, vs)
 	if err != nil {
 		log.Printf("%s error reading packet %T data %s", lmp, pkt, err)
-		return h, nil
+		return h, nil, err
 	}
-
-	return h, pkt
+	log.Printf("%v %T", pkt, pkt)
+	return h, pkt, nil
 }
 
-func writeMessage(rw *bufio.ReadWriter, pkt Packet, lmp string) {
-	err := sendPacket(rw, pkt, lmp)
+func writeMessage(w io.Writer, pkt Packet, lmp string) {
+	err := sendPacket(w, pkt, lmp)
 	if err != nil {
 		log.Printf("%s error responding: %s", lmp, err)
 	}
-	rw.Flush()
 }
 
-func handleMessage(conn net.Conn, lmp string) {
-	// NO defer conn.Close() here since we need to mock a real responder and thus need to keep the connections open
-	// when established.
-	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-	h, pkt := readMessage(rw, lmp)
-	if pkt == nil {
-		return
-	}
-
-	var res PacketIn
-	switch h.PacketType {
-	case PKT_InitCommandRequest:
-		log.Printf("%s responding to InitCommandRequest", lmp)
-		uuid, _ := uuid.Parse("3e8626cc-5059-4225-bdd6-d160b2e6a60f")
-		res = &InitCommandAckPacket{
-			ConnectionNumber:         1,
-			ResponderGUID:            uuid,
-			ResponderFriendlyName:    lmp,
-			ResponderProtocolVersion: uint32(PV_VersionOnePointZero),
+func handleMessages(conn net.Conn, lmp string) {
+	// NO defer conn.Close() here since we need to mock a real responder and thus need to keep the connections open when
+	// established and continuously listen for messages in a loop.
+	for {
+		h, pkt, err := readMessage(conn, lmp)
+		if err == io.EOF {
+			conn.Close()
+			break
 		}
-	case PKT_InitEventRequest:
-		log.Printf("%s responding to InitEventRequest", lmp)
-		res = &InitEventAckPacket{}
-	case PKT_OperationRequest:
-		log.Printf("%s responding to OperationRequest", lmp)
-		res = &OperationResponsePacket{}
-	default:
-		log.Printf("%s unknown packet type %#x", lmp, h.PacketType)
-		return
-	}
-	if res != nil {
-		writeMessage(rw, res, lmp)
+		if pkt == nil {
+			continue
+		}
+
+		var res PacketIn
+		switch h.PacketType {
+		case PKT_InitCommandRequest:
+			log.Printf("%s responding to InitCommandRequest", lmp)
+			uuid, _ := uuid.Parse("3e8626cc-5059-4225-bdd6-d160b2e6a60f")
+			res = &InitCommandAckPacket{
+				ConnectionNumber:         1,
+				ResponderGUID:            uuid,
+				ResponderFriendlyName:    lmp,
+				ResponderProtocolVersion: uint32(PV_VersionOnePointZero),
+			}
+		case PKT_InitEventRequest:
+			log.Printf("%s responding to InitEventRequest", lmp)
+			res = &InitEventAckPacket{}
+		case PKT_OperationRequest:
+			log.Printf("%s responding to OperationRequest", lmp)
+			res = &OperationResponsePacket{}
+		default:
+			log.Printf("%s unknown packet type %#x", lmp, h.PacketType)
+			continue
+		}
+		if res != nil {
+			writeMessage(conn, res, lmp)
+		}
 	}
 }
 
 func alwaysFailMessage(conn net.Conn, lmp string) {
 	// TCP connections are closed by the Responder on failure!
 	defer conn.Close()
-	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-	_, pkt := readMessage(rw, lmp)
+	_, pkt, _ := readMessage(conn, lmp)
 	if pkt == nil {
 		return
 	}
 
-	writeMessage(rw, &InitFailPacket{
+	writeMessage(conn, &InitFailPacket{
 		Reason: FR_FailRejectedInitiator,
 	}, lmp)
 }
