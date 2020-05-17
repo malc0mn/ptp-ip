@@ -14,11 +14,14 @@ import (
 )
 
 const (
-	DefaultDialTimeout           = 10 * time.Second
-	DefaultReadTimeout           = 30 * time.Second
-	DefaultPort           uint16 = 15740
-	DefaultIpAddress             = "192.168.0.1"
-	InitiatorFriendlyName        = "Golang PTP/IP client"
+	DefaultDialTimeout                   = 10 * time.Second
+	DefaultReadTimeout                   = 30 * time.Second
+	DefaultPort           uint16         = 15740
+	DefaultIpAddress                     = "192.168.0.1"
+	InitiatorFriendlyName                = "Golang PTP/IP client"
+	cmdDataConnection     connectionType = "cmd"
+	eventConnection       connectionType = "event"
+	streamConnection      connectionType = "stream"
 )
 
 var (
@@ -26,6 +29,8 @@ var (
 	ReadResponseError    = errors.New("unable to read response packet")
 	WaitForResponseError = errors.New("timeout reached when waiting for response")
 )
+
+type connectionType string
 
 type Initiator struct {
 	GUID         uuid.UUID
@@ -358,11 +363,7 @@ func (c *Client) initCommandDataConn() error {
 		return err
 	}
 
-	err = c.commandDataConn.(*net.TCPConn).SetKeepAlive(true)
-	if err != nil {
-		internal.LogError(fmt.Errorf("TCP keepalive not enabled for command/data connection: %s", err))
-		return err
-	}
+	c.configureTcpConn(cmdDataConnection)
 
 	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 	err = c.SendPacketToCmdDataConn(icrp)
@@ -397,11 +398,7 @@ func (c *Client) initEventConn() error {
 		return err
 	}
 
-	err = c.eventConn.(*net.TCPConn).SetKeepAlive(true)
-	if err != nil {
-		internal.LogError(fmt.Errorf("TCP keepalive not enabled for event connection: %s", err))
-		return err
-	}
+	c.configureTcpConn(eventConnection)
 
 	ierp := NewInitEventRequestPacket(c.connectionNumber)
 	err = c.SendPacketToEventConn(ierp)
@@ -437,12 +434,36 @@ func (c *Client) initStreamerConn() error {
 		return err
 	}
 
-	err = c.streamConn.(*net.TCPConn).SetKeepAlive(true)
-	if err != nil {
-		internal.LogError(fmt.Errorf("TCP keepalive not enabled for streamer connection: %s", err))
-	}
+	c.configureTcpConn(streamConnection)
 
 	return nil
+}
+
+func (c *Client) configureTcpConn(t connectionType) {
+	var conn net.Conn
+
+	switch t {
+	case cmdDataConnection:
+		conn = c.commandDataConn
+	case eventConnection:
+		conn = c.eventConn
+	case streamConnection:
+		conn = c.streamConn
+	}
+
+	// The PTP/IP protocol specifically asks to enable keep alive.
+	if err := conn.(*net.TCPConn).SetKeepAlive(true); err != nil {
+		internal.LogError(fmt.Errorf("TCP_KEEPALIVE not enabled for %s connection: %s", t, err))
+	} else {
+		internal.LogDebug(fmt.Errorf("TCP_KEEPALIVE enabled for %s connection", t))
+	}
+
+	// The PTP/IP protocol specifically asks to disable Nagle's algorithm.
+	if err := conn.(*net.TCPConn).SetNoDelay(true); err != nil {
+		internal.LogError(fmt.Errorf("TCP_NODELAY not enabled for %s connection: %s", t, err))
+	} else {
+		internal.LogDebug(fmt.Errorf("TCP_NODELAY enabled for %s connection", t))
+	}
 }
 
 // Creates a new PTP/IP client.
