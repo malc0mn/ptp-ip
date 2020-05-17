@@ -229,6 +229,8 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 	return c.sendPacket(c.eventConn, p)
 }
 
+// We write directly to the connection here without using bufio. The Payload() method and marshalling functions are
+// already writing to a bytes buffer before we write to the connection.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	internal.LogDebug(fmt.Errorf("[sendPacket] sending %T", p))
 

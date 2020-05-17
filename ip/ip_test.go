@@ -307,3 +307,24 @@ func TestClient_Dial(t *testing.T) {
 		t.Errorf("Dial() err = %s; want rejected: device not allowed", err)
 	}
 }
+
+func TestClient_GetDeviceInfo(t *testing.T) {
+	c, err := NewClient(address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d")
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := c.GetDeviceInfo()
+	if err != nil {
+		t.Errorf("GetDeviceInfo() err = %s; want <nil>", err)
+	}
+	if got == nil {
+		t.Errorf("GetDeviceInfo() got = %v; want *ip.OperationResponsePacket", got)
+	}
+}

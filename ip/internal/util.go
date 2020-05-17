@@ -18,7 +18,7 @@ func marshal(s interface{}, bo binary.ByteOrder, b *bytes.Buffer) {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
 		for i := 0; i < v.NumField(); i++ {
-			// When a data set has a SessionID, we must skip sending it according to the PTP/IP protocol.
+			// When a dataset has a SessionID, we must skip sending it according to the PTP/IP protocol.
 			if v.Type().Field(i).Name == "SessionID" {
 				continue
 			}
@@ -53,12 +53,19 @@ func MarshalLittleEndian(s interface{}) []byte {
 
 func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
 	// binary.Read() can only cope with fixed length values so we'll need to handle anything else ourselves.
-	if binary.Size(s) < 0 {
+	if _, hasSession := s.(ptp.Session); binary.Size(s) < 0 || hasSession {
 		v := reflect.Indirect(reflect.ValueOf(s))
 
 		for i := 0; i < v.NumField(); i++ {
+			// When a dataset has a SessionID, we must skip it since the PTP/IP protocol does not send it.
+			if v.Type().Field(i).Name == "SessionID" {
+				continue
+			}
+
 			f := v.Field(i)
 			switch f.Kind() {
+			case reflect.Struct:
+				unmarshal(r, f.Addr().Interface(), vs, bo)
 			case reflect.String:
 				b := make([]byte, vs)
 				if err := binary.Read(r, bo, b); err != nil {
@@ -89,6 +96,12 @@ func UnmarshalLittleEndian(r io.Reader, s interface{}, vs int) error {
 
 func TotalSizeOfFixedFields(s interface{}) int {
 	tfs := binary.Size(s)
+
+	// The SessionID Field is dropped in the PTP/IP implementation.
+	if _, hasSession := s.(ptp.Session); hasSession {
+		tfs -= 4
+	}
+
 	if tfs < 0 {
 		tfs = 0
 		v := reflect.Indirect(reflect.ValueOf(s))
