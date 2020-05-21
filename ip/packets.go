@@ -196,7 +196,7 @@ func (ifp *InitFailPacket) ReasonAsError() error {
 	case FR_FailUnspecified:
 		msg = "reason unspecified"
 	default:
-		msg = fmt.Sprintf("uknown failure reason returned %#x", ifp.Reason)
+		msg = fmt.Sprintf("unknown failure reason returned %#x", ifp.Reason)
 	}
 
 	return errors.New(msg)
