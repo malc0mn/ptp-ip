@@ -12,10 +12,11 @@ logs: `sudo journalctl -f`. When those are open, connect to your camera's SSID
 and look closely at what it spews out.
 ### IPv6 errors
 If you see IPv6 related errors in the logs, make sure you disable IPv6 for the
-connection to your camera's SSID. You can do this using the UI under the IPv6
-settings and selecting the method `disabled` or you can edit the config file
+connection to your camera's SSID. You can do this using the UI: under the IPv6
+settings select the method `disabled`. Or you can edit the config file
 directly:
 `sudo vi /etc/NetworkManager/system-connections/[SSID].nmconnection`.
+
 Look for the `[ipv6]` section or add it if it's not there and make sure that
 this line is present: `method=disabled`.
 ### Cannot get an IP from the camera's DHCP client
