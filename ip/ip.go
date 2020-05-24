@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	DefaultVendor                        = "generic"
 	DefaultDialTimeout                   = 10 * time.Second
 	DefaultReadTimeout                   = 30 * time.Second
 	DefaultPort           uint16         = 15740
@@ -76,6 +77,7 @@ func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 }
 
 type Responder struct {
+	Vendor       ptp.VendorExtension
 	IpAddress    string
 	Port         uint16
 	GUID         uuid.UUID
@@ -90,8 +92,9 @@ func (r Responder) String() string {
 	return fmt.Sprintf("%s:%d", r.IpAddress, r.Port)
 }
 
-func NewResponder(ip string, port uint16) *Responder {
+func NewResponder(vendor string, ip string, port uint16) *Responder {
 	return &Responder{
+		Vendor:    ptp.VendorStringToType(vendor),
 		IpAddress: ip,
 		Port:      port,
 	}
@@ -137,6 +140,10 @@ func (c *Client) ResponderFriendlyName() string {
 
 func (c *Client) InitiatorFriendlyName() string {
 	return c.initiator.FriendlyName
+}
+
+func (c *Client) ResponderVendor() ptp.VendorExtension {
+	return c.responder.Vendor
 }
 
 func (c *Client) ResponderGUID() uuid.UUID {
@@ -367,7 +374,7 @@ func (c *Client) initCommandDataConn() error {
 
 	c.configureTcpConn(cmdDataConnection)
 
-	icrp := NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
+	icrp := NewInitCommandRequestPacket(c.ResponderVendor(), c.InitiatorGUID(), c.InitiatorFriendlyName())
 	err = c.SendPacketToCmdDataConn(icrp)
 	if err != nil {
 		return err
@@ -471,7 +478,7 @@ func (c *Client) configureTcpConn(t connectionType) {
 // Creates a new PTP/IP client.
 // Passing an empty string to friendlyName will use the default friendly name.
 // Passing an empty string as guid will generate a random V4 UUID upon initialisation.
-func NewClient(ip string, port uint16, friendlyName string, guid string) (*Client, error) {
+func NewClient(vendor string, ip string, port uint16, friendlyName string, guid string) (*Client, error) {
 	i, err := NewInitiator(friendlyName, guid)
 	if err != nil {
 		return nil, err
@@ -479,7 +486,7 @@ func NewClient(ip string, port uint16, friendlyName string, guid string) (*Clien
 
 	c := &Client{
 		initiator: i,
-		responder: NewResponder(ip, port),
+		responder: NewResponder(vendor, ip, port),
 	}
 
 	return c, nil

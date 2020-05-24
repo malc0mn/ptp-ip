@@ -9,19 +9,19 @@ import (
 
 func TestNewInitCommandRequestPacket(t *testing.T) {
 	uuid, _ := uuid.NewRandom()
-	got := NewInitCommandRequestPacket(uuid, "têst")
+	got := NewInitCommandRequestPacket(0, uuid, "têst")
 	want := "têst"
 
-	if got.FriendlyName != want {
-		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.FriendlyName, want)
+	if got.GetFriendlyName() != want {
+		t.Errorf("NewInitCommandRequestPacket() FriendlyName = %s; want %s", got.GetFriendlyName(), want)
 	}
-	if got.ProtocolVersion != PV_VersionOnePointZero {
-		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %#x; want %#x", got.ProtocolVersion, PV_VersionOnePointZero)
+	if got.GetProtocolVersion() != PV_VersionOnePointZero {
+		t.Errorf("NewInitCommandRequestPacket() ProtocolVersion = %#x; want %#x", got.GetProtocolVersion(), PV_VersionOnePointZero)
 	}
 }
 
 func TestNewInitCommandRequestPacketForClient(t *testing.T) {
-	c, err := NewClient(DefaultIpAddress, DefaultPort, "test", "")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "test", "")
 	if err != nil {
 		t.Errorf("NewInitCommandRequestPacketForClient() err = %s; want <nil>", err)
 	}
@@ -29,31 +29,31 @@ func TestNewInitCommandRequestPacketForClient(t *testing.T) {
 	got := NewInitCommandRequestPacketForClient(c)
 	want := "test"
 
-	if got.FriendlyName != want {
-		t.Errorf("NewInitCommandRequestPacketForClient() friendlyName = %s; want %s", got.FriendlyName, want)
+	if got.GetFriendlyName() != want {
+		t.Errorf("NewInitCommandRequestPacketForClient() FriendlyName = %s; want %s", got.GetFriendlyName(), want)
 	}
-	if got.ProtocolVersion != PV_VersionOnePointZero {
-		t.Errorf("NewInitCommandRequestPacketForClient() protocolVersion = %#x; want %#x", got.ProtocolVersion, PV_VersionOnePointZero)
+	if got.GetProtocolVersion() != PV_VersionOnePointZero {
+		t.Errorf("NewInitCommandRequestPacketForClient() ProtocolVersion = %#x; want %#x", got.GetProtocolVersion(), PV_VersionOnePointZero)
 	}
 }
 
 func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 	uuid, _ := uuid.NewRandom()
-	got := NewInitCommandRequestPacketWithVersion(uuid, "versíon", 0x00020005)
+	got := NewInitCommandRequestPacketWithVersion(0, uuid, "versíon", 0x00020005)
 	wantName := "versíon"
 	wantVersion := ProtocolVersion(0x00020005)
 
-	if got.FriendlyName != wantName {
-		t.Errorf("NewInitCommandRequestPacket() friendlyName = %s; want %s", got.FriendlyName, wantName)
+	if got.GetFriendlyName() != wantName {
+		t.Errorf("NewInitCommandRequestPacket() FriendlyName = %s; want %s", got.GetFriendlyName(), wantName)
 	}
-	if got.ProtocolVersion != wantVersion {
-		t.Errorf("NewInitCommandRequestPacket() protocolVersion = %#x; want %#x", got.ProtocolVersion, wantVersion)
+	if got.GetProtocolVersion() != wantVersion {
+		t.Errorf("NewInitCommandRequestPacket() ProtocolVersion = %#x; want %#x", got.GetProtocolVersion(), wantVersion)
 	}
 }
 
 func TestNewPacketOutFromPacketType(t *testing.T) {
 	types := map[PacketType]string{
-		PKT_InitCommandRequest: "InitCommandRequest",
+		PKT_InitCommandRequest: "GenericInitCommandRequest",
 		PKT_InitEventRequest:   "InitEventRequest",
 		PKT_OperationRequest:   "OperationRequest",
 		PKT_StartData:          "StartData",

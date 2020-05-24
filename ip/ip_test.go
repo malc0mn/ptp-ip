@@ -82,7 +82,11 @@ func TestNewInitiatorWithFriendlyName(t *testing.T) {
 }
 
 func TestNewResponder(t *testing.T) {
-	got := NewResponder(DefaultIpAddress, DefaultPort)
+	got := NewResponder(DefaultVendor, DefaultIpAddress, DefaultPort)
+	want := ptp.VendorExtension(0)
+	if got.Vendor != want {
+		t.Errorf("NewResponder() Vendor = %#x; want %#x", got.Vendor, want)
+	}
 	if got.IpAddress != DefaultIpAddress {
 		t.Errorf("NewResponder() IpAddress = %s; want %s", got.IpAddress, DefaultIpAddress)
 	}
@@ -98,7 +102,8 @@ func TestNewResponder(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	got, err := NewClient(DefaultIpAddress, DefaultPort, "", "")
+	guid := "cf2407bc-4b4c-4525-9622-afb30db356df"
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", guid)
 	if err != nil {
 		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
@@ -113,6 +118,48 @@ func TestNewClient(t *testing.T) {
 	}
 	if got.responder == nil {
 		t.Errorf("NewClient() responder = %v; want Responder", got.responder)
+	}
+
+	if got.ConnectionNumber() != 0 {
+		t.Errorf("NewClient() ConnectionNumber() = %d; want 0", got.ConnectionNumber())
+	}
+	if got.TransactionId() != 0 {
+		t.Errorf("NewClient() TransactionId() = %d; want 0", got.TransactionId())
+	}
+	want := "tcp"
+	if got.Network() != want {
+		t.Errorf("NewClient() Network() = %s; want %s", got.Network(), want)
+	}
+	want = "192.168.0.1:15740"
+	if got.String() != want {
+		t.Errorf("NewClient() String() = %s; want %s", got.String(), want)
+	}
+	want = ""
+	if got.ResponderFriendlyName() != want {
+		t.Errorf("NewClient() ResponderFriendlyName() = %s; want %s", got.ResponderFriendlyName(), want)
+	}
+	want = "Golang PTP/IP client"
+	if got.InitiatorFriendlyName() != want {
+		t.Errorf("NewClient() InitiatorFriendlyName() = %s; want %s", got.InitiatorFriendlyName(), want)
+	}
+	wantv := ptp.VendorExtension(0)
+	if got.ResponderVendor() != wantv {
+		t.Errorf("NewClient() ResponderVendor() = %#x; want %#x", got.ResponderVendor(), wantv)
+	}
+	wantg := uuid.Nil
+	if got.ResponderGUID() != wantg {
+		t.Errorf("NewClient() ResponderGUID() = %s; want %s", got.ResponderGUID(), wantg)
+	}
+	want = "00000000-0000-0000-0000-000000000000"
+	if got.ResponderGUIDAsString() != want {
+		t.Errorf("NewClient() ResponderGUIDAsString() = %s; want %s", got.ResponderGUIDAsString(), want)
+	}
+	wantg, _ = uuid.Parse(guid)
+	if got.InitiatorGUID() != wantg {
+		t.Errorf("NewClient() InitiatorGUID() = %s; want %s", got.InitiatorGUID(), wantg)
+	}
+	if got.InitiatorGUIDAsString() != guid {
+		t.Errorf("NewClient() InitiatorGUIDAsString() = %s; want %s", got.InitiatorGUIDAsString(), guid)
 	}
 }
 
@@ -142,7 +189,7 @@ func TestClient_incrementTransactionId(t *testing.T) {
 }
 
 func TestClient_sendPacket(t *testing.T) {
-	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd")
 	if err != nil {
 		t.Errorf("sendPacket() err = %s; want <nil>", err)
 	}
@@ -161,7 +208,7 @@ func TestClient_sendPacket(t *testing.T) {
 }
 
 func TestClient_readResponse(t *testing.T) {
-	c, err := NewClient(DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6")
 	if err != nil {
 		t.Errorf("readResponse() err = %s; want <nil>", err)
 	}
@@ -214,7 +261,7 @@ func TestClient_readResponse(t *testing.T) {
 }
 
 func TestClient_initCommandDataConn(t *testing.T) {
-	c, err := NewClient(address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -231,7 +278,7 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	}
 }
 func TestClient_initCommandDataConnFail(t *testing.T) {
-	c, err := NewClient(address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6")
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -249,7 +296,7 @@ func TestClient_initCommandDataConnFail(t *testing.T) {
 }
 
 func TestClient_initEventConn(t *testing.T) {
-	c, err := NewClient(address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -267,7 +314,7 @@ func TestClient_initEventConn(t *testing.T) {
 }
 
 func TestClient_initEventConnFail(t *testing.T) {
-	c, err := NewClient(address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278")
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -285,7 +332,7 @@ func TestClient_initEventConnFail(t *testing.T) {
 }
 
 func TestClient_Dial(t *testing.T) {
-	c, err := NewClient(address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -296,7 +343,7 @@ func TestClient_Dial(t *testing.T) {
 		t.Errorf("Dial() err = %s; want <nil>", err)
 	}
 
-	c, err = NewClient(address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024")
+	c, err = NewClient(DefaultVendor, address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -309,7 +356,7 @@ func TestClient_Dial(t *testing.T) {
 }
 
 func TestClient_GetDeviceInfo(t *testing.T) {
-	c, err := NewClient(address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d")
+	c, err := NewClient(DefaultVendor, address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d")
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)

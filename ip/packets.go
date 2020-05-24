@@ -76,10 +76,18 @@ type Header struct {
 	PacketType PacketType
 }
 
+type InitCommandRequestPacket interface {
+	PacketOut
+	GetGUID() uuid.UUID
+	GetFriendlyName() string
+	GetProtocolVersion() ProtocolVersion
+	SetProtocolVersion(pv ProtocolVersion)
+}
+
 // This packet is used immediately after the Command/Data TCP ip channel is established. It is sent by the
 // Initiator to the Responder on the Data/Command TCP connection and is used to communicate the identity of the
 // Initiator to the Responder. The Responder can implement a filtering mechanism denying certain identities.
-type InitCommandRequestPacket struct {
+type GenericInitCommandRequestPacket struct {
 	GUID uuid.UUID
 	// A null terminated string.
 	FriendlyName string
@@ -87,29 +95,50 @@ type InitCommandRequestPacket struct {
 	ProtocolVersion ProtocolVersion
 }
 
-func (icrp *InitCommandRequestPacket) PacketType() PacketType {
+func (icrp *GenericInitCommandRequestPacket) PacketType() PacketType {
 	return PKT_InitCommandRequest
 }
 
-func (icrp *InitCommandRequestPacket) Payload() []byte {
+func (icrp *GenericInitCommandRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(icrp)
 }
 
-func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *InitCommandRequestPacket {
-	return &InitCommandRequestPacket{
-		GUID:            guid,
-		FriendlyName:    friendlyName,
-		ProtocolVersion: PV_VersionOnePointZero,
+func (icrp *GenericInitCommandRequestPacket) GetGUID() uuid.UUID {
+	return icrp.GUID
+}
+
+func (icrp *GenericInitCommandRequestPacket) GetFriendlyName() string {
+	return icrp.FriendlyName
+}
+
+func (icrp *GenericInitCommandRequestPacket) GetProtocolVersion() ProtocolVersion {
+	return icrp.ProtocolVersion
+}
+
+func (icrp *GenericInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersion) {
+	icrp.ProtocolVersion = pv
+}
+
+func NewInitCommandRequestPacket(vendor ptp.VendorExtension, guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
+	switch vendor {
+	case ptp.VE_FujiPhotoFilmCoLtd:
+		return NewFujiInitCommandRequestPacket(friendlyName)
+	default:
+		return &GenericInitCommandRequestPacket{
+			GUID:            guid,
+			FriendlyName:    friendlyName,
+			ProtocolVersion: PV_VersionOnePointZero,
+		}
 	}
 }
 
-func NewInitCommandRequestPacketForClient(c *Client) *InitCommandRequestPacket {
-	return NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
+func NewInitCommandRequestPacketForClient(c *Client) InitCommandRequestPacket {
+	return NewInitCommandRequestPacket(c.ResponderVendor(), c.InitiatorGUID(), c.InitiatorFriendlyName())
 }
 
-func NewInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) *InitCommandRequestPacket {
-	icrp := NewInitCommandRequestPacket(guid, friendlyName)
-	icrp.ProtocolVersion = protocolVersion
+func NewInitCommandRequestPacketWithVersion(vendor ptp.VendorExtension, guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) InitCommandRequestPacket {
+	icrp := NewInitCommandRequestPacket(vendor, guid, friendlyName)
+	icrp.SetProtocolVersion(protocolVersion)
 
 	return icrp
 }
@@ -390,7 +419,7 @@ func NewPacketOutFromPacketType(pt PacketType) (PacketOut, error) {
 
 	switch pt {
 	case PKT_InitCommandRequest:
-		p = new(InitCommandRequestPacket)
+		p = new(GenericInitCommandRequestPacket)
 	case PKT_InitEventRequest:
 		p = new(InitEventRequestPacket)
 	case PKT_OperationRequest:

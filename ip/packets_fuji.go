@@ -50,6 +50,22 @@ func (ficrp *FujiInitCommandRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ficrp)
 }
 
+func (ficrp *FujiInitCommandRequestPacket) GetGUID() uuid.UUID {
+	return ficrp.GUID
+}
+
+func (ficrp *FujiInitCommandRequestPacket) GetFriendlyName() string {
+	return ficrp.FriendlyName
+}
+
+func (ficrp *FujiInitCommandRequestPacket) GetProtocolVersion() ProtocolVersion {
+	return ficrp.ProtocolVersion
+}
+
+func (ficrp *FujiInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersion) {
+	ficrp.ProtocolVersion = pv
+}
+
 func NewFujiInitCommandRequestPacket(friendlyName string) *FujiInitCommandRequestPacket {
 	guid, _ := uuid.Parse("f2e4538f-ada5-485d-87b2-7f0bd3d5ded0")
 	fa := &FujiInitCommandRequestPacket{
