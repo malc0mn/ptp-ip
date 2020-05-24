@@ -122,7 +122,7 @@ func (icrp *GenericInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersi
 func NewInitCommandRequestPacket(vendor ptp.VendorExtension, guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
 	switch vendor {
 	case ptp.VE_FujiPhotoFilmCoLtd:
-		return NewFujiInitCommandRequestPacket(friendlyName)
+		return NewFujiInitCommandRequestPacket(guid, friendlyName)
 	default:
 		return &GenericInitCommandRequestPacket{
 			GUID:            guid,
