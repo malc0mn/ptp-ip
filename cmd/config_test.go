@@ -20,6 +20,11 @@ func TestLoadconfigOk(t *testing.T) {
 		t.Errorf("loadConfig() guid = %s; want %s", conf.guid, want)
 	}
 
+	want = "fuji"
+	if conf.vendor != want {
+		t.Errorf("loadConfig() vendor = %s; want %s", conf.host, want)
+	}
+
 	want = "192.168.0.2"
 	if conf.host != want {
 		t.Errorf("loadConfig() host = %s; want %s", conf.host, want)

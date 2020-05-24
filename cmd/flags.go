@@ -42,6 +42,7 @@ func (i *uint16Value) String() string {
 }
 
 func initFlags() {
+	flag.StringVar(&conf.vendor, "t", ip.DefaultVendor, "The vendor of the responder that will be connected to.")
 	flag.StringVar(&conf.host, "h", ip.DefaultIpAddress, "The responder host to connect to.")
 	flag.Var(&conf.port, "p", "The responder port to connect to.")
 	flag.StringVar(&conf.fname, "n", "", "A custom friendly name to use for the initiator.")

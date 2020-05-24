@@ -9,10 +9,11 @@ import (
 )
 
 type config struct {
-	host  string
-	port  uint16Value
-	fname string
-	guid  string
+	vendor string
+	host   string
+	port   uint16Value
+	fname  string
+	guid   string
 
 	saddr string
 	sport uint16Value
@@ -20,10 +21,11 @@ type config struct {
 
 var (
 	conf = &config{
-		host:  ip.DefaultIpAddress,
-		port:  uint16Value(ip.DefaultPort),
-		saddr: defaultIp,
-		sport: uint16Value(ip.DefaultPort),
+		vendor: ip.DefaultVendor,
+		host:   ip.DefaultIpAddress,
+		port:   uint16Value(ip.DefaultPort),
+		saddr:  defaultIp,
+		sport:  uint16Value(ip.DefaultPort),
 	}
 )
 
@@ -46,6 +48,9 @@ func loadConfig() {
 
 	// Responder
 	if i, err := f.GetSection("responder"); err == nil {
+		if k, err := i.GetKey("vendor"); err == nil {
+			conf.vendor = k.String()
+		}
 		if k, err := i.GetKey("host"); err == nil {
 			conf.host = k.String()
 		}
