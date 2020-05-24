@@ -15,10 +15,10 @@ const (
 	FR_Fuji_DeviceBusy FailReason = 0x00002019
 	// This error is returned when the InitCommandRequestPacket has the wrong protocol version.
 	// Seems to be an own version of RC_InvalidParameter.
-	FR_Fuji_InvalidParameter FailReason = 0x0000201d
+	FR_Fuji_InvalidParameter FailReason = 0x0000201D
 
 	// This is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
-	PV_Fuji ProtocolVersion = 0x8f53e4f2
+	PV_Fuji ProtocolVersion = 0x8F53E4F2
 )
 
 // The Fuji version of the PTP/IP InitCommandRequestPacket deviates from the standard. Looking at what is sent 'over the

@@ -84,12 +84,12 @@ const (
 	RC_UnknownVendorCode                     OperationResponseCode = 0x2017
 	RC_CaptureAlreadyTerminated              OperationResponseCode = 0x2018
 	RC_DeviceBusy                            OperationResponseCode = 0x2019
-	RC_InvalidParentObject                   OperationResponseCode = 0x201a
-	RC_InvalidDevicePropFormat               OperationResponseCode = 0x201b
-	RC_InvalidDevicePropValue                OperationResponseCode = 0x201c
-	RC_InvalidParameter                      OperationResponseCode = 0x201d
-	RC_SessionAlreadyOpen                    OperationResponseCode = 0x201e
-	RC_TransactionCancelled                  OperationResponseCode = 0x201f
+	RC_InvalidParentObject                   OperationResponseCode = 0x201A
+	RC_InvalidDevicePropFormat               OperationResponseCode = 0x201B
+	RC_InvalidDevicePropValue                OperationResponseCode = 0x201C
+	RC_InvalidParameter                      OperationResponseCode = 0x201D
+	RC_SessionAlreadyOpen                    OperationResponseCode = 0x201E
+	RC_TransactionCancelled                  OperationResponseCode = 0x201F
 	RC_SpecificationofDestinationUnsupported OperationResponseCode = 0x2020
 )
 
