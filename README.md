@@ -48,6 +48,7 @@ guid = "cca455de-79ac-4b12-9731-91e433a899cf"
 
 ; The target we will be connecting to
 [responder]
+vendor = "fuji"
 host = "192.168.0.1"
 port = 15740
 
