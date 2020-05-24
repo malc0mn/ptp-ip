@@ -19,8 +19,8 @@ directly:
 
 Look for the `[ipv6]` section or add it if it's not there and make sure that
 this line is present: `method=disabled`.
-### Cannot get an IP from the camera's DHCP client
-If you are using `NetworkManager` with its built in, and rather buggy, DHCP
+### Cannot get an IP from the camera's DHCP server
+If you are using `NetworkManager` with its built-in, and rather buggy, DHCP
 client, you might have trouble getting a DHCP address from the camera.
 In this case, you could try using `dhclient` as follows:
 1. Make sure `dhclient` is installed: simply run `dhclient --version` from the
