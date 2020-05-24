@@ -6,14 +6,16 @@ import (
 )
 
 const (
-	// This error happens when the InitCommandRequestPacket has the wrong protocol version.
-	FR_Fuji_UnknownProtocolVersion FailReason = 0x0000201d
 	// This fail reason is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
 	//     so that it will accept a new FriendlyName
 	//   - The camera side has timed out waiting for a connection and displays 'not found'. Set the camera to 'retry' to
 	//     allow resending the InitCommandRequestPacket.
-	FR_Fuji_CameraState FailReason = 0x00002019
+	// Seems to be an own version of RC_DeviceBusy.
+	FR_Fuji_DeviceBusy FailReason = 0x00002019
+	// This error is returned when the InitCommandRequestPacket has the wrong protocol version.
+	// Seems to be an own version of RC_InvalidParameter.
+	FR_Fuji_InvalidParameter FailReason = 0x0000201d
 
 	// This is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
 	PV_Fuji ProtocolVersion = 0x8f53e4f2
