@@ -19,7 +19,7 @@ const (
 	// Data-In is data being transferred from the Responder to the Initiator.
 	DP_NoDataOrDataIn DataPhase = 0x00000001
 	// Data-Out is data being transferred from the Initiator to the Responder.
-	DP_DataOut        DataPhase = 0x00000002
+	DP_DataOut DataPhase = 0x00000002
 	// The use of the "Unknown Data Phase" value in the Operation Request Packet may significantly complicate the
 	// implementation of the protocol. When a packet with such value is issued by the Initiator neither side of the
 	// communication "knows" what type of packet to expect next, and, more importantly, in what direction. The knowledge
@@ -29,7 +29,7 @@ const (
 	// implementations for devices with limited processing capabilities it may not always be possible to fully support
 	// this feature. In those cases, if the Responder cannot handle the "Unknown Data Phase" value properly, it is
 	// recommended that it closes the connection upon receipt of such packets.
-	DP_Unknown        DataPhase = 0x00000003
+	DP_Unknown DataPhase = 0x00000003
 
 	FR_FailRejectedInitiator FailReason = 0x00000001
 	FR_FailBusy              FailReason = 0x00000002
