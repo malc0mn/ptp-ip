@@ -7,15 +7,16 @@ import (
 
 const (
 	// This error happens when the InitCommandRequestPacket has the wrong protocol version.
-	FR_FUJI_UNKNOWN_PROTOCOL_VERSION FailReason = 0x0000201d
+	FR_Fuji_UnknownProtocolVersion FailReason = 0x0000201d
 	// This fail reason is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
 	//     so that it will accept a new FriendlyName
 	//   - The camera side has timed out waiting for a connection and displays 'not found'. Set the camera to 'retry' to
 	//     allow resending the InitCommandRequestPacket.
-	FR_FUJI_CAMERA_STATE FailReason = 0x00002019
+	FR_Fuji_CameraState FailReason = 0x00002019
+
 	// This is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
-	PV_FUJI ProtocolVersion = 0x8f53e4f2
+	PV_Fuji ProtocolVersion = 0x8f53e4f2
 )
 
 // The Fuji version of the PTP/IP InitCommandRequestPacket deviates from the standard. Looking at what is sent 'over the
@@ -68,7 +69,7 @@ func (ficrp *FujiInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersion
 
 func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *FujiInitCommandRequestPacket {
 	fa := &FujiInitCommandRequestPacket{
-		ProtocolVersion: PV_FUJI,
+		ProtocolVersion: PV_Fuji,
 		GUID:            guid,
 		FriendlyName:    friendlyName,
 	}

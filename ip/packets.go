@@ -225,9 +225,9 @@ func (ifp *InitFailPacket) ReasonAsError() error {
 	case FR_FailUnspecified:
 		msg = "reason unspecified"
 	// TODO: should we not split off the vendor related errors somehow, to prevent this from becoming a very long list?
-	case FR_FUJI_CAMERA_STATE:
+	case FR_Fuji_CameraState:
 		msg = "fuji: invalid friendly name or camera state: allow to 'change' client or 'reset' connection"
-	case FR_FUJI_UNKNOWN_PROTOCOL_VERSION:
+	case FR_Fuji_UnknownProtocolVersion:
 		msg = "fuji: unknown protocol version"
 	default:
 		msg = fmt.Sprintf("unknown failure reason returned %#x", ifp.Reason)
