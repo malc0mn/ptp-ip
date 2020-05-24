@@ -22,3 +22,46 @@ const (
 	VE_ParrotDronesSAS         VendorExtension = 0x0000001B
 	VE_PanasonicCorporation    VendorExtension = 0x0000001C
 )
+
+func VendorStringToType(vendor string) VendorExtension {
+	switch vendor {
+	case "kodak":
+		return VE_EastmanKodakCompany
+	case "epson":
+		return VE_SeikoEpson
+	case "agilent":
+		return VE_AgilentTechnologiesInc
+	case "polaroid":
+		return VE_PolaroidCorporation
+	case "agfa":
+		return VE_AgfaGevaert
+	case "ms":
+		return VE_MicrosoftCorporation
+	case "equinox":
+		return VE_EquinoxResearchLtd
+	case "vq":
+		return VE_ViewQuestTechnologies
+	case "st":
+		return VE_STMicroelectronics
+	case "nikon":
+		return VE_NikonCorporation
+	case "canon":
+		return VE_CanonInc
+	case "fn":
+		return VE_FotoNationInc
+	case "pentax":
+		return VE_PENTAXCorporation
+	case "fuji":
+		return VE_FujiPhotoFilmCoLtd
+	case "ndd":
+		return VE_NddMedicalTechnologies
+	case "samsung":
+		return VE_SamsungElectronicsCoLtd
+	case "parrot":
+		return VE_ParrotDronesSAS
+	case "panasonic":
+		return VE_PanasonicCorporation
+	}
+
+	return 0
+}
