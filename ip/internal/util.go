@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
-	"unicode/utf8"
+	"unicode/utf16"
 )
 
 func marshal(s interface{}, bo binary.ByteOrder, b *bytes.Buffer) {
@@ -28,12 +28,13 @@ func marshal(s interface{}, bo binary.ByteOrder, b *bytes.Buffer) {
 			case reflect.Struct:
 				marshal(f.Addr().Interface(), bo, b)
 			case reflect.String:
-				// Add one to account for the null char.
-				l := utf8.RuneCountInString(f.String()) + 1
-				r := make([]byte, l)
-				// Convert string to runes.
-				copy(r, f.String())
-				binary.Write(b, bo, r)
+				// TODO: the PTP protocol sets a limit of 255 characters per string including the terminating null
+				//  character. We must still enforce this limit here.
+				// A rune in Go is an alias for uint32 but the PTP protocol expects 2 byte Unicode characters according
+				// to the ISO10646 standard, so we convert them to utf16 (which is uint16) here.
+				binary.Write(b, bo, utf16.Encode([]rune(f.String())))
+				// Strings must be null terminated.
+				binary.Write(b, bo, uint16(0))
 			default:
 				binary.Write(b, bo, f.Addr().Interface())
 			}
@@ -67,11 +68,14 @@ func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
 			case reflect.Struct:
 				unmarshal(r, f.Addr().Interface(), vs, bo)
 			case reflect.String:
-				b := make([]byte, vs)
+				// The PTP protocol expects 2 byte Unicode characters according to the ISO10646 standard, so we convert
+				// them to string here.
+				b := make([]uint16, vs / 2)
 				if err := binary.Read(r, bo, b); err != nil {
 					return err
 				}
-				f.SetString(string(b[:]))
+				// The slice operation happening here is to drop the null terminator.
+				f.SetString(string(utf16.Decode(b[:len(b) - 1])))
 			default:
 				if err := binary.Read(r, bo, f.Addr().Interface()); err != nil {
 					return err
