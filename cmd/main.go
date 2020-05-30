@@ -45,6 +45,8 @@ func main() {
 		loadConfig()
 	}
 
+	checkPorts()
+
 	/*sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)*/
 
@@ -55,8 +57,18 @@ func main() {
 	}
 	defer client.Close()
 
+	if conf.cport != 0 {
+		client.SetCommandDataPort(uint16(conf.cport))
+	}
+	if conf.eport != 0 {
+		client.SetEventPort(uint16(conf.eport))
+	}
+	if conf.sport != 0 {
+		client.SetStreamerPort(uint16(conf.sport))
+	}
+
 	fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", client.InitiatorFriendlyName(), client.InitiatorGUIDAsString())
-	fmt.Printf("Attempting to connect to %s\n", client.String())
+	fmt.Printf("Attempting to connect to %s\n", client.CommandDataAddres())
 	err = client.Dial()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error connecting to responder - %s\n", err)

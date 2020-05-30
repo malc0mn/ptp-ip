@@ -76,27 +76,42 @@ func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 	return i, nil
 }
 
+// This struct holds the information of our responder, i.e the camera. The PTP/IP protocol is designed to work perfectly
+// fine with a single port to handle the Command/Data and Event channels. However some vendors have chosen to work with
+// a separate port for each channel, which is why there are three possible ports in this struct.
 type Responder struct {
-	Vendor       ptp.VendorExtension
-	IpAddress    string
-	Port         uint16
-	GUID         uuid.UUID
-	FriendlyName string
+	Vendor          ptp.VendorExtension
+	IpAddress       string
+	CommandDataPort uint16
+	EventPort       uint16
+	StreamerPort    uint16
+	GUID            uuid.UUID
+	FriendlyName    string
 }
 
-// Implement the net.Addr interface
 func (r Responder) Network() string {
 	return "tcp"
 }
-func (r Responder) String() string {
-	return fmt.Sprintf("%s:%d", r.IpAddress, r.Port)
+
+func (r Responder) CommandDataAddress() string {
+	return fmt.Sprintf("%s:%d", r.IpAddress, r.CommandDataPort)
 }
 
-func NewResponder(vendor string, ip string, port uint16) *Responder {
+func (r Responder) EventAddress() string {
+	return fmt.Sprintf("%s:%d", r.IpAddress, r.EventPort)
+}
+
+func (r Responder) StreamerAddress() string {
+	return fmt.Sprintf("%s:%d", r.IpAddress, r.StreamerPort)
+}
+
+func NewResponder(vendor string, ip string, cport uint16, eport uint16, sport uint16) *Responder {
 	return &Responder{
-		Vendor:    ptp.VendorStringToType(vendor),
-		IpAddress: ip,
-		Port:      port,
+		Vendor:          ptp.VendorStringToType(vendor),
+		IpAddress:       ip,
+		CommandDataPort: cport,
+		EventPort:       eport,
+		StreamerPort:    sport,
 	}
 }
 
@@ -126,12 +141,20 @@ func (c *Client) incrementTransactionId() {
 	}
 }
 
-// Implement the net.Addr interface
 func (c *Client) Network() string {
 	return c.responder.Network()
 }
-func (c *Client) String() string {
-	return c.responder.String()
+
+func (c *Client) CommandDataAddres() string {
+	return c.responder.CommandDataAddress()
+}
+
+func (c *Client) EventAddress() string {
+	return c.responder.EventAddress()
+}
+
+func (c *Client) StreamerAddress() string {
+	return c.responder.StreamerAddress()
 }
 
 func (c *Client) ResponderFriendlyName() string {
@@ -160,6 +183,18 @@ func (c *Client) InitiatorGUID() uuid.UUID {
 
 func (c *Client) InitiatorGUIDAsString() string {
 	return c.initiator.GUID.String()
+}
+
+func (c *Client) SetCommandDataPort(port uint16) {
+	c.responder.CommandDataPort = port
+}
+
+func (c *Client) SetEventPort(port uint16) {
+	c.responder.EventPort = port
+}
+
+func (c *Client) SetStreamerPort(port uint16) {
+	c.responder.StreamerPort = port
 }
 
 func (c *Client) Dial() error {
@@ -367,7 +402,7 @@ func (c *Client) readResponse(r io.Reader) (PacketIn, error) {
 func (c *Client) initCommandDataConn() error {
 	var err error
 
-	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
+	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.CommandDataAddres(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -402,7 +437,7 @@ func (c *Client) initCommandDataConn() error {
 func (c *Client) initEventConn() error {
 	var err error
 
-	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
+	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.EventAddress(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -438,7 +473,7 @@ func (c *Client) initEventConn() error {
 func (c *Client) initStreamerConn() error {
 	var err error
 
-	c.streamConn, err = ipInternal.RetryDialer(c.Network(), c.String(), DefaultDialTimeout)
+	c.streamConn, err = ipInternal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -467,7 +502,8 @@ func (c *Client) configureTcpConn(t connectionType) {
 		internal.LogDebug(fmt.Errorf("TCP_KEEPALIVE enabled for %s connection", t))
 	}
 
-	// The PTP/IP protocol specifically asks to disable Nagle's algorithm.
+	// The PTP/IP protocol specifically asks to disable Nagle's algorithm. TCP_NODELAY SHOULD be enabled by default in
+	// golang but there's no harm in making sure since performance here is negligible.
 	if err := conn.(*net.TCPConn).SetNoDelay(true); err != nil {
 		internal.LogError(fmt.Errorf("TCP_NODELAY not enabled for %s connection: %s", t, err))
 	} else {
@@ -486,7 +522,7 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 
 	c := &Client{
 		initiator: i,
-		responder: NewResponder(vendor, ip, port),
+		responder: NewResponder(vendor, ip, port, port, port),
 	}
 
 	return c, nil

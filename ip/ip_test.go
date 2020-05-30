@@ -82,7 +82,7 @@ func TestNewInitiatorWithFriendlyName(t *testing.T) {
 }
 
 func TestNewResponder(t *testing.T) {
-	got := NewResponder(DefaultVendor, DefaultIpAddress, DefaultPort)
+	got := NewResponder(DefaultVendor, DefaultIpAddress, DefaultPort, DefaultPort, DefaultPort)
 	want := ptp.VendorExtension(0)
 	if got.Vendor != want {
 		t.Errorf("NewResponder() Vendor = %#x; want %#x", got.Vendor, want)
@@ -90,8 +90,14 @@ func TestNewResponder(t *testing.T) {
 	if got.IpAddress != DefaultIpAddress {
 		t.Errorf("NewResponder() IpAddress = %s; want %s", got.IpAddress, DefaultIpAddress)
 	}
-	if got.Port != DefaultPort {
-		t.Errorf("NewResponder() IpAddress = %d; want %d", got.Port, DefaultPort)
+	if got.CommandDataPort != DefaultPort {
+		t.Errorf("NewResponder() CommandDataPort = %d; want %d", got.CommandDataPort, DefaultPort)
+	}
+	if got.EventPort != DefaultPort {
+		t.Errorf("NewResponder() EventPort = %d; want %d", got.EventPort, DefaultPort)
+	}
+	if got.StreamerPort != DefaultPort {
+		t.Errorf("NewResponder() StreamerPort = %d; want %d", got.StreamerPort, DefaultPort)
 	}
 	if got.GUID != uuid.Nil {
 		t.Errorf("NewResponder() FriendlyName = %s; want <nil>", got.GUID)
@@ -131,8 +137,14 @@ func TestNewClient(t *testing.T) {
 		t.Errorf("NewClient() Network() = %s; want %s", got.Network(), want)
 	}
 	want = "192.168.0.1:15740"
-	if got.String() != want {
-		t.Errorf("NewClient() String() = %s; want %s", got.String(), want)
+	if got.CommandDataAddres() != want {
+		t.Errorf("NewClient() CommandDataAddres() = %s; want %s", got.CommandDataAddres(), want)
+	}
+	if got.EventAddress() != want {
+		t.Errorf("NewClient() EventAddress() = %s; want %s", got.EventAddress(), want)
+	}
+	if got.StreamerAddress() != want {
+		t.Errorf("NewClient() StreamerAddress() = %s; want %s", got.StreamerAddress(), want)
 	}
 	want = ""
 	if got.ResponderFriendlyName() != want {
@@ -160,6 +172,60 @@ func TestNewClient(t *testing.T) {
 	}
 	if got.InitiatorGUIDAsString() != guid {
 		t.Errorf("NewClient() InitiatorGUIDAsString() = %s; want %s", got.InitiatorGUIDAsString(), guid)
+	}
+}
+
+func TestClient_SetCommandDataPort(t *testing.T) {
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := "192.168.0.1:15740"
+	if got.CommandDataAddres() != want {
+		t.Errorf("NewClient() CommandDataAddres() = %s; want %s", got.CommandDataAddres(), want)
+	}
+
+	got.SetCommandDataPort(55740)
+	want = "192.168.0.1:55740"
+	if got.CommandDataAddres() != want {
+		t.Errorf("NewClient() CommandDataAddres() = %s; want %s", got.CommandDataAddres(), want)
+	}
+}
+
+func TestClient_SetEventPort(t *testing.T) {
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := "192.168.0.1:15740"
+	if got.EventAddress() != want {
+		t.Errorf("NewClient() EventAddress() = %s; want %s", got.EventAddress(), want)
+	}
+
+	got.SetEventPort(55741)
+	want = "192.168.0.1:55741"
+	if got.EventAddress() != want {
+		t.Errorf("NewClient() EventAddress() = %s; want %s", got.EventAddress(), want)
+	}
+}
+
+func TestClient_SetStreamerPort(t *testing.T) {
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := "192.168.0.1:15740"
+	if got.StreamerAddress() != want {
+		t.Errorf("NewClient() StreamerAddress() = %s; want %s", got.StreamerAddress(), want)
+	}
+
+	got.SetStreamerPort(55742)
+	want = "192.168.0.1:55742"
+	if got.StreamerAddress() != want {
+		t.Errorf("NewClient() StreamerAddress() = %s; want %s", got.StreamerAddress(), want)
 	}
 }
 

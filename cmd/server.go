@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"log"
 	"net"
+	"strings"
 )
 
 func validateAddress() {
-	if ip := net.ParseIP(conf.saddr); ip == nil {
-		log.Fatalf("Invalid IP address '%s'", conf.saddr)
+	if ip := net.ParseIP(conf.srvAddr); ip == nil {
+		log.Fatalf("Invalid IP address '%s'", conf.srvAddr)
 	}
 }
 
@@ -16,7 +17,7 @@ func launchServer() {
 	validateAddress()
 
 	lmp := "[Local server]"
-	sock, err := net.Listen("tcp", net.JoinHostPort(conf.saddr, conf.sport.String()))
+	sock, err := net.Listen("tcp", net.JoinHostPort(conf.srvAddr, conf.srvPort.String()))
 	defer sock.Close()
 	if err != nil {
 		log.Printf("%s error %s...", lmp, err)
@@ -44,7 +45,12 @@ func handleMessages(conn net.Conn, lmp string) {
 		log.Printf("%s Error reading message '%s'", lmp, err)
 		return
 	}
+	msg = strings.TrimSuffix(msg, "\n")
 	log.Printf("%s Message received: '%s'", lmp, msg)
 
-	// TODO: actual message handling goes here.
+	switch msg {
+	case "info":
+		res, err := client.GetDeviceInfo()
+		log.Printf("%v - %T", res, err)
+	}
 }
