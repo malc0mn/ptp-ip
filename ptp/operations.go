@@ -109,61 +109,61 @@ func OperationResponseCodeAsString(code OperationResponseCode) string {
 	case RC_InvalidTransactionID:
 		msg = "invalid transaction id"
 	case RC_OperationNotSupported:
-		msg ="operation not supported"
+		msg = "operation not supported"
 	case RC_ParameterNotSupported:
-		msg ="paramter not supported"
+		msg = "paramter not supported"
 	case RC_IncompleteTransfer:
-		msg ="incomplete transfer"
+		msg = "incomplete transfer"
 	case RC_InvalidStorageID:
-		msg ="invalid storage id"
+		msg = "invalid storage id"
 	case RC_InvalidObjectHandle:
-		msg ="invalid object handle"
+		msg = "invalid object handle"
 	case RC_DevicePropNotSupported:
-		msg ="device property not supported"
+		msg = "device property not supported"
 	case RC_InvalidObjectFormatCode:
-		msg ="invalid object format code"
+		msg = "invalid object format code"
 	case RC_StoreFull:
-		msg ="store full"
+		msg = "store full"
 	case RC_ObjectWriteProtected:
-		msg ="object write protected"
+		msg = "object write protected"
 	case RC_StoreReadOnly:
-		msg ="store read only"
+		msg = "store read only"
 	case RC_AccessDenied:
-		msg ="access denied"
+		msg = "access denied"
 	case RC_NoThumbnailPresent:
-		msg ="no thumbnail present"
+		msg = "no thumbnail present"
 	case RC_SelfTestFailed:
-		msg ="self test failed"
+		msg = "self test failed"
 	case RC_PartialDeletion:
-		msg ="partial deletion"
+		msg = "partial deletion"
 	case RC_StoreNotAvailable:
-		msg ="store not available"
+		msg = "store not available"
 	case RC_SpecificationByFormatUnsupported:
-		msg ="specification by format unsupported"
+		msg = "specification by format unsupported"
 	case RC_NoValidObjectInfo:
-		msg ="no valid object info"
+		msg = "no valid object info"
 	case RC_InvalidCodeFormat:
-		msg ="invalid code format"
+		msg = "invalid code format"
 	case RC_UnknownVendorCode:
-		msg ="unknown vendor code"
+		msg = "unknown vendor code"
 	case RC_CaptureAlreadyTerminated:
-		msg ="capture already terminated"
+		msg = "capture already terminated"
 	case RC_DeviceBusy:
-		msg ="device busy"
+		msg = "device busy"
 	case RC_InvalidParentObject:
-		msg ="invalid parent object"
+		msg = "invalid parent object"
 	case RC_InvalidDevicePropFormat:
-		msg ="invalid device property format"
+		msg = "invalid device property format"
 	case RC_InvalidDevicePropValue:
-		msg ="invalid device property value"
+		msg = "invalid device property value"
 	case RC_InvalidParameter:
-		msg ="invalid parameter"
+		msg = "invalid parameter"
 	case RC_SessionAlreadyOpen:
-		msg ="session already open"
+		msg = "session already open"
 	case RC_TransactionCancelled:
-		msg ="transaction cancelled"
+		msg = "transaction cancelled"
 	case RC_SpecificationofDestinationUnsupported:
-		msg ="specification of destination unsupported"
+		msg = "specification of destination unsupported"
 	default:
 		msg = fmt.Sprintf("unknown operation response code: %#x", code)
 	}

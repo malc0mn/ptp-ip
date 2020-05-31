@@ -16,7 +16,7 @@ const (
 	// This property indicates the minium application version the camera will accept. It MUST be set by the Initiator
 	// during the initialisation sequence. As soon as this is done, the camera will acknowledge the client and store the
 	// client's friendly name to allow future connections without the need for a confirmation.
-	DPC_Fuji_AppVersion      ptp.DevicePropCode = 0xDF24
+	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
 
 	// This fail reason is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
@@ -117,11 +117,11 @@ type FujiOperationRequestPacket struct {
 	DataPhaseInfo uint16
 	OperationCode ptp.OperationCode
 	TransactionID ptp.TransactionID
-	Parameter1 uint32
-	Parameter2 uint32
-	Parameter3 uint32
-	Parameter4 uint32
-	Parameter5 uint32
+	Parameter1    uint32
+	Parameter2    uint32
+	Parameter3    uint32
+	Parameter4    uint32
+	Parameter5    uint32
 }
 
 func (forp *FujiOperationRequestPacket) PacketType() PacketType {
@@ -137,7 +137,7 @@ func NewFujiOpenSessionCommand(tid ptp.TransactionID, sid ptp.SessionID) *FujiOp
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_OpenSession,
 		TransactionID: tid,
-		Parameter1: uint32(sid),
+		Parameter1:    uint32(sid),
 	}
 }
 
@@ -146,9 +146,9 @@ func NewFujiOpenSessionCommand(tid ptp.TransactionID, sid ptp.SessionID) *FujiOp
 //     is, as one can imagine, extremely annoying when parsing the TCP/IP data coming in.
 //   - the DataPhase should be uint32 but Fuji uses uint16
 type FujiOperationResponsePacket struct {
-	DataPhase uint16
+	DataPhase             uint16
 	OperationResponseCode ptp.OperationResponseCode
-	TransactionID ptp.TransactionID
+	TransactionID         ptp.TransactionID
 }
 
 func (forp *FujiOperationResponsePacket) PacketType() PacketType {
@@ -172,10 +172,10 @@ func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 // TODO: these is just a quick fix so we can establish what the exact handshake is.
 //  We will need to rework the data reading process entirely to make it nice and dynamic.
 type FujiOperationResponsePacketOne struct {
-	DataPhase uint16
+	DataPhase             uint16
 	OperationResponseCode ptp.OperationResponseCode
-	TransactionID ptp.TransactionID
-	Parameter1 uint32
+	TransactionID         ptp.TransactionID
+	Parameter1            uint32
 }
 
 func (forp *FujiOperationResponsePacketOne) PacketType() PacketType {
@@ -195,6 +195,7 @@ func (forp *FujiOperationResponsePacketOne) WasSuccessfull() bool {
 func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
 	return errors.New(ptp.OperationResponseCodeAsString(forp.OperationResponseCode))
 }
+
 // TODO: end
 
 // The PTP/IP protocol specifies how to set up the Command/Data connection which should immediately be followed by
@@ -244,7 +245,7 @@ func FujiInitSequence(c *Client) error {
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: uint32(DPC_Fuji_UseInitSequence),
+		Parameter1:    uint32(DPC_Fuji_UseInitSequence),
 	})
 	if err != nil {
 		return err
@@ -280,7 +281,7 @@ func FujiInitSequence(c *Client) error {
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_GetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: uint32(DPC_Fuji_AppVersion),
+		Parameter1:    uint32(DPC_Fuji_AppVersion),
 	})
 	if err != nil {
 		return err
@@ -320,7 +321,7 @@ func FujiInitSequence(c *Client) error {
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: uint32(DPC_Fuji_AppVersion),
+		Parameter1:    uint32(DPC_Fuji_AppVersion),
 	})
 	if err != nil {
 		return err
@@ -330,7 +331,7 @@ func FujiInitSequence(c *Client) error {
 		DataPhaseInfo: uint16(DP_DataOut),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: po.Parameter1,
+		Parameter1:    po.Parameter1,
 	})
 	if err != nil {
 		return err
