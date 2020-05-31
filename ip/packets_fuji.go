@@ -213,8 +213,8 @@ func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
 //     This way we will always support any future versions as required by the firmware; unless of course a newer init
 //     sequence should be required.
 //   - Finally, we send the operation request OC_InitiateOpenCapture which makes the Responder hand over control to the
-//     Initiator. This also opens up the event connection port used by Fuji on port 55741 so we can connecto to it and
-//     the init sequence there.
+//     Initiator. This also opens up the event connection port used by Fuji on port 55741 so we can connect to it and
+//     complete the init sequence there.
 func FujiInitSequence(c *Client) error {
 	var err error
 
