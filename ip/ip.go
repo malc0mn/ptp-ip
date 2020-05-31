@@ -205,6 +205,11 @@ func (c *Client) Dial() error {
 		return err
 	}
 
+	err = c.vendorSpecificInit()
+	if err != nil {
+		return err
+	}
+
 	err = c.initEventConn()
 	if err != nil {
 		return err

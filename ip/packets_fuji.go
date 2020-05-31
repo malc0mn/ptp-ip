@@ -9,9 +9,14 @@ import (
 )
 
 const (
-	// The application version property code for Fuji.
-	DPC_Fuji_AppVersion    ptp.DevicePropCode = 0xDF01
-	DPC_Fuji_CameraVersion ptp.DevicePropCode = 0xDF24
+	// This property indicates the initialisation sequence being used. It MUST be set by the Initiator during the
+	// initialisation sequence and depending on it's value, will require a different init sequence to be used.
+	// See PM_Fuji_InitSequence for further info.
+	DPC_Fuji_UseInitSequence ptp.DevicePropCode = 0xDF01
+	// This property indicates the minium application version the camera will accept. It MUST be set by the Initiator
+	// during the initialisation sequence. As soon as this is done, the camera will acknowledge the client and store the
+	// client's friendly name to allow future connections without the need for a confirmation.
+	DPC_Fuji_AppVersion      ptp.DevicePropCode = 0xDF24
 
 	// This fail reason is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
@@ -25,6 +30,20 @@ const (
 	FR_Fuji_InvalidParameter FailReason = 0x0000201D
 
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
+
+	// When this parameter is 'too low', the camera will complain about the application version being 'the previous
+	// version' and requests to 'upgrade the app'.
+	// After multiple experiments, this parameter will affect the initialisation sequence being used.
+	// On the X-T1:
+	//   - 0x00000003 IS accepted but the init sequence used here does not seem to work and probably needs some
+	//     unknown command(s) to 'finish it off' correctly.
+	//   - 0x00000004 is NOT accepted.
+	//   - 0x00000005 hits the sweet spot and the init sequence we use completes nicely.
+	PM_Fuji_InitSequence = 0x00000005
+	// When this parameter is 'too low', the camera will also complain about the application version being 'the previous
+	// version' and requests to 'upgrade the app'.
+	// However, it does NOT affect the initialisation sequence at all.
+	PM_Fuji_AppVersion = 0x00020001
 
 	// This is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
 	PV_Fuji ProtocolVersion = 0x8F53E4F2
@@ -141,7 +160,9 @@ func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
 }
 
 func (forp *FujiOperationResponsePacket) WasSuccessfull() bool {
-	return forp.OperationResponseCode == ptp.RC_OK || forp.OperationResponseCode == RC_Fuji_DevicePropValue
+	return forp.OperationResponseCode == ptp.RC_OK ||
+		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
+		forp.OperationResponseCode == RC_Fuji_DevicePropValue
 }
 
 func (forp *FujiOperationResponsePacket) ReasonAsError() error {
@@ -166,7 +187,9 @@ func (forp *FujiOperationResponsePacketOne) TotalFixedFieldSize() int {
 }
 
 func (forp *FujiOperationResponsePacketOne) WasSuccessfull() bool {
-	return forp.OperationResponseCode == ptp.RC_OK || forp.OperationResponseCode == RC_Fuji_DevicePropValue
+	return forp.OperationResponseCode == ptp.RC_OK ||
+		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
+		forp.OperationResponseCode == RC_Fuji_DevicePropValue
 }
 
 func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
@@ -178,16 +201,24 @@ func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
 // setting up the Event connection. However Fuji wants additional communications before it is satisfied that the
 // Command/Data connection is properly setup. This additional initialisation is performed here.
 // The sequence is as follows:
-//   - Open a session
-//   - Set device property DPC_Fuji_AppVersion to the correct version as expected by the camera
-//   - The camera will now prompt the user to acknowledge the client connection, displaying the client name that was
-//     set using the InitCommandRequestPacket.
-//   - We will wait for 30 seconds for an acknowledgement from the camera which means the user has pressed the 'OK'
+//   - Open a session.
+//   - Set device property DPC_Fuji_UseInitSequence to the correct number of the init sequence being used by the
+//     Initiator.
+//   - If the client name differs from the one stored, the Responder will now prompt the user to acknowledge the client
+//     connection, displaying the client name that was communicated using the InitCommandRequestPacket.
+//   - We will wait for 30 seconds for an acknowledgement from the Responder which means the user has pressed the 'OK'
 //     on the camera.
+//   - Next we will request the value of device property DPC_Fuji_AppVersion which holds the current minimal application
+//     version supported by the Responder and we will simply acknowledge it by setting it to the same value.
+//     This way we will always support any future versions as required by the firmware; unless of course a newer init
+//     sequence should be required.
+//   - Finally, we send the operation request OC_InitiateOpenCapture which makes the Responder hand over control to the
+//     Initiator. This also opens up the event connection port used by Fuji on port 55741 so we can connecto to it and
+//     the init sequence there.
 func FujiInitSequence(c *Client) error {
 	var err error
 
-	log.Print("Opening session...")
+	log.Print("Opening a session...")
 	err = c.SendPacketToCmdDataConn(NewFujiOpenSessionCommand(c.TransactionId(), 0x00000001))
 	if err != nil {
 		return err
@@ -203,16 +234,17 @@ func FujiInitSequence(c *Client) error {
 		return p.ReasonAsError()
 	}
 
+	// TODO: remove
 	log.Printf("%v -- %s", res, p.ReasonAsError())
 
 	c.incrementTransactionId()
 
-	log.Print("Announcing our application version...")
+	log.Print("Setting correct init sequence number...")
 	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: uint32(DPC_Fuji_AppVersion),
+		Parameter1: uint32(DPC_Fuji_UseInitSequence),
 	})
 	if err != nil {
 		return err
@@ -222,10 +254,7 @@ func FujiInitSequence(c *Client) error {
 		DataPhaseInfo: uint16(DP_DataOut),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		// TODO: Parameter 1 is the application version, we need to make this dynamic so it can be passed in from the
-		//   command line. This will differ from camera model to camera model, so we'll probably default this to a high
-		//   value that, hopefully, will always work.
-		Parameter1: 0x00000003,
+		Parameter1:    PM_Fuji_InitSequence,
 	})
 	if err != nil {
 		return err
@@ -241,16 +270,17 @@ func FujiInitSequence(c *Client) error {
 		return p.ReasonAsError()
 	}
 
+	// TODO: remove
 	log.Printf("%v -- %s", res, p.ReasonAsError())
 
 	c.incrementTransactionId()
 
-	log.Print("Getting current 'other version'...")
+	log.Print("Getting current minimum application version...")
 	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_GetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: uint32(DPC_Fuji_CameraVersion),
+		Parameter1: uint32(DPC_Fuji_AppVersion),
 	})
 	if err != nil {
 		return err
@@ -266,6 +296,7 @@ func FujiInitSequence(c *Client) error {
 		return po.ReasonAsError()
 	}
 
+	// TODO: remove
 	log.Printf("%v -- %s", res, po.ReasonAsError())
 
 	log.Printf("Current 'other version' as communicated by the camera: %#x", po.Parameter1)
@@ -279,16 +310,17 @@ func FujiInitSequence(c *Client) error {
 		return p.ReasonAsError()
 	}
 
+	// TODO: remove
 	log.Printf("%v -- %s", res, p.ReasonAsError())
 
 	c.incrementTransactionId()
 
-	log.Printf("Setting current 'other version' to: %#x", 0x000200ff)
+	log.Printf("Acknowledging current 'other version': %#x", po.Parameter1)
 	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1: uint32(DPC_Fuji_CameraVersion),
+		Parameter1: uint32(DPC_Fuji_AppVersion),
 	})
 	if err != nil {
 		return err
@@ -298,9 +330,7 @@ func FujiInitSequence(c *Client) error {
 		DataPhaseInfo: uint16(DP_DataOut),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		// TODO: Parameter 1 is the exact same as we received from the camera in the previous request! It is also some
-		//   sort of version that needs to be 'high enough' for the camera to accept us.
-		Parameter1: 0x000200ff,
+		Parameter1: po.Parameter1,
 	})
 	if err != nil {
 		return err
@@ -315,29 +345,7 @@ func FujiInitSequence(c *Client) error {
 		return p.ReasonAsError()
 	}
 
-	log.Printf("%v -- %s", res, p.ReasonAsError())
-
-	c.incrementTransactionId()
-
-	log.Print("Requesting device info...")
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: OC_Fuji_GetDeviceInfo,
-		TransactionID: c.TransactionId(),
-	})
-	if err != nil {
-		return err
-	}
-
-	res, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
-		return err
-	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
+	// TODO: remove
 	log.Printf("%v -- %s", res, p.ReasonAsError())
 
 	c.incrementTransactionId()
@@ -361,7 +369,31 @@ func FujiInitSequence(c *Client) error {
 		return p.ReasonAsError()
 	}
 
+	// TODO: remove
 	log.Printf("%v -- %s", res, p.ReasonAsError())
+
+/*	c.incrementTransactionId()
+
+	log.Print("Requesting device info...")
+	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
+		OperationCode: OC_Fuji_GetDeviceInfo,
+		TransactionID: c.TransactionId(),
+	})
+	if err != nil {
+		return err
+	}
+
+	/*res, err = c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return err
+	}
+
+	if !p.WasSuccessfull() {
+		return p.ReasonAsError()
+	}
+
+	log.Printf("%v -- %s", res, p.ReasonAsError())*/
 
 	return nil
 }
