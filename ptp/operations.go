@@ -72,10 +72,10 @@ const (
 	RC_InvalidObjectHandle                   OperationResponseCode = 0x2009
 	RC_DevicePropNotSupported                OperationResponseCode = 0x200A
 	RC_InvalidObjectFormatCode               OperationResponseCode = 0x200B
-	RC_StoreFull                             OperationResponseCode = 0x200B
+	RC_StoreFull                             OperationResponseCode = 0x200C
 	RC_ObjectWriteProtected                  OperationResponseCode = 0x200D
 	RC_StoreReadOnly                         OperationResponseCode = 0x200E
-	RC_AcceddDenied                          OperationResponseCode = 0x200F
+	RC_AccessDenied                          OperationResponseCode = 0x200F
 	RC_NoThumbnailPresent                    OperationResponseCode = 0x2010
 	RC_SelfTestFailed                        OperationResponseCode = 0x2011
 	RC_PartialDeletion                       OperationResponseCode = 0x2012
@@ -94,6 +94,82 @@ const (
 	RC_TransactionCancelled                  OperationResponseCode = 0x201F
 	RC_SpecificationofDestinationUnsupported OperationResponseCode = 0x2020
 )
+
+func OperationResponseCodeAsString(code OperationResponseCode) string {
+	var msg string
+	switch code {
+	case RC_Undefined:
+		msg = "undefined response code"
+	case RC_OK:
+		msg = "ok"
+	case RC_GeneralError:
+		msg = "general error occured"
+	case RC_SessionNotOpen:
+		msg = "session not open: open a session first"
+	case RC_InvalidTransactionID:
+		msg = "invalid transaction id"
+	case RC_OperationNotSupported:
+		msg ="operation not supported"
+	case RC_ParameterNotSupported:
+		msg ="paramter not supported"
+	case RC_IncompleteTransfer:
+		msg ="incomplete transfer"
+	case RC_InvalidStorageID:
+		msg ="invalid storage id"
+	case RC_InvalidObjectHandle:
+		msg ="invalid object handle"
+	case RC_DevicePropNotSupported:
+		msg ="device property not supported"
+	case RC_InvalidObjectFormatCode:
+		msg ="invalid object format code"
+	case RC_StoreFull:
+		msg ="store full"
+	case RC_ObjectWriteProtected:
+		msg ="object write protected"
+	case RC_StoreReadOnly:
+		msg ="store read only"
+	case RC_AccessDenied:
+		msg ="access denied"
+	case RC_NoThumbnailPresent:
+		msg ="no thumbnail present"
+	case RC_SelfTestFailed:
+		msg ="self test failed"
+	case RC_PartialDeletion:
+		msg ="partial deletion"
+	case RC_StoreNotAvailable:
+		msg ="store not available"
+	case RC_SpecificationByFormatUnsupported:
+		msg ="specification by format unsupported"
+	case RC_NoValidObjectInfo:
+		msg ="no valid object info"
+	case RC_InvalidCodeFormat:
+		msg ="invalid code format"
+	case RC_UnknownVendorCode:
+		msg ="unknown vendor code"
+	case RC_CaptureAlreadyTerminated:
+		msg ="capture already terminated"
+	case RC_DeviceBusy:
+		msg ="device busy"
+	case RC_InvalidParentObject:
+		msg ="invalid parent object"
+	case RC_InvalidDevicePropFormat:
+		msg ="invalid device property format"
+	case RC_InvalidDevicePropValue:
+		msg ="invalid device property value"
+	case RC_InvalidParameter:
+		msg ="invalid parameter"
+	case RC_SessionAlreadyOpen:
+		msg ="session already open"
+	case RC_TransactionCancelled:
+		msg ="transaction cancelled"
+	case RC_SpecificationofDestinationUnsupported:
+		msg ="specification of destination unsupported"
+	default:
+		msg = fmt.Sprintf("unknown operation response code: %#x", code)
+	}
+
+	return msg
+}
 
 // The operation request phase consists of the ip-specific transmission of a 30-byte operation dataset from the
 // Initiator to the Responder.
