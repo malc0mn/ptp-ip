@@ -3,6 +3,7 @@ package ip
 import (
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ptp"
 )
 
 const (
@@ -77,4 +78,97 @@ func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *FujiI
 	}
 
 	return fa
+}
+
+// The Fuji OperationRequestPacket deviates from the PTP/IP standard in several ways:
+//   - the packet type should be PKT_OperationRequest, but there is NO packet type sent out in the packet header!
+//   - the DataPhase should be uint32 but Fuji uses uint16
+type FujiOperationRequestPacket struct {
+	DataPhaseInfo uint16
+	OperationCode ptp.OperationCode
+	TransactionID ptp.TransactionID
+	Parameter1 uint32
+	Parameter2 uint32
+	Parameter3 uint32
+	Parameter4 uint32
+	Parameter5 uint32
+}
+
+func (forp *FujiOperationRequestPacket) PacketType() PacketType {
+	return PKT_Invalid
+}
+
+func (forp *FujiOperationRequestPacket) Payload() []byte {
+	return ipInternal.MarshalLittleEndian(forp)
+}
+
+func NewFujiOpenSessionCommand(tid ptp.TransactionID, sid ptp.SessionID) *FujiOperationRequestPacket {
+	return &FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
+		OperationCode: ptp.OC_OpenSession,
+		TransactionID: tid,
+		Parameter1: uint32(sid),
+	}
+}
+
+// The Fuji OperationResponsePacket deviates from the PTP/IP standard similarly to the Fuji OperationRequestPacket:
+//   - the packet type should be PKT_OperationResponse, but there is NO packet type sent out in the packet header which
+//     is, as one can imagine, extremely annoying when parsing the TCP/IP data coming in.
+//   - the DataPhase should be uint32 but Fuji uses uint16
+type FujiOperationResponsePacket struct {
+	DataPhase uint16
+	OperationResponseCode ptp.OperationResponseCode
+	TransactionID ptp.TransactionID
+	Parameter1 uint32
+	Parameter2 uint32
+	Parameter3 uint32
+	Parameter4 uint32
+	Parameter5 uint32
+}
+
+func (forp *FujiOperationResponsePacket) PacketType() PacketType {
+	return PKT_Invalid
+}
+
+func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(forp)
+}
+
+// The PTP/IP protocol specifies how to set up the Command/Data connection which should immediately be followed by
+// setting up the Event connection. However Fuji wants additional communications before it is satisfied that the
+// Command/Data connection is properly setup. This additional initialisation is performed here.
+func FujiInitSequence(c *Client) error {
+	var err error
+
+	err = c.SendPacketToCmdDataConn(NewFujiOpenSessionCommand(c.TransactionId(), 0x00000001))
+	if err != nil {
+		return err
+	}
+
+	p := new(FujiOperationResponsePacket)
+	res, err := c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("%v", res)
+
+/*	err = c.SendPacketToCmdDataConn(&FujiOpenSessionPacket{
+		DataPhaseInfo: DP_DataOut,
+		TransactionID: c.TransactionId(),
+	})
+	if err != nil {
+		return err
+	}
+
+	res, err = c.WaitForPacketFromCmdDataConn()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("%v", res)
+
+	c.incrementTransactionId()
+*/
+	return nil
 }

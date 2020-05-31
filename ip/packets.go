@@ -35,6 +35,7 @@ const (
 	FR_FailBusy              FailReason = 0x00000002
 	FR_FailUnspecified       FailReason = 0x00000003
 
+	PKT_Invalid            PacketType = 0x00000000
 	PKT_InitCommandRequest PacketType = 0x00000001
 	PKT_InitCommandAck     PacketType = 0x00000002
 	PKT_InitEventRequest   PacketType = 0x00000003

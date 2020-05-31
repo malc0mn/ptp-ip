@@ -216,12 +216,7 @@ func (c *Client) Dial() error {
 func (c *Client) DialWithStreamer() error {
 	var err error
 
-	err = c.initCommandDataConn()
-	if err != nil {
-		return err
-	}
-
-	err = c.initEventConn()
+	err = c.Dial()
 	if err != nil {
 		return err
 	}
@@ -274,23 +269,35 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 // We write directly to the connection here without using bufio. The Payload() method and marshalling functions are
 // already writing to a bytes buffer before we write to the connection.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
+	if w == nil {
+		internal.FailOnError(fmt.Errorf("connection %T is closed", w))
+	}
 	internal.LogDebug(fmt.Errorf("[sendPacket] sending %T", p))
 
 	pl := p.Payload()
 	pll := len(pl)
 
-	// The packet length MUST include the header, so we add 8 bytes for that!
-	h := ipInternal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
+	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
+	if p.PacketType() == PKT_Invalid {
+		// Send length only. The length must include the size of the length field, so we add 4 bytes for that!
+		_, err := w.Write(ipInternal.MarshalLittleEndian(uint32(pll + 4)))
+		if err != nil {
+			return err
+		}
+	} else {
+		// The packet length MUST include the header, so we add 8 bytes for that!
+		h := ipInternal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
 
-	// Send header.
-	n, err := w.Write(h)
-	if err != nil {
-		return err
+		// Send header.
+		n, err := w.Write(h)
+		if err != nil {
+			return err
+		}
+		if n != HeaderSize {
+			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
+		}
+		internal.LogDebug(fmt.Errorf("[sendPacket] header bytes written %d", n))
 	}
-	if n != HeaderSize {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
-	}
-	internal.LogDebug(fmt.Errorf("[sendPacket] header bytes written %d", n))
 
 	// Send payload.
 	if pll == 0 {
@@ -298,7 +305,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		return nil
 	}
 
-	n, err = w.Write(pl)
+	n, err := w.Write(pl)
 	if err != nil {
 		return err
 	}
@@ -432,6 +439,16 @@ func (c *Client) initCommandDataConn() error {
 
 	c.commandDataConn.Close()
 	return err
+}
+
+// TODO: rewrite using 'load vendor extensions' approach!
+func (c *Client) vendorSpecificInit() error {
+	switch c.ResponderVendor() {
+	case ptp.VE_FujiPhotoFilmCoLtd:
+		return FujiInitSequence(c)
+	default:
+		return nil
+	}
 }
 
 func (c *Client) initEventConn() error {
