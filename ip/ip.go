@@ -318,13 +318,14 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 }
 
 // Reads a packet from the Command/Data connection.
-func (c *Client) ReadPacketFromCmdDataConn() (PacketIn, error) {
+// When expecting a specific packet, you can pass it in, otherwise pass nil.
+func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
-	return c.readResponse(c.commandDataConn)
+	return c.readResponse(c.commandDataConn, p)
 }
 
 // Waits 30 seconds for a packet on the Command/Data connection.
-func (c *Client) WaitForPacketFromCmdDataConn() (PacketIn, error) {
+func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	var (
 		res PacketIn
 		err error
@@ -336,7 +337,7 @@ func (c *Client) WaitForPacketFromCmdDataConn() (PacketIn, error) {
 			wait = false
 			err = WaitForResponseError
 		default:
-			res, err = c.ReadPacketFromCmdDataConn()
+			res, err = c.ReadPacketFromCmdDataConn(p)
 			if err != io.EOF || res != nil {
 				wait = false
 			}
@@ -353,7 +354,7 @@ func (c *Client) WaitForPacketFromCmdDataConn() (PacketIn, error) {
 // Reads a packet from the Event connection.
 func (c *Client) ReadPacketFromEventConn() (PacketIn, error) {
 	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
-	return c.readResponse(c.eventConn)
+	return c.readResponse(c.eventConn, nil)
 }
 
 // Waits 30 seconds for a packet on the Event connection.
@@ -380,25 +381,39 @@ func (c *Client) WaitForPacketFromEventConn() (PacketIn, error) {
 	return res, nil
 }
 
-func (c *Client) readResponse(r io.Reader) (PacketIn, error) {
+func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
+	var err error
 	var h Header
-	if err := binary.Read(r, binary.LittleEndian, &h); err != nil {
-		return nil, err
+	var hl int
+
+	// An invalid packet type means it does not adhere to the PTP/IP standard, so we read the length field here.
+	if p != nil && p.PacketType() == PKT_Invalid {
+		var l uint32
+		if err := binary.Read(r, binary.LittleEndian, &l); err != nil {
+			return nil, err
+		}
+		hl = int(l) - 4
+	} else {
+		if err := binary.Read(r, binary.LittleEndian, &h); err != nil {
+			return nil, err
+		}
+
+		if h.Length == 0 {
+			return nil, ReadResponseError
+		}
+		hl = int(h.Length) - HeaderSize
 	}
 
-	if h.Length == 0 {
-		return nil, ReadResponseError
-	}
-
-	p, err := NewPacketInFromPacketType(h.PacketType)
-	if err != nil {
-		return nil, err
+	if p == nil {
+		if p, err = NewPacketInFromPacketType(h.PacketType); err != nil {
+			return nil, err
+		}
 	}
 
 	// TODO: this variable string calculation works for now, but there MUST be a better way to handle this!
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
-	vs := int(h.Length) - HeaderSize - p.TotalFixedFieldSize()
+	vs := hl - p.TotalFixedFieldSize()
 	if err := ipInternal.UnmarshalLittleEndian(r, p, vs); err != nil && err != io.EOF {
 		return nil, err
 	}
@@ -422,7 +437,7 @@ func (c *Client) initCommandDataConn() error {
 		return err
 	}
 
-	res, err := c.WaitForPacketFromCmdDataConn()
+	res, err := c.WaitForPacketFromCmdDataConn(nil)
 	if err != nil {
 		return err
 	}
@@ -556,7 +571,7 @@ func (c *Client) GetDeviceInfo() (*OperationResponsePacket, error) {
 		return nil, err
 	}
 
-	res, err := c.WaitForPacketFromCmdDataConn()
+	res, err := c.WaitForPacketFromCmdDataConn(nil)
 	if err != nil {
 		return nil, err
 	}

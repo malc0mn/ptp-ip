@@ -1,5 +1,7 @@
 package ptp
 
+import "fmt"
+
 // The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
 // standard or vendor-extended: 0001 = standard, 1001 = vendor-extended.
 type OperationCode uint16
