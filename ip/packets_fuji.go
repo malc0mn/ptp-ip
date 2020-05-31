@@ -299,7 +299,7 @@ func FujiInitSequence(c *Client) error {
 	// TODO: remove
 	log.Printf("%v -- %s", res, po.ReasonAsError())
 
-	log.Printf("Current 'other version' as communicated by the camera: %#x", po.Parameter1)
+	log.Printf("Current minimal application version as communicated by the camera: %#x", po.Parameter1)
 
 	res, err = c.WaitForPacketFromCmdDataConn(p)
 	if err != nil {
@@ -315,7 +315,7 @@ func FujiInitSequence(c *Client) error {
 
 	c.incrementTransactionId()
 
-	log.Printf("Acknowledging current 'other version': %#x", po.Parameter1)
+	log.Printf("Acknowledging current minimal application version: %#x", po.Parameter1)
 	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
