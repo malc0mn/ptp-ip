@@ -19,7 +19,7 @@ func (c *Client) loadVendorExtensions() {
 		cmdDataInit:          GenericInitCommandDataConn,
 		eventInit:            GenericInitEventConn,
 		streamerInit:         GenericInitStreamerConn,
-		newCmdDataInitPacket: NewGenericInitCommandRequestPacket,
+		newCmdDataInitPacket: NewInitCommandRequestPacket,
 	}
 
 	switch c.ResponderVendor() {
@@ -39,8 +39,7 @@ func GenericInitCommandDataConn(c *Client) error {
 
 	c.configureTcpConn(cmdDataConnection)
 
-	icrp := c.vendorExtensions.newCmdDataInitPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
-	err = c.SendPacketToCmdDataConn(icrp)
+	err = c.SendPacketToCmdDataConn(c.newCmdDataInitPacket())
 	if err != nil {
 		return err
 	}
@@ -113,12 +112,4 @@ func GenericInitStreamerConn(c *Client) error {
 	c.configureTcpConn(streamConnection)
 
 	return nil
-}
-
-func NewGenericInitCommandRequestPacket(guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
-	return &GenericInitCommandRequestPacket{
-		GUID:            guid,
-		FriendlyName:    friendlyName,
-		ProtocolVersion: PV_VersionOnePointZero,
-	}
 }

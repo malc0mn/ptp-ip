@@ -430,6 +430,10 @@ func (c *Client) initCommandDataConn() error {
 	return c.vendorExtensions.cmdDataInit(c)
 }
 
+func (c *Client) newCmdDataInitPacket() InitCommandRequestPacket {
+	return c.vendorExtensions.newCmdDataInitPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
+}
+
 func (c *Client) initEventConn() error {
 	return c.vendorExtensions.eventInit(c)
 }
