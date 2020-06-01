@@ -125,7 +125,7 @@ type Client struct {
 	streamConn       net.Conn
 	initiator        *Initiator
 	responder        *Responder
-	log              *log.Logger
+	log              Logger
 }
 
 func (c *Client) ConnectionNumber() uint32 {
