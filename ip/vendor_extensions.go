@@ -82,6 +82,7 @@ func GenericInitEventConn(c *Client) error {
 
 	ierp := c.newEventInitPacket()
 	if ierp == nil {
+		c.log.Print("No further event channel init required.")
 		return nil
 	}
 	err = c.SendPacketToEventConn(ierp)
