@@ -35,7 +35,7 @@ dhcp=dhclient
 ```
 4. Finish by restarting the `NetworkManager` service:
 `sudo systemctl restart NetworkManager`
-5. Do another connection attempt to your camera's SSID, which should now 
+5. Do another connection attempt to your camera's SSID, which should now
 complete as expected.
 6. If you're still having trouble connecting, stop as many applications and/or
 services as possible that might be fighting for DNS requests or other network
