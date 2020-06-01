@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
@@ -281,10 +280,7 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 // We write directly to the connection here without using bufio. The Payload() method and marshalling functions are
 // already writing to a bytes buffer before we write to the connection.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
-	if w == nil {
-		internal.FailOnError(fmt.Errorf("connection %T is closed", w))
-	}
-	internal.LogDebug(fmt.Errorf("[sendPacket] sending %T", p))
+	c.log.Printf("[sendPacket] sending %T", p)
 
 	pl := p.Payload()
 	pll := len(pl)
@@ -308,12 +304,12 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		if n != HeaderSize {
 			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 		}
-		internal.LogDebug(fmt.Errorf("[sendPacket] header bytes written %d", n))
+		c.log.Printf("[sendPacket] header bytes written %d", n)
 	}
 
 	// Send payload.
 	if pll == 0 {
-		internal.LogDebug(errors.New("[sendPacket] packet has no payload"))
+		c.log.Printf("[sendPacket] packet has no payload")
 		return nil
 	}
 
@@ -324,7 +320,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
-	internal.LogDebug(fmt.Errorf("[sendPacket] payload bytes written %d", n))
+	c.log.Printf("[sendPacket] payload bytes written %d", n)
 
 	return nil
 }
@@ -541,17 +537,17 @@ func (c *Client) configureTcpConn(t connectionType) {
 
 	// The PTP/IP protocol specifically asks to enable keep alive.
 	if err := conn.(*net.TCPConn).SetKeepAlive(true); err != nil {
-		internal.LogError(fmt.Errorf("TCP_KEEPALIVE not enabled for %s connection: %s", t, err))
+		c.log.Printf("TCP_KEEPALIVE not enabled for %s connection: %s", t, err)
 	} else {
-		internal.LogDebug(fmt.Errorf("TCP_KEEPALIVE enabled for %s connection", t))
+		c.log.Printf("TCP_KEEPALIVE enabled for %s connection", t)
 	}
 
 	// The PTP/IP protocol specifically asks to disable Nagle's algorithm. TCP_NODELAY SHOULD be enabled by default in
 	// golang but there's no harm in making sure since performance here is negligible.
 	if err := conn.(*net.TCPConn).SetNoDelay(true); err != nil {
-		internal.LogError(fmt.Errorf("TCP_NODELAY not enabled for %s connection: %s", t, err))
+		c.log.Printf("TCP_NODELAY not enabled for %s connection: %s", t, err)
 	} else {
-		internal.LogDebug(fmt.Errorf("TCP_NODELAY enabled for %s connection", t))
+		c.log.Printf("TCP_NODELAY enabled for %s connection", t)
 	}
 }
 
