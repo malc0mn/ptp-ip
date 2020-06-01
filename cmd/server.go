@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"github.com/malc0mn/ptp-ip/ip"
 	"log"
 	"net"
 	"strings"
@@ -13,7 +14,7 @@ func validateAddress() {
 	}
 }
 
-func launchServer() {
+func launchServer(c *ip.Client) {
 	validateAddress()
 
 	lmp := "[Local server]"
@@ -32,11 +33,11 @@ func launchServer() {
 			log.Printf("%s accept error %s...", lmp, err)
 			continue
 		}
-		go handleMessages(conn, lmp)
+		go handleMessages(conn, c, lmp)
 	}
 }
 
-func handleMessages(conn net.Conn, lmp string) {
+func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 
@@ -50,7 +51,7 @@ func handleMessages(conn net.Conn, lmp string) {
 
 	switch msg {
 	case "info":
-		res, err := client.GetDeviceInfo()
+		res, err := c.GetDeviceInfo()
 		log.Printf("%v - %T", res, err)
 	}
 }

@@ -30,6 +30,8 @@ var (
 	BytesWrittenMismatch = errors.New("bytes written mismatch: written %d wanted %d")
 	ReadResponseError    = errors.New("unable to read response packet")
 	WaitForResponseError = errors.New("timeout reached when waiting for response")
+	InvalidPacketError   = errors.New("invalid packet")
+	NotConnectedError    = errors.New("not connected")
 )
 
 type connectionType string
@@ -277,6 +279,12 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 // We write directly to the connection here without using bufio. The Payload() method and marshalling functions are
 // already writing to a bytes buffer before we write to the connection.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
+	if w == nil {
+		return NotConnectedError
+	}
+	if p == nil {
+		return InvalidPacketError
+	}
 	c.log.Printf("[sendPacket] sending %T", p)
 
 	pl := p.Payload()

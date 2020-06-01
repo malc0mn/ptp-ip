@@ -19,7 +19,6 @@ var (
 	Version   = "0.0.0"
 	BuildTime = "unknown"
 	exe       string
-	client    ip.Client
 )
 
 func main() {
@@ -76,7 +75,7 @@ func main() {
 	}
 
 	if server == true {
-		launchServer()
+		launchServer(client)
 	}
 
 	os.Exit(ok)

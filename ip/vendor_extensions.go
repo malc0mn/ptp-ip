@@ -65,6 +65,7 @@ func GenericInitCommandDataConn(c *Client) error {
 		err = fmt.Errorf("unexpected packet received %T", res)
 	}
 
+	c.log.Println("Closing Command/Data connection!")
 	c.commandDataConn.Close()
 	return err
 }
@@ -103,6 +104,7 @@ func GenericInitEventConn(c *Client) error {
 		err = fmt.Errorf("unexpected packet received %T", res)
 	}
 
+	c.log.Println("Closing Event connection!")
 	c.eventConn.Close()
 	return err
 }
