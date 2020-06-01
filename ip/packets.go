@@ -159,24 +159,33 @@ func (icap *InitCommandAckPacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(icap)
 }
 
+type InitEventRequestPacket interface {
+	PacketOut
+	GetConnectionNumber() uint32
+}
+
 // After the Command/Data TCP Connection is established, this packet is used by the Initiator in order to establish the
 // Event TCP Connection. When the Initiator receives a valid InitCommandAckPacket it establishes the Event TCP
 // connection and transmits this packet on the Event TCP connection. The connection number received via the
 // InitCommandAckPacket is reused in this packet.
-type InitEventRequestPacket struct {
+type GenericInitEventRequestPacket struct {
 	ConnectionNumber uint32
 }
 
-func (ierp *InitEventRequestPacket) PacketType() PacketType {
+func (ierp *GenericInitEventRequestPacket) PacketType() PacketType {
 	return PKT_InitEventRequest
 }
 
-func (ierp *InitEventRequestPacket) Payload() []byte {
+func (ierp *GenericInitEventRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(ierp)
 }
 
-func NewInitEventRequestPacket(connNum uint32) *InitEventRequestPacket {
-	return &InitEventRequestPacket{
+func (ierp *GenericInitEventRequestPacket) GetConnectionNumber() uint32 {
+	return ierp.ConnectionNumber
+}
+
+func NewInitEventRequestPacket(connNum uint32) InitEventRequestPacket {
+	return &GenericInitEventRequestPacket{
 		ConnectionNumber: connNum,
 	}
 }
@@ -422,7 +431,7 @@ func NewPacketOutFromPacketType(pt PacketType) (PacketOut, error) {
 	case PKT_InitCommandRequest:
 		p = new(GenericInitCommandRequestPacket)
 	case PKT_InitEventRequest:
-		p = new(InitEventRequestPacket)
+		p = new(GenericInitEventRequestPacket)
 	case PKT_OperationRequest:
 		p = new(OperationRequestPacket)
 	case PKT_StartData:

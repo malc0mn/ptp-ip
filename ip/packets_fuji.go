@@ -112,6 +112,12 @@ func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) InitCo
 	}
 }
 
+// Fuji does not require the Event channel to be initialised, so we return a nil value here. This will skip any further
+// Event channel initialisation.
+func NewFujiInitEventRequestPacket(connNum uint32) InitEventRequestPacket {
+	return nil
+}
+
 // The Fuji OperationRequestPacket deviates from the PTP/IP standard in several ways:
 //   - the packet type should be PKT_OperationRequest, but there is NO packet type sent out in the packet header (which
 //     is really annoying)!

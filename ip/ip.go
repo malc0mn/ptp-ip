@@ -438,6 +438,10 @@ func (c *Client) initEventConn() error {
 	return c.vendorExtensions.eventInit(c)
 }
 
+func (c *Client) newEventInitPacket() InitEventRequestPacket {
+	return c.vendorExtensions.newEventInitPacket(c.connectionNumber)
+}
+
 // Not all devices will have a streamer service. When this connection fails, we will fail silently.
 func (c *Client) initStreamerConn() error {
 	return c.vendorExtensions.streamerInit(c)

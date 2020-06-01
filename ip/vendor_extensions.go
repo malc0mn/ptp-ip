@@ -12,6 +12,7 @@ type VendorExtensions struct {
 	eventInit            func(c *Client) error
 	streamerInit         func(c *Client) error
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
+	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
 }
 
 func (c *Client) loadVendorExtensions() {
@@ -20,12 +21,14 @@ func (c *Client) loadVendorExtensions() {
 		eventInit:            GenericInitEventConn,
 		streamerInit:         GenericInitStreamerConn,
 		newCmdDataInitPacket: NewInitCommandRequestPacket,
+		newEventInitPacket:   NewInitEventRequestPacket,
 	}
 
 	switch c.ResponderVendor() {
 	case ptp.VE_FujiPhotoFilmCoLtd:
 		c.vendorExtensions.cmdDataInit = FujiInitCommandDataConn
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
+		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
 	}
 }
 
@@ -76,7 +79,10 @@ func GenericInitEventConn(c *Client) error {
 
 	c.configureTcpConn(eventConnection)
 
-	ierp := NewInitEventRequestPacket(c.connectionNumber)
+	ierp := c.newEventInitPacket()
+	if ierp == nil {
+		return nil
+	}
 	err = c.SendPacketToEventConn(ierp)
 	if err != nil {
 		return err

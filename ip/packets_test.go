@@ -54,7 +54,7 @@ func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 func TestNewPacketOutFromPacketType(t *testing.T) {
 	types := map[PacketType]string{
 		PKT_InitCommandRequest: "GenericInitCommandRequest",
-		PKT_InitEventRequest:   "InitEventRequest",
+		PKT_InitEventRequest:   "GenericInitEventRequest",
 		PKT_OperationRequest:   "OperationRequest",
 		PKT_StartData:          "StartData",
 		PKT_Data:               "Data",
