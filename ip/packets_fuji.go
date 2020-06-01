@@ -104,14 +104,12 @@ func (ficrp *FujiInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersion
 	ficrp.ProtocolVersion = pv
 }
 
-func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *FujiInitCommandRequestPacket {
-	fa := &FujiInitCommandRequestPacket{
+func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
+	return &FujiInitCommandRequestPacket{
 		ProtocolVersion: PV_Fuji,
 		GUID:            guid,
 		FriendlyName:    friendlyName,
 	}
-
-	return fa
 }
 
 // The Fuji OperationRequestPacket deviates from the PTP/IP standard in several ways:
@@ -212,8 +210,14 @@ func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
 //   - Finally, we send the operation request OC_InitiateOpenCapture which makes the Responder hand over control to the
 //     Initiator. This also opens up the event connection port used by Fuji on port 55741 so we can connect to it and
 //     complete the init sequence there.
-func FujiInitSequence(c *Client) error {
+func FujiInitCommandDataConn(c *Client) error {
 	var err error
+
+	// The first part of the sequence is according to the PTP/IP standard, save for the different packet format.
+	err = GenericInitCommandDataConn(c)
+	if err != nil {
+		return err
+	}
 
 	c.log.Print("Opening a session...")
 	err = FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001)
@@ -247,40 +251,18 @@ func FujiInitSequence(c *Client) error {
 		return err
 	}
 
-/*	c.incrementTransactionId()
-
-	log.Print("Requesting device info...")
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: OC_Fuji_GetDeviceInfo,
-		TransactionID: c.TransactionId(),
-	})
-	if err != nil {
-		return err
-	}
-
-	/*res, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
-		return err
-	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	log.Printf("%v -- %s", res, p.ReasonAsError())*/
-
 	return nil
 }
 
-func FujiSetDeviceProperty(c *Client, dpc ptp.DevicePropCode, val uint32) error {
+// Sets a device property to the given value.
+func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error {
 	c.incrementTransactionId()
 
 	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
-		Parameter1:    uint32(dpc),
+		Parameter1:    uint32(code),
 	})
 	if err != nil {
 		return err
@@ -309,6 +291,7 @@ func FujiSetDeviceProperty(c *Client, dpc ptp.DevicePropCode, val uint32) error 
 	return nil
 }
 
+// Get the value for the given device property.
 // TODO: add third parameter to indicate how many parameters from the response object are expected?
 func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	c.incrementTransactionId()
@@ -347,7 +330,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 	return po.Parameter1, nil
 }
 
-// If a parameter is not required, simply pass in PM_Fuji_NoParam!
+// Send an operation request to the camera. If a parameter is not required, simply pass in PM_Fuji_NoParam!
 func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) error {
 	c.incrementTransactionId()
 
@@ -373,3 +356,26 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) e
 
 	return nil
 }
+
+/*	c.incrementTransactionId()
+
+	log.Print("Requesting device info...")
+	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
+		OperationCode: OC_Fuji_GetDeviceInfo,
+		TransactionID: c.TransactionId(),
+	})
+	if err != nil {
+		return err
+	}
+
+	/*res, err = c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return err
+	}
+
+	if !p.WasSuccessfull() {
+		return p.ReasonAsError()
+	}
+
+	log.Printf("%v -- %s", res, p.ReasonAsError())*/

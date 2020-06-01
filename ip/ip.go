@@ -125,6 +125,7 @@ type Client struct {
 	streamConn       net.Conn
 	initiator        *Initiator
 	responder        *Responder
+	vendorExtensions *VendorExtensions
 	log              Logger
 }
 
@@ -208,11 +209,6 @@ func (c *Client) Dial() error {
 	var err error
 
 	err = c.initCommandDataConn()
-	if err != nil {
-		return err
-	}
-
-	err = c.vendorSpecificInit()
 	if err != nil {
 		return err
 	}
@@ -431,100 +427,16 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 }
 
 func (c *Client) initCommandDataConn() error {
-	var err error
-
-	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.CommandDataAddres(), DefaultDialTimeout)
-	if err != nil {
-		return err
-	}
-
-	c.configureTcpConn(cmdDataConnection)
-
-	icrp := NewInitCommandRequestPacket(c.ResponderVendor(), c.InitiatorGUID(), c.InitiatorFriendlyName())
-	err = c.SendPacketToCmdDataConn(icrp)
-	if err != nil {
-		return err
-	}
-
-	res, err := c.WaitForPacketFromCmdDataConn(nil)
-	if err != nil {
-		return err
-	}
-
-	switch pkt := res.(type) {
-	case *InitFailPacket:
-		err = pkt.ReasonAsError()
-	case *InitCommandAckPacket:
-		c.connectionNumber = pkt.ConnectionNumber
-		c.responder.GUID = pkt.ResponderGUID
-		c.responder.FriendlyName = pkt.ResponderFriendlyName
-		c.responder.ProtocolVersion = pkt.ResponderProtocolVersion
-		return nil
-	default:
-		err = fmt.Errorf("unexpected packet received %T", res)
-	}
-
-	c.commandDataConn.Close()
-	return err
-}
-
-// TODO: rewrite using 'load vendor extensions' approach!
-func (c *Client) vendorSpecificInit() error {
-	switch c.ResponderVendor() {
-	case ptp.VE_FujiPhotoFilmCoLtd:
-		return FujiInitSequence(c)
-	default:
-		return nil
-	}
+	return c.vendorExtensions.cmdDataInit(c)
 }
 
 func (c *Client) initEventConn() error {
-	var err error
-
-	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.EventAddress(), DefaultDialTimeout)
-	if err != nil {
-		return err
-	}
-
-	c.configureTcpConn(eventConnection)
-
-	ierp := NewInitEventRequestPacket(c.connectionNumber)
-	err = c.SendPacketToEventConn(ierp)
-	if err != nil {
-		return err
-	}
-
-	res, err := c.WaitForPacketFromEventConn()
-	if err != nil {
-		return err
-	}
-
-	switch pkt := res.(type) {
-	case *InitFailPacket:
-		err = pkt.ReasonAsError()
-	case *InitEventAckPacket:
-		c.incrementTransactionId()
-		return nil
-	default:
-		err = fmt.Errorf("unexpected packet received %T", res)
-	}
-
-	c.eventConn.Close()
-	return err
+	return c.vendorExtensions.eventInit(c)
 }
 
 // Not all devices will have a streamer service. When this connection fails, we will fail silently.
 func (c *Client) initStreamerConn() error {
-	var err error
-
-	c.streamConn, err = ipInternal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
-	if err != nil {
-		return err
-	}
-
-	c.configureTcpConn(streamConnection)
-
-	return nil
+	return c.vendorExtensions.streamerInit(c)
 }
 
 func (c *Client) configureTcpConn(t connectionType) {
@@ -569,6 +481,8 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 		responder: NewResponder(vendor, ip, port, port, port),
 		log:       log.New(os.Stderr, "", log.LstdFlags),
 	}
+
+	c.loadVendorExtensions()
 
 	return c, nil
 }

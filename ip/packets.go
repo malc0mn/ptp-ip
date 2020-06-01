@@ -120,26 +120,20 @@ func (icrp *GenericInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersi
 	icrp.ProtocolVersion = pv
 }
 
-// TODO: rewrite using the 'load vendor extensions' approach
-func NewInitCommandRequestPacket(vendor ptp.VendorExtension, guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
-	switch vendor {
-	case ptp.VE_FujiPhotoFilmCoLtd:
-		return NewFujiInitCommandRequestPacket(guid, friendlyName)
-	default:
-		return &GenericInitCommandRequestPacket{
-			GUID:            guid,
-			FriendlyName:    friendlyName,
-			ProtocolVersion: PV_VersionOnePointZero,
-		}
+func NewInitCommandRequestPacket(guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
+	return &GenericInitCommandRequestPacket{
+		GUID:            guid,
+		FriendlyName:    friendlyName,
+		ProtocolVersion: PV_VersionOnePointZero,
 	}
 }
 
 func NewInitCommandRequestPacketForClient(c *Client) InitCommandRequestPacket {
-	return NewInitCommandRequestPacket(c.ResponderVendor(), c.InitiatorGUID(), c.InitiatorFriendlyName())
+	return NewInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 }
 
-func NewInitCommandRequestPacketWithVersion(vendor ptp.VendorExtension, guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) InitCommandRequestPacket {
-	icrp := NewInitCommandRequestPacket(vendor, guid, friendlyName)
+func NewInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) InitCommandRequestPacket {
+	icrp := NewInitCommandRequestPacket(guid, friendlyName)
 	icrp.SetProtocolVersion(protocolVersion)
 
 	return icrp

@@ -9,7 +9,7 @@ import (
 
 func TestNewInitCommandRequestPacket(t *testing.T) {
 	uuid, _ := uuid.NewRandom()
-	got := NewInitCommandRequestPacket(0, uuid, "têst")
+	got := NewInitCommandRequestPacket(uuid, "têst")
 	want := "têst"
 
 	if got.GetFriendlyName() != want {
@@ -39,7 +39,7 @@ func TestNewInitCommandRequestPacketForClient(t *testing.T) {
 
 func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 	uuid, _ := uuid.NewRandom()
-	got := NewInitCommandRequestPacketWithVersion(0, uuid, "versíon", 0x00020005)
+	got := NewInitCommandRequestPacketWithVersion(uuid, "versíon", 0x00020005)
 	wantName := "versíon"
 	wantVersion := ProtocolVersion(0x00020005)
 
