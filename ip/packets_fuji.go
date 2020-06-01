@@ -217,24 +217,19 @@ func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
 //     Initiator. This also opens up the event connection port used by Fuji on port 55741 so we can connect to it and
 //     complete the init sequence there.
 func FujiInitCommandDataConn(c *Client) error {
-	var err error
-
 	// The first part of the sequence is according to the PTP/IP standard, save for the different packet format.
-	err = GenericInitCommandDataConn(c)
-	if err != nil {
+	if err := GenericInitCommandDataConn(c); err != nil {
 		return err
 	}
 
 	c.log.Print("Opening a session...")
-	err = FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001)
-	if err != nil {
+	if err := FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001); err != nil {
 		return err
 	}
 
 	c.log.Print("Setting correct init sequence number...")
 	c.log.Print("Should you be prompted, please accept the new connection request on the camera.")
-	err = FujiSetDeviceProperty(c, DPC_Fuji_UseInitSequence, PM_Fuji_InitSequence)
-	if err != nil {
+	if err := FujiSetDeviceProperty(c, DPC_Fuji_UseInitSequence, PM_Fuji_InitSequence); err != nil {
 		return err
 	}
 
@@ -243,17 +238,13 @@ func FujiInitCommandDataConn(c *Client) error {
 	if err != nil {
 		return err
 	}
-
 	c.log.Printf("Acknowledging current minimal application version as communicated by the camera: %#x", val)
-	err = FujiSetDeviceProperty(c, DPC_Fuji_AppVersion, val)
-	if err != nil {
+	if err := FujiSetDeviceProperty(c, DPC_Fuji_AppVersion, val); err != nil {
 		return err
 	}
 
 	c.log.Print("Initiating open capture...")
-	err = FujiSendOperationRequest(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam)
-
-	if err != nil {
+	if err := FujiSendOperationRequest(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam); err != nil {
 		return err
 	}
 
