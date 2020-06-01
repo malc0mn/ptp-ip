@@ -284,7 +284,7 @@ func TestClient_readResponse(t *testing.T) {
 	var b bytes.Buffer
 	c.sendAnyPacket(&b, p)
 
-	rp, err := c.readResponse(&b)
+	rp, err := c.readResponse(&b, nil)
 	if err != nil {
 		t.Errorf("readResponse() error = %s; want <nil>", err)
 	}
