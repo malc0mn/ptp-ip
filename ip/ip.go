@@ -88,6 +88,7 @@ type Responder struct {
 	StreamerPort    uint16
 	GUID            uuid.UUID
 	FriendlyName    string
+	ProtocolVersion uint32
 }
 
 func (r Responder) Network() string {
@@ -455,6 +456,9 @@ func (c *Client) initCommandDataConn() error {
 		err = pkt.ReasonAsError()
 	case *InitCommandAckPacket:
 		c.connectionNumber = pkt.ConnectionNumber
+		c.responder.GUID = pkt.ResponderGUID
+		c.responder.FriendlyName = pkt.ResponderFriendlyName
+		c.responder.ProtocolVersion = pkt.ResponderProtocolVersion
 		return nil
 	default:
 		err = fmt.Errorf("unexpected packet received %T", res)
