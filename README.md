@@ -3,13 +3,13 @@ The PTP over IP protocol (PTP-IP) DC-X005-2005
 
 ## Connecting to your camera
 The first and obvious step is to enable the camera's wifi. Have your network
-manager scan for wireless SSIDs and connect to the one from your camera. It
-will most likely have an obvious name. A Fujifilm X-T1 SSID, for example,
-starts with `FUJIFILM-X-T1` followed by four more characters.
+manager scan for new SSIDs and connect to the one from your camera. It will most
+likely have an obvious name. A Fujifilm X-T1 SSID, for example, starts with
+`FUJIFILM-X-T1` followed by four more characters.
 ## Linux `NetworkManager` troubleshooting
-If you cannot get a WiFi connection to your camera, start off by tailing the
-logs: `sudo journalctl -f`. When those are open, connect to your camera's SSID
-and look closely at what it spews out.
+If you have trouble establishing a WiFi connection to your camera, start off by
+tailing the logs: `sudo journalctl -f`. When those are open, connect to your
+camera's SSID and look closely at what it spews out.
 ### IPv6 errors
 If you see IPv6 related errors in the logs, make sure you disable IPv6 for the
 connection to your camera's SSID. You can do this using the UI: under the IPv6
@@ -25,7 +25,7 @@ client, you might have trouble getting a DHCP address from the camera.
 In this case, you could try using `dhclient` as follows:
 1. Make sure `dhclient` is installed: simply run `dhclient --version` from the
 CLI and if you see output in the sense of `isc-dhclient-4.4.2` then you you're
-good to go :-).
+good to go :-). If not, install it first.
 2. Now let's tell `NetworkManager` to use it by adding some config:
 `sudo vi /etc/NetworkManager/conf.d/dhcp-client.conf`
 3. Paste the following config and save it:
@@ -33,8 +33,14 @@ good to go :-).
 [main]
 dhcp=dhclient
 ```
-4. Finish by restarting the service `sudo systemctl restart NetworkManager`
-5. Do another connection attempt to your camera's SSID.
+4. Finish by restarting the `NetworkManager` service:
+`sudo systemctl restart NetworkManager`
+5. Do another connection attempt to your camera's SSID, which should now 
+complete as expected.
+6. If you're still having trouble connecting, stop as many applications and/or
+services as possible that might be fighting for DNS requests or other network
+related things, as the camera might be overwhelmed and simply has no time or
+resources to hand out an IP address.
 
 ## CLI command
 ### Config file
