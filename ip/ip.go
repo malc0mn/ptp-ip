@@ -9,7 +9,9 @@ import (
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
+	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -123,6 +125,7 @@ type Client struct {
 	streamConn       net.Conn
 	initiator        *Initiator
 	responder        *Responder
+	log              *log.Logger
 }
 
 func (c *Client) ConnectionNumber() uint32 {
@@ -195,6 +198,10 @@ func (c *Client) SetEventPort(port uint16) {
 
 func (c *Client) SetStreamerPort(port uint16) {
 	c.responder.StreamerPort = port
+}
+
+func (c *Client) SetLogger(log *log.Logger) {
+	c.log = log
 }
 
 func (c *Client) Dial() error {
@@ -560,6 +567,7 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 	c := &Client{
 		initiator: i,
 		responder: NewResponder(vendor, ip, port, port, port),
+		log:       log.New(os.Stderr, "", log.LstdFlags),
 	}
 
 	return c, nil

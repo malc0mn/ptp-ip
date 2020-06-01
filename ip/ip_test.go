@@ -8,7 +8,6 @@ import (
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
-	"log"
 	"os"
 	"testing"
 )
@@ -27,7 +26,7 @@ func TestMain(m *testing.M) {
 }
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
-	log.Printf("[ip_test] sendAnyPacket() sending %T", p)
+	c.log.Printf("[ip_test] sendAnyPacket() sending %T", p)
 
 	pl := ipInternal.MarshalLittleEndian(p)
 	pll := len(pl)
@@ -41,7 +40,7 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	log.Printf("[ip_test] sendAnyPacket() header bytes written %d", n)
+	c.log.Printf("[ip_test] sendAnyPacket() header bytes written %d", n)
 
 	// Send payload.
 	n, err = w.Write(pl)
@@ -49,7 +48,7 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 	internal.FailOnError(err)
-	log.Printf("[ip_test] sendAnyPacket() payload bytes written %d", n)
+	c.log.Printf("[ip_test] sendAnyPacket() payload bytes written %d", n)
 
 	return nil
 }

@@ -120,6 +120,7 @@ func (icrp *GenericInitCommandRequestPacket) SetProtocolVersion(pv ProtocolVersi
 	icrp.ProtocolVersion = pv
 }
 
+// TODO: rewrite using the 'load vendor extensions' approach
 func NewInitCommandRequestPacket(vendor ptp.VendorExtension, guid uuid.UUID, friendlyName string) InitCommandRequestPacket {
 	switch vendor {
 	case ptp.VE_FujiPhotoFilmCoLtd:

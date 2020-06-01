@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
-	"log"
 )
 
 const (
@@ -31,18 +30,23 @@ const (
 
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
 
+	// For convenience: to be used with FujiSendOperationRequest() when no parameter is required for the operation.
+	PM_Fuji_NoParam = 0x00000000
 	// When this parameter is 'too low', the camera will complain about the application version being 'the previous
 	// version' and requests to 'upgrade the app'.
 	// After multiple experiments, this parameter will affect the initialisation sequence being used.
-	// On the X-T1:
+	// On the X-T1 (firmware v5.51):
 	//   - 0x00000003 IS accepted but the init sequence used here does not seem to work and probably needs some
 	//     unknown command(s) to 'finish it off' correctly.
-	//   - 0x00000004 is NOT accepted.
+	//   - 0x00000004 SEEMS not to be accepted, i.e. a client confirmation prompt is never displayed by the camera. So
+	//     it MIGHT work, but could expect a different set of commands.
 	//   - 0x00000005 hits the sweet spot and the init sequence we use completes nicely.
 	PM_Fuji_InitSequence = 0x00000005
 	// When this parameter is 'too low', the camera will also complain about the application version being 'the previous
-	// version' and requests to 'upgrade the app'.
-	// However, it does NOT affect the initialisation sequence at all.
+	// version' and requests to 'upgrade the app'. However, it does NOT affect the initialisation sequence at all.
+	// The value here is that of the X-T1 on firmware version v5.51. We're not using it through this fixed value
+	// anymore, but we now get it from the camera and confirm it by setting it to what the camera reports in the hope
+	// that this will be future proof and we do not need to to adjust it ever again.
 	PM_Fuji_AppVersion = 0x00020001
 
 	// This is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
@@ -111,7 +115,8 @@ func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) *FujiI
 }
 
 // The Fuji OperationRequestPacket deviates from the PTP/IP standard in several ways:
-//   - the packet type should be PKT_OperationRequest, but there is NO packet type sent out in the packet header!
+//   - the packet type should be PKT_OperationRequest, but there is NO packet type sent out in the packet header (which
+//     is really annoying)!
 //   - the DataPhase should be uint32 but Fuji uses uint16
 type FujiOperationRequestPacket struct {
 	DataPhaseInfo uint16
@@ -130,15 +135,6 @@ func (forp *FujiOperationRequestPacket) PacketType() PacketType {
 
 func (forp *FujiOperationRequestPacket) Payload() []byte {
 	return ipInternal.MarshalLittleEndian(forp)
-}
-
-func NewFujiOpenSessionCommand(tid ptp.TransactionID, sid ptp.SessionID) *FujiOperationRequestPacket {
-	return &FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: ptp.OC_OpenSession,
-		TransactionID: tid,
-		Parameter1:    uint32(sid),
-	}
 }
 
 // The Fuji OperationResponsePacket deviates from the PTP/IP standard similarly to the Fuji OperationRequestPacket:
@@ -219,159 +215,37 @@ func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
 func FujiInitSequence(c *Client) error {
 	var err error
 
-	log.Print("Opening a session...")
-	err = c.SendPacketToCmdDataConn(NewFujiOpenSessionCommand(c.TransactionId(), 0x00000001))
+	c.log.Print("Opening a session...")
+	err = FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001)
 	if err != nil {
 		return err
 	}
 
-	p := new(FujiOperationResponsePacket)
-	res, err := c.WaitForPacketFromCmdDataConn(p)
+	c.log.Print("Setting correct init sequence number...")
+	c.log.Print("Should you be prompted, please accept the new connection request on the camera.")
+	err = FujiSetDeviceProperty(c, DPC_Fuji_UseInitSequence, PM_Fuji_InitSequence)
 	if err != nil {
 		return err
 	}
 
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	// TODO: remove
-	log.Printf("%v -- %s", res, p.ReasonAsError())
-
-	c.incrementTransactionId()
-
-	log.Print("Setting correct init sequence number...")
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: ptp.OC_SetDevicePropValue,
-		TransactionID: c.TransactionId(),
-		Parameter1:    uint32(DPC_Fuji_UseInitSequence),
-	})
+	c.log.Print("Getting current minimum application version...")
+	val, err := FujiGetDevicePropertyValue(c, DPC_Fuji_AppVersion)
 	if err != nil {
 		return err
 	}
 
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_DataOut),
-		OperationCode: ptp.OC_SetDevicePropValue,
-		TransactionID: c.TransactionId(),
-		Parameter1:    PM_Fuji_InitSequence,
-	})
+	c.log.Printf("Acknowledging current minimal application version as communicated by the camera: %#x", val)
+	err = FujiSetDeviceProperty(c, DPC_Fuji_AppVersion, val)
 	if err != nil {
 		return err
 	}
 
-	log.Print("Please accept the new connection request on the camera...")
-	res, err = c.WaitForPacketFromCmdDataConn(p)
+	c.log.Print("Initiating open capture...")
+	err = FujiSendOperationRequest(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam)
+
 	if err != nil {
 		return err
 	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	// TODO: remove
-	log.Printf("%v -- %s", res, p.ReasonAsError())
-
-	c.incrementTransactionId()
-
-	log.Print("Getting current minimum application version...")
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: ptp.OC_GetDevicePropValue,
-		TransactionID: c.TransactionId(),
-		Parameter1:    uint32(DPC_Fuji_AppVersion),
-	})
-	if err != nil {
-		return err
-	}
-
-	po := new(FujiOperationResponsePacketOne)
-	res, err = c.WaitForPacketFromCmdDataConn(po)
-	if err != nil {
-		return err
-	}
-
-	if !po.WasSuccessfull() {
-		return po.ReasonAsError()
-	}
-
-	// TODO: remove
-	log.Printf("%v -- %s", res, po.ReasonAsError())
-
-	log.Printf("Current minimal application version as communicated by the camera: %#x", po.Parameter1)
-
-	res, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
-		return err
-	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	// TODO: remove
-	log.Printf("%v -- %s", res, p.ReasonAsError())
-
-	c.incrementTransactionId()
-
-	log.Printf("Acknowledging current minimal application version: %#x", po.Parameter1)
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: ptp.OC_SetDevicePropValue,
-		TransactionID: c.TransactionId(),
-		Parameter1:    uint32(DPC_Fuji_AppVersion),
-	})
-	if err != nil {
-		return err
-	}
-
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_DataOut),
-		OperationCode: ptp.OC_SetDevicePropValue,
-		TransactionID: c.TransactionId(),
-		Parameter1:    po.Parameter1,
-	})
-	if err != nil {
-		return err
-	}
-
-	res, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
-		return err
-	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	// TODO: remove
-	log.Printf("%v -- %s", res, p.ReasonAsError())
-
-	c.incrementTransactionId()
-
-	log.Print("Initiating open capture...")
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: ptp.OC_InitiateOpenCapture,
-		TransactionID: c.TransactionId(),
-	})
-	if err != nil {
-		return err
-	}
-
-	res, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
-		return err
-	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	// TODO: remove
-	log.Printf("%v -- %s", res, p.ReasonAsError())
 
 /*	c.incrementTransactionId()
 
@@ -395,6 +269,107 @@ func FujiInitSequence(c *Client) error {
 	}
 
 	log.Printf("%v -- %s", res, p.ReasonAsError())*/
+
+	return nil
+}
+
+func FujiSetDeviceProperty(c *Client, dpc ptp.DevicePropCode, val uint32) error {
+	c.incrementTransactionId()
+
+	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
+		OperationCode: ptp.OC_SetDevicePropValue,
+		TransactionID: c.TransactionId(),
+		Parameter1:    uint32(dpc),
+	})
+	if err != nil {
+		return err
+	}
+
+	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_DataOut),
+		OperationCode: ptp.OC_SetDevicePropValue,
+		TransactionID: c.TransactionId(),
+		Parameter1:    val,
+	})
+	if err != nil {
+		return err
+	}
+
+	p := new(FujiOperationResponsePacket)
+	_, err = c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return err
+	}
+
+	if !p.WasSuccessfull() {
+		return p.ReasonAsError()
+	}
+
+	return nil
+}
+
+// TODO: add third parameter to indicate how many parameters from the response object are expected?
+func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
+	c.incrementTransactionId()
+
+	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
+		OperationCode: ptp.OC_GetDevicePropValue,
+		TransactionID: c.TransactionId(),
+		Parameter1:    uint32(dpc),
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// TODO: rewrite packet reading so we can ALWAYS use FujiOperationResponsePacket
+	po := new(FujiOperationResponsePacketOne)
+	_, err = c.WaitForPacketFromCmdDataConn(po)
+	if err != nil {
+		return 0, err
+	}
+
+	if !po.WasSuccessfull() {
+		return 0, po.ReasonAsError()
+	}
+
+	p := new(FujiOperationResponsePacket)
+	_, err = c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return 0, err
+	}
+
+	if !p.WasSuccessfull() {
+		return 0, p.ReasonAsError()
+	}
+
+	return po.Parameter1, nil
+}
+
+// If a parameter is not required, simply pass in PM_Fuji_NoParam!
+func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) error {
+	c.incrementTransactionId()
+
+	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
+		OperationCode: code,
+		TransactionID: c.TransactionId(),
+		Parameter1:    param,
+	})
+	if err != nil {
+		return err
+	}
+
+	p := new(FujiOperationResponsePacket)
+	_, err = c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return err
+	}
+
+	if !p.WasSuccessfull() {
+		return p.ReasonAsError()
+	}
 
 	return nil
 }
