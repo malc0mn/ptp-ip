@@ -39,8 +39,10 @@ dhcp=dhclient
 complete as expected.
 6. If you're still having trouble connecting, stop as many applications and/or
 services as possible that might be fighting for DNS requests or other network
-related things, as the camera might be overwhelmed and simply has no time or
+related things, as the camera could simply be overwhelmed and has no time or
 resources to hand out an IP address.
+The first shutdown candidates here are any web browser (Chrome, Firefox, Edge)
+or chat applications such as Slack, WhatsApp etc.
 
 ## CLI command
 ### Config file
