@@ -52,50 +52,59 @@ func MarshalLittleEndian(s interface{}) []byte {
 	return b.Bytes()
 }
 
-func unmarshal(r io.Reader, s interface{}, vs int, bo binary.ByteOrder) error {
-	// binary.Read() can only cope with fixed length values so we'll need to handle anything else ourselves.
-	if _, hasSession := s.(ptp.Session); binary.Size(s) < 0 || hasSession {
-		v := reflect.Indirect(reflect.ValueOf(s))
+// We always read using reflection to fill each field of s as we go along. This way, we can fill structs like the
+// ptp.OperationResponsePacket which does not necessarily receive all parameter fields 'over the wire'. According to the
+// protocol we should, but unfortunately it depends on the vendor's implementation.
+// So we need to make sure this unmarshal function is usable by all future implementations.
+func unmarshal(r io.Reader, s interface{}, l int, vs int, bo binary.ByteOrder) (int, error) {
+	v := reflect.Indirect(reflect.ValueOf(s))
 
-		for i := 0; i < v.NumField(); i++ {
-			// When a dataset has a SessionID, we must skip it since the PTP/IP protocol does not send it.
-			if v.Type().Field(i).Name == "SessionID" {
-				continue
-			}
-
-			f := v.Field(i)
-			switch f.Kind() {
-			case reflect.Struct:
-				unmarshal(r, f.Addr().Interface(), vs, bo)
-			case reflect.String:
-				// The PTP protocol expects 2 byte Unicode characters according to the ISO10646 standard, so we convert
-				// them to string here.
-				b := make([]uint16, vs / 2)
-				if err := binary.Read(r, bo, b); err != nil {
-					return err
-				}
-				// The slice operation happening here is to drop the null terminator.
-				f.SetString(string(utf16.Decode(b[:len(b) - 1])))
-			default:
-				if err := binary.Read(r, bo, f.Addr().Interface()); err != nil {
-					return err
-				}
-			}
+	for i := 0; i < v.NumField(); i++ {
+		// When a dataset has a SessionID, we must skip it since the PTP/IP protocol does not send it.
+		if v.Type().Field(i).Name == "SessionID" {
+			continue
 		}
-	} else {
-		if err := binary.Read(r, bo, s); err != nil {
-			return err
+
+		f := v.Field(i)
+		switch f.Kind() {
+		case reflect.Struct:
+			var err error
+			l, err = unmarshal(r, f.Addr().Interface(), l, vs, bo)
+			if err != nil {
+				return 0, err
+			}
+		case reflect.String:
+			// The PTP protocol expects 2 byte Unicode characters according to the ISO10646 standard, so we convert
+			// them to string here.
+			b := make([]uint16, vs / 2)
+			if err := binary.Read(r, bo, b); err != nil {
+				return 0, err
+			}
+			// The slice operation happening here is to drop the null terminator.
+			f.SetString(string(utf16.Decode(b[:len(b) - 1])))
+			l -= vs / 2
+		default:
+			if err := binary.Read(r, bo, f.Addr().Interface()); err != nil {
+				return 0, err
+			}
+			l -= binary.Size(f.Addr().Interface())
+		}
+
+		if l == 0 {
+			return l, nil
 		}
 	}
 
-	return nil
+	// TODO: we ignore the leftover data for now, but how should we handle it properly?
+	return l, nil
 }
 
 // Unmarshal a byte array, Little Endian formant, upon reception.
-// We need a reader, a destination container and a "variable size" integer indicating the variable sized portion
-// of the packet.
-func UnmarshalLittleEndian(r io.Reader, s interface{}, vs int) error {
-	return unmarshal(r, s, vs, binary.LittleEndian)
+// We need a reader, a destination container, the total expected length and a "variable size" integer indicating the
+// variable sized portion of the packet.
+func UnmarshalLittleEndian(r io.Reader, s interface{}, l int, vs int) error {
+	_, err := unmarshal(r, s, l, vs, binary.LittleEndian)
+	return err
 }
 
 func TotalSizeOfFixedFields(s interface{}) int {

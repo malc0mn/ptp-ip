@@ -399,7 +399,7 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 	var h Header
 	var hl int
 
-	// An invalid packet type means it does not adhere to the PTP/IP standard, so we read the length field here.
+	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only read the length field here.
 	if p != nil && p.PacketType() == PKT_Invalid {
 		var l uint32
 		if err := binary.Read(r, binary.LittleEndian, &l); err != nil {
@@ -427,7 +427,7 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
 	vs := hl - p.TotalFixedFieldSize()
-	if err := ipInternal.UnmarshalLittleEndian(r, p, vs); err != nil && err != io.EOF {
+	if err := ipInternal.UnmarshalLittleEndian(r, p, hl, vs); err != nil && err != io.EOF {
 		return nil, err
 	}
 
