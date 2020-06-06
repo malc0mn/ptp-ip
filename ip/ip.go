@@ -203,7 +203,7 @@ func (c *Client) SetStreamerPort(port uint16) {
 	c.responder.StreamerPort = port
 }
 
-func (c *Client) SetLogger(log *log.Logger) {
+func (c *Client) SetLogger(log Logger) {
 	c.log = log
 }
 
