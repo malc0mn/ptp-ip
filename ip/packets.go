@@ -35,6 +35,8 @@ const (
 	FR_FailBusy              FailReason = 0x00000002
 	FR_FailUnspecified       FailReason = 0x00000003
 
+	// PKT_Invalid is not specified by the PTP/IP protocol. We use this to identify packets that deviate from the
+	// standard. These will be treated differently when they are sent or received.
 	PKT_Invalid            PacketType = 0x00000000
 	PKT_InitCommandRequest PacketType = 0x00000001
 	PKT_InitCommandAck     PacketType = 0x00000002

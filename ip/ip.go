@@ -41,14 +41,14 @@ type Initiator struct {
 	FriendlyName string
 }
 
-// Creates a new Initiator using InitiatorFriendlyName as name and a randomly generated GUID.
-// This is the same as calling NewInitiator with two empty strings as arguments.
+// NewDefaultInitiator creates a new Initiator using InitiatorFriendlyName as name and a randomly generated GUID.
+// This is the same as calling NewInitiator() with two empty strings as arguments.
 func NewDefaultInitiator() (*Initiator, error) {
 	return NewInitiator("", "")
 }
 
-// Creates a new Initiator with a friendlyName and GUID of your choosing.
-// Passing an empt
+// NewInitiator creates a new Initiator with a friendlyName and GUID of your choosing.
+// Passing an empty string as friendlyName will result in InitiatorFriendlyName being used.
 func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 	var (
 		err error
@@ -79,7 +79,7 @@ func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 	return i, nil
 }
 
-// This struct holds the information of our responder, i.e the camera. The PTP/IP protocol is designed to work perfectly
+// Responder holds the information of our responder, i.e the camera. The PTP/IP protocol is designed to work perfectly
 // fine with a single port to handle the Command/Data and Event channels. However some vendors have chosen to work with
 // a separate port for each channel, which is why there are three possible ports in this struct.
 type Responder struct {
@@ -266,7 +266,7 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// Sends a packet to the Command/Data connection.
+// Send a packet to the Command/Data connection.
 func (c *Client) SendPacketToCmdDataConn(p PacketOut) error {
 	return c.sendPacket(c.commandDataConn, p)
 }
@@ -276,7 +276,7 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 	return c.sendPacket(c.eventConn, p)
 }
 
-// We write directly to the connection here without using bufio. The Payload() method and marshalling functions are
+// We write directly to the connection here without using bufio. The Payload() method and marshaling functions are
 // already writing to a bytes buffer before we write to the connection.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if w == nil {
