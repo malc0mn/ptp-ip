@@ -231,29 +231,26 @@ func FujiInitCommandDataConn(c *Client) error {
 func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error {
 	c.incrementTransactionId()
 
-	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
 		Parameter1:    uint32(code),
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_DataOut),
 		OperationCode: ptp.OC_SetDevicePropValue,
 		TransactionID: c.TransactionId(),
 		Parameter1:    val,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
 	p := new(FujiOperationResponsePacket)
-	_, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
+	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
 		return err
 	}
 
@@ -269,19 +266,17 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	c.incrementTransactionId()
 
-	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_GetDevicePropValue,
 		TransactionID: c.TransactionId(),
 		Parameter1:    uint32(dpc),
-	})
-	if err != nil {
+	}); err != nil {
 		return 0, err
 	}
 
 	po := new(FujiOperationResponsePacket)
-	_, err = c.WaitForPacketFromCmdDataConn(po)
-	if err != nil {
+	if _, err := c.WaitForPacketFromCmdDataConn(po); err != nil {
 		return 0, err
 	}
 
@@ -290,8 +285,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 	}
 
 	p := new(FujiOperationResponsePacket)
-	_, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
+	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
 		return 0, err
 	}
 
@@ -306,19 +300,17 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) error {
 	c.incrementTransactionId()
 
-	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: code,
 		TransactionID: c.TransactionId(),
 		Parameter1:    param,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
 	p := new(FujiOperationResponsePacket)
-	_, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
+	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
 		return err
 	}
 
