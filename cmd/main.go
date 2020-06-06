@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 )
 
 const (
@@ -46,8 +48,10 @@ func main() {
 
 	checkPorts()
 
-	/*sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)*/
+	// TODO: finish this implementation so CTRL+C will also abort client.Dial() etc. properly.
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	done := make(chan bool, 1)
 
 	client, err := ip.NewClient(conf.vendor, conf.host, uint16(conf.port), conf.fname, conf.guid)
 	if err != nil {
@@ -75,8 +79,15 @@ func main() {
 	}
 
 	if server == true {
-		launchServer(client)
+		go launchServer(client)
+		go func() {
+			sig := <-sigs
+			fmt.Printf("Received signal %s, shutting down...\n", sig)
+			done <- true
+		}()
 	}
 
+	<-done
+	fmt.Println("Bye bye!")
 	os.Exit(ok)
 }
