@@ -204,7 +204,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Setting correct init sequence number...")
-	c.log.Print("Should you be prompted, please accept the new connection request on the camera.")
+	c.log.Printf("Should you be prompted, please accept the new connection request on the %s.", c.ResponderFriendlyName())
 	if err := FujiSetDeviceProperty(c, DPC_Fuji_UseInitSequence, PM_Fuji_InitSequence); err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	if err != nil {
 		return err
 	}
-	c.log.Printf("Acknowledging current minimal application version as communicated by the camera: %#x", val)
+	c.log.Printf("Acknowledging current minimal application version as communicated by the %s: %#x", c.ResponderFriendlyName(), val)
 	if err := FujiSetDeviceProperty(c, DPC_Fuji_AppVersion, val); err != nil {
 		return err
 	}
