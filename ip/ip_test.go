@@ -136,8 +136,8 @@ func TestNewClient(t *testing.T) {
 		t.Errorf("NewClient() Network() = %s; want %s", got.Network(), want)
 	}
 	want = "192.168.0.1:15740"
-	if got.CommandDataAddres() != want {
-		t.Errorf("NewClient() CommandDataAddres() = %s; want %s", got.CommandDataAddres(), want)
+	if got.CommandDataAddress() != want {
+		t.Errorf("NewClient() CommandDataAddress() = %s; want %s", got.CommandDataAddress(), want)
 	}
 	if got.EventAddress() != want {
 		t.Errorf("NewClient() EventAddress() = %s; want %s", got.EventAddress(), want)
@@ -181,14 +181,14 @@ func TestClient_SetCommandDataPort(t *testing.T) {
 	}
 
 	want := "192.168.0.1:15740"
-	if got.CommandDataAddres() != want {
-		t.Errorf("NewClient() CommandDataAddres() = %s; want %s", got.CommandDataAddres(), want)
+	if got.CommandDataAddress() != want {
+		t.Errorf("NewClient() CommandDataAddress() = %s; want %s", got.CommandDataAddress(), want)
 	}
 
 	got.SetCommandDataPort(55740)
 	want = "192.168.0.1:55740"
-	if got.CommandDataAddres() != want {
-		t.Errorf("NewClient() CommandDataAddres() = %s; want %s", got.CommandDataAddres(), want)
+	if got.CommandDataAddress() != want {
+		t.Errorf("NewClient() CommandDataAddress() = %s; want %s", got.CommandDataAddress(), want)
 	}
 }
 

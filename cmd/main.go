@@ -67,7 +67,7 @@ func main() {
 	}
 
 	fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", client.InitiatorFriendlyName(), client.InitiatorGUIDAsString())
-	fmt.Printf("Attempting to connect to %s\n", client.CommandDataAddres())
+	fmt.Printf("Attempting to connect to %s\n", client.CommandDataAddress())
 	err = client.Dial()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error connecting to responder - %s\n", err)

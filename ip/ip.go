@@ -151,7 +151,7 @@ func (c *Client) Network() string {
 	return c.responder.Network()
 }
 
-func (c *Client) CommandDataAddres() string {
+func (c *Client) CommandDataAddress() string {
 	return c.responder.CommandDataAddress()
 }
 

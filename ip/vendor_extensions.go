@@ -35,7 +35,7 @@ func (c *Client) loadVendorExtensions() {
 func GenericInitCommandDataConn(c *Client) error {
 	var err error
 
-	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.CommandDataAddres(), DefaultDialTimeout)
+	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.CommandDataAddress(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
