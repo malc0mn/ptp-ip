@@ -149,6 +149,11 @@ type FujiOperationResponsePacket struct {
 	DataPhase             uint16
 	OperationResponseCode ptp.OperationResponseCode
 	TransactionID         ptp.TransactionID
+	Parameter1            uint32
+	Parameter2            uint32
+	Parameter3            uint32
+	Parameter4            uint32
+	Parameter5            uint32
 }
 
 func (forp *FujiOperationResponsePacket) PacketType() PacketType {
@@ -168,35 +173,6 @@ func (forp *FujiOperationResponsePacket) WasSuccessfull() bool {
 func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 	return errors.New(ptp.OperationResponseCodeAsString(forp.OperationResponseCode))
 }
-
-// TODO: these is just a quick fix so we can establish what the exact handshake is.
-//  We will need to rework the data reading process entirely to make it nice and dynamic.
-type FujiOperationResponsePacketOne struct {
-	DataPhase             uint16
-	OperationResponseCode ptp.OperationResponseCode
-	TransactionID         ptp.TransactionID
-	Parameter1            uint32
-}
-
-func (forp *FujiOperationResponsePacketOne) PacketType() PacketType {
-	return PKT_Invalid
-}
-
-func (forp *FujiOperationResponsePacketOne) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(forp)
-}
-
-func (forp *FujiOperationResponsePacketOne) WasSuccessfull() bool {
-	return forp.OperationResponseCode == ptp.RC_OK ||
-		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
-		forp.OperationResponseCode == RC_Fuji_DevicePropValue
-}
-
-func (forp *FujiOperationResponsePacketOne) ReasonAsError() error {
-	return errors.New(ptp.OperationResponseCodeAsString(forp.OperationResponseCode))
-}
-
-// TODO: end
 
 // The PTP/IP protocol specifies how to set up the Command/Data connection which should immediately be followed by
 // setting up the Event connection. However Fuji wants additional communications before it is satisfied that the
@@ -303,8 +279,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 		return 0, err
 	}
 
-	// TODO: rewrite packet reading so we can ALWAYS use FujiOperationResponsePacket
-	po := new(FujiOperationResponsePacketOne)
+	po := new(FujiOperationResponsePacket)
 	_, err = c.WaitForPacketFromCmdDataConn(po)
 	if err != nil {
 		return 0, err
