@@ -7,12 +7,15 @@ import (
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
+// TODO: This solution is not OK, vendors can differ massively so it seems. Should this become an interface that all
+//  vendors need to implement...? It would turn out to be a huge interface, so there will no doubt be a better solution?
 type VendorExtensions struct {
 	cmdDataInit          func(c *Client) error
 	eventInit            func(c *Client) error
 	streamerInit         func(c *Client) error
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
 	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
+	getDeviceInfo        func(c *Client) (PacketIn, error)
 }
 
 func (c *Client) loadVendorExtensions() {
@@ -22,6 +25,7 @@ func (c *Client) loadVendorExtensions() {
 		streamerInit:         GenericInitStreamerConn,
 		newCmdDataInitPacket: NewInitCommandRequestPacket,
 		newEventInitPacket:   NewInitEventRequestPacket,
+		getDeviceInfo:        GenericGetDeviceInfo,
 	}
 
 	switch c.ResponderVendor() {
@@ -29,6 +33,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.cmdDataInit = FujiInitCommandDataConn
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
+		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 	}
 }
 
@@ -121,4 +126,30 @@ func GenericInitStreamerConn(c *Client) error {
 	c.configureTcpConn(streamConnection)
 
 	return nil
+}
+
+// Request the Responder's device information.
+func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
+	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
+		DataPhaseInfo:    DP_NoDataOrDataIn,
+		OperationRequest: ptp.GetDeviceInfo(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.WaitForPacketFromCmdDataConn(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	switch pkt := res.(type) {
+	case *OperationResponsePacket:
+		return pkt, nil
+	default:
+		err = fmt.Errorf("unexpected packet received %T", res)
+	}
+
+	return nil, err
 }

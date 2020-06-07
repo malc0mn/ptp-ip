@@ -1,10 +1,12 @@
 package ip
 
 import (
+	"encoding/binary"
 	"errors"
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"strings"
 )
 
 const (
@@ -16,6 +18,21 @@ const (
 	// during the initialisation sequence. As soon as this is done, the camera will acknowledge the client and store the
 	// client's friendly name to allow future connections without the need for a confirmation.
 	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
+
+	DPC_Fuji_FilmSimulation     ptp.DevicePropCode = 0xD001
+	DPC_Fuji_ImageFormat        ptp.DevicePropCode = 0xD018
+	DPC_Fuji_RecmodeEnable      ptp.DevicePropCode = 0xD019
+	DPC_Fuji_CommandDial        ptp.DevicePropCode = 0xD028
+	DPC_Fuji_Iso                ptp.DevicePropCode = 0xD02A
+	DPC_Fuji_MovieIso           ptp.DevicePropCode = 0xD02B
+	DPC_Fuji_FocusPoint         ptp.DevicePropCode = 0xD17C
+	DPC_Fuji_FocusLock          ptp.DevicePropCode = 0xD209
+	DPC_Fuji_DeviceError        ptp.DevicePropCode = 0xD21B
+	DPC_Fuji_ImageSpaceSD       ptp.DevicePropCode = 0xD229
+	DPC_Fuji_MovieRemainingRime ptp.DevicePropCode = 0xD22A
+	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
+	DPC_Fuji_ImageAspect        ptp.DevicePropCode = 0xD241
+	DPC_Fuji_BatteryLevel       ptp.DevicePropCode = 0xD242
 
 	// This fail reason is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
@@ -54,6 +71,7 @@ const (
 
 	// The response code to a OC_GetDevicePropValue. The first parameter in the packet will hold the property value.
 	RC_Fuji_DevicePropValue ptp.OperationResponseCode = 0x1015
+	RC_Fuji_DeviceInfo      ptp.OperationResponseCode = 0x902B
 )
 
 // The Fuji version of the PTP/IP InitCommandRequestPacket deviates from the standard. Looking at what is sent 'over the
@@ -150,10 +168,6 @@ type FujiOperationResponsePacket struct {
 	OperationResponseCode ptp.OperationResponseCode
 	TransactionID         ptp.TransactionID
 	Parameter1            uint32
-	Parameter2            uint32
-	Parameter3            uint32
-	Parameter4            uint32
-	Parameter5            uint32
 }
 
 func (forp *FujiOperationResponsePacket) PacketType() PacketType {
@@ -164,10 +178,12 @@ func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(forp)
 }
 
+// TODO: make this better, obviously...
 func (forp *FujiOperationResponsePacket) WasSuccessfull() bool {
 	return forp.OperationResponseCode == ptp.RC_OK ||
 		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
-		forp.OperationResponseCode == RC_Fuji_DevicePropValue
+		forp.OperationResponseCode == RC_Fuji_DevicePropValue ||
+		forp.OperationResponseCode == RC_Fuji_DeviceInfo
 }
 
 func (forp *FujiOperationResponsePacket) ReasonAsError() error {
@@ -199,7 +215,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Opening a session...")
-	if err := FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001); err != nil {
+	if _, err := FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001); err != nil {
 		return err
 	}
 
@@ -220,7 +236,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Initiating open capture...")
-	if err := FujiSendOperationRequest(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam); err != nil {
+	if _, err := FujiSendOperationRequest(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam); err != nil {
 		return err
 	}
 
@@ -264,24 +280,39 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 // Get the value for the given device property.
 // TODO: add third parameter to indicate how many parameters from the response object are expected?
 func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
+	var val uint32
+	var err error
+
+	// First we get the actual value from the Responder.
+	if val, err = FujiSendOperationRequest(c, ptp.OC_GetDevicePropValue, uint32(dpc)); err != nil {
+		return 0, err
+	}
+
+	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
+	// handling.
+	p := new(FujiOperationResponsePacket)
+	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+		return 0, err
+	}
+
+	if !p.WasSuccessfull() {
+		return 0, p.ReasonAsError()
+	}
+
+	return val, nil
+}
+
+// Send an operation request to the camera. If a parameter is not required, simply pass in PM_Fuji_NoParam!
+func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (uint32, error) {
 	c.incrementTransactionId()
 
 	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: ptp.OC_GetDevicePropValue,
+		OperationCode: code,
 		TransactionID: c.TransactionId(),
-		Parameter1:    uint32(dpc),
+		Parameter1:    param,
 	}); err != nil {
 		return 0, err
-	}
-
-	po := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(po); err != nil {
-		return 0, err
-	}
-
-	if !po.WasSuccessfull() {
-		return 0, po.ReasonAsError()
 	}
 
 	p := new(FujiOperationResponsePacket)
@@ -293,53 +324,110 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 		return 0, p.ReasonAsError()
 	}
 
-	return po.Parameter1, nil
+	return p.Parameter1, nil
 }
 
-// Send an operation request to the camera. If a parameter is not required, simply pass in PM_Fuji_NoParam!
-func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) error {
-	c.incrementTransactionId()
+// FujiGetDeviceInfo retrieves the current settings of a Fuji device. It is not at all a GetDeviceInfo call as specified
+// in the PTP/IP specification, but it is more of a GetDevicePropDescList call that simply does not exist in the PTP/IP
+// specification.
+func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
+	var numProps int
 
-	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: code,
-		TransactionID: c.TransactionId(),
-		Parameter1:    param,
-	}); err != nil {
-		return err
+	c.log.Printf("Requesting %s device info...", c.ResponderFriendlyName())
+	if param, err := FujiSendOperationRequest(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam); err != nil {
+		numProps = int(param)
 	}
 
-	p := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
-		return err
+	c.log.Printf("Number of properties returned: %d", numProps)
+
+	list := make([]*ptp.DevicePropDesc, numProps)
+
+	for i := 0; i < numProps; i++ {
+		var l uint32
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &l); err != nil {
+			return nil, err
+		}
+
+		c.log.Printf("Property length: %d", l)
+
+		// First read DevicePropertyCode, DataType and GetSet; i.e. read until we encounter the first interface field.
+		dpd := new(ptp.DevicePropDesc)
+		if err := ipInternal.UnmarshalLittleEndian(c.commandDataConn, dpd, int(l)-4, 0); err != nil && !strings.Contains(err.Error(), "invalid type *interface") {
+			return nil, err
+		}
+
+		c.log.Printf("Size of property values in bytes: %d", dpd.SizeOfValueInBytes())
+
+		// We now know the DataTypeCode so we know what to expect next.
+		fdv := make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &fdv); err != nil {
+			return nil, err
+		}
+		dpd.FactoryDefaultValue = fdv
+
+		cv := make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &cv); err != nil {
+			return nil, err
+		}
+		dpd.CurrentValue = cv
+
+		// Read the type of form that will follow.
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.FormFlag); err != nil {
+			return nil, err
+		}
+
+		switch dpd.FormFlag {
+		case ptp.DPF_FormFlag_Range:
+			form := new(ptp.RangeForm)
+			c.log.Printf("Property is a range type, filling range form...")
+
+			// Minimum possible value.
+			min := make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &min); err != nil {
+				return nil, err
+			}
+			form.MinimumValue = min
+
+			// Maximum possible value.
+			max := make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &max); err != nil {
+				return nil, err
+			}
+			form.MaximumValue = max
+
+			// Stepper value.
+			step := make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &step); err != nil {
+				return nil, err
+			}
+			form.StepSize = step
+
+			dpd.Form = form
+		case ptp.DPF_FormFlag_Enum:
+			form := new(ptp.EnumerationForm)
+			c.log.Printf("Property is an enum type, filling enum form...")
+
+			// First read the number of values that will follow.
+			var num uint16
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &num); err != nil {
+				return nil, err
+			}
+			form.NumberOfValues = int(num)
+
+			// Now fill the enumeration form with the actual values.
+			for i := 0; i < form.NumberOfValues; i++ {
+				v := make([]byte, dpd.SizeOfValueInBytes())
+				if err := binary.Read(c.commandDataConn, binary.LittleEndian, v); err != nil {
+					return nil, err
+				}
+				form.SupportedValues = append(form.SupportedValues, v)
+			}
+			dpd.Form = form
+		}
+
+		list = append(list, dpd)
 	}
 
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	return nil
+	// TODO: what to return??
+	return nil, nil
 }
-
-/*	c.incrementTransactionId()
-
-	log.Print("Requesting device info...")
-	err = c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
-		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
-		OperationCode: OC_Fuji_GetDeviceInfo,
-		TransactionID: c.TransactionId(),
-	})
-	if err != nil {
-		return err
-	}
-
-	/*res, err = c.WaitForPacketFromCmdDataConn(p)
-	if err != nil {
-		return err
-	}
-
-	if !p.WasSuccessfull() {
-		return p.ReasonAsError()
-	}
-
-	log.Printf("%v -- %s", res, p.ReasonAsError())*/
