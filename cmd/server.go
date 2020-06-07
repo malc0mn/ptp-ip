@@ -52,6 +52,6 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 	switch msg {
 	case "info":
 		res, err := c.GetDeviceInfo()
-		log.Printf("%v - %T", res, err)
+		log.Printf("%v - %T, %s", res, err, err)
 	}
 }
