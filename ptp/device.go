@@ -6,8 +6,8 @@ type DataTypeCode uint16
 // standard or vendor-extended: 0101 = standard, 1101 = vendor-extended.
 type DevicePropCode uint16
 
-type DevicePropDescCode uint16
-type DevicePropFormFlag uint16
+type DevicePropDescCode uint8
+type DevicePropFormFlag uint8
 
 const (
 	DPC_Undefined DevicePropCode = 0x5000
@@ -235,7 +235,22 @@ type DevicePropDesc struct {
 	// This field indicates the format of the next field.
 	FormFlag DevicePropFormFlag
 	// This dataset is the Enumeration-Form or the Range-Form, or is absent if Form Flag = 0
-	Form RangeForm
+	Form interface{}
+}
+
+func (dpd *DevicePropDesc) SizeOfValueInBytes() int {
+	switch dpd.DataType {
+	case DTC_INT8, DTC_UINT8:
+		return 1
+	case DTC_INT16, DTC_UINT16:
+		return 2
+	case DTC_INT32, DTC_UINT32:
+		return 4
+	case DTC_INT64, DTC_UINT64:
+		return 8
+	default:
+		return 0
+	}
 }
 
 type RangeForm struct {
