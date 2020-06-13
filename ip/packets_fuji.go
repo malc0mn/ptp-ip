@@ -48,8 +48,10 @@ const (
 	// OC_Fuji_GetDeviceInfo is not really the same as OC_GetDeviceInfo in that it returns a list of device
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
 
-	// For convenience: to be used with FujiSendOperationRequest() when no parameter is required for the operation.
+	// PM_Fuji_NoParam is for convenience: to be used with FujiSendOperationRequest() when no parameter is required for
+	// the operation.
 	PM_Fuji_NoParam = 0x00000000
+	// PM_Fuji_InitSequence defines the init sequence to be used.
 	// When this parameter is 'too low', the camera will complain about the application version being 'the previous
 	// version' and requests to 'upgrade the app'.
 	// After multiple experiments, this parameter will affect the initialisation sequence being used.
@@ -60,6 +62,7 @@ const (
 	//     it MIGHT work, but could expect a different set of commands.
 	//   - 0x00000005 hits the sweet spot and the init sequence we use completes nicely.
 	PM_Fuji_InitSequence = 0x00000005
+	// PM_Fuji_AppVersion defines the minimal supported app version by the Responder.
 	// When this parameter is 'too low', the camera will also complain about the application version being 'the previous
 	// version' and requests to 'upgrade the app'. However, it does NOT affect the initialisation sequence at all.
 	// The value here is that of the X-T1 on firmware version v5.51. We're not using it through this fixed value
@@ -67,14 +70,14 @@ const (
 	// that this will be future proof and we do not need to to adjust it ever again.
 	PM_Fuji_AppVersion = 0x00020001
 
-	// This is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
+	// PV_Fuji is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
 	PV_Fuji ProtocolVersion = 0x8F53E4F2
 
 	// RC_Fuji_DevicePropValue is the response code to a OC_GetDevicePropValue. The first parameter in the packet will
 	// hold the property value.
 	RC_Fuji_DevicePropValue = ptp.OperationResponseCode(ptp.OC_GetDevicePropValue)
 	// RC_Fuji_DeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
-	RC_Fuji_DeviceInfo      = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
+	RC_Fuji_DeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
 )
 
 // FujiInitCommandRequestPacket is the Fuji version of the PTP/IP InitCommandRequestPacket which deviates from the
