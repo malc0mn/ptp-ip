@@ -331,18 +331,17 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (
 // in the PTP/IP specification, but it is more of a GetDevicePropDescList call that simply does not exist in the PTP/IP
 // specification.
 func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
-	var numProps int
-
 	c.log.Printf("Requesting %s device info...", c.ResponderFriendlyName())
-	if param, err := FujiSendOperationRequest(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam); err != nil {
-		numProps = int(param)
+	numProps, err := FujiSendOperationRequest(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam)
+	if err != nil {
+		return nil, err
 	}
 
 	c.log.Printf("Number of properties returned: %d", numProps)
 
 	list := make([]*ptp.DevicePropDesc, numProps)
 
-	for i := 0; i < numProps; i++ {
+	for i := 0; i < int(numProps); i++ {
 		var l uint32
 		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &l); err != nil {
 			return nil, err
