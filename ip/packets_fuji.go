@@ -437,6 +437,18 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 		list = append(list, dpd)
 	}
 
+	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
+	// handling.
+	// TODO: handle this in a centralised way.
+	p := new(FujiOperationResponsePacket)
+	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+		return nil, err
+	}
+
+	if !p.WasSuccessful() {
+		return nil, p.ReasonAsError()
+	}
+
 	// TODO: what to return??
 	return nil, nil
 }
