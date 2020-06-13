@@ -368,7 +368,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	return nil
 }
 
-// ReadPacketFromCmdDataConn reads a packet from the command/data connection.
+// ReadPacketFromCmdDataConn reads a packet from the command/data connection with a read timout of 30 seconds.
 // When expecting a specific packet, you can pass it in, otherwise pass nil.
 func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))

@@ -298,6 +298,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 
 	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
 	// handling.
+	// TODO: handle this in a centralised way.
 	p := new(FujiOperationResponsePacket)
 	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
 		return 0, err
