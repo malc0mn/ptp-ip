@@ -541,7 +541,8 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 	return c, nil
 }
 
-// Request the Responder's device information.
+// GetDeviceInfo requests the Responder's device information. The data that should be returned is clearly specified by
+// the PTP/IP protocol but will, alas, greatly differ from vendor to vendor.
 func (c *Client) GetDeviceInfo() (PacketIn, error) {
 	return c.vendorExtensions.getDeviceInfo(c)
 }
