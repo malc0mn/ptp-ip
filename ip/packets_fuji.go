@@ -48,7 +48,7 @@ const (
 	// OC_Fuji_GetDeviceInfo is not really the same as OC_GetDeviceInfo in that it returns a list of device
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
 
-	// PM_Fuji_NoParam is for convenience: to be used with FujiSendOperationRequest() when no parameter is required for
+	// PM_Fuji_NoParam is for convenience: to be used with FujiSendOperationRequestAndGetResponse() when no parameter is required for
 	// the operation.
 	PM_Fuji_NoParam = 0x00000000
 	// PM_Fuji_InitSequence defines the init sequence to be used.
@@ -223,7 +223,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Opening a session...")
-	if _, err := FujiSendOperationRequest(c, ptp.OC_OpenSession, 0x00000001); err != nil {
+	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001); err != nil {
 		return err
 	}
 
@@ -244,7 +244,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Initiating open capture...")
-	if _, err := FujiSendOperationRequest(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam); err != nil {
+	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam); err != nil {
 		return err
 	}
 
@@ -292,7 +292,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 	var err error
 
 	// First we get the actual value from the Responder.
-	if val, err = FujiSendOperationRequest(c, ptp.OC_GetDevicePropValue, uint32(dpc)); err != nil {
+	if val, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc)); err != nil {
 		return 0, err
 	}
 
@@ -313,15 +313,23 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 
 // FujiSendOperationRequest sends an operation request to the camera. If a parameter is not required, simply pass in
 // PM_Fuji_NoParam!
-func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (uint32, error) {
+func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) error {
 	c.incrementTransactionId()
 
-	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: code,
 		TransactionID: c.TransactionId(),
 		Parameter1:    param,
-	}); err != nil {
+	})
+
+	return err
+}
+
+// FujiSendOperationRequestAndGetResponse sends an operation request to the camera. If a parameter is not required,
+// simply pass in PM_Fuji_NoParam!
+func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32) (uint32, error) {
+	if err := FujiSendOperationRequest(c, code, param); err != nil {
 		return 0, err
 	}
 
@@ -342,7 +350,7 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (
 // specification.
 func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 	c.log.Printf("Requesting %s device info...", c.ResponderFriendlyName())
-	numProps, err := FujiSendOperationRequest(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam)
+	numProps, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam)
 	if err != nil {
 		return nil, err
 	}
