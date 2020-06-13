@@ -185,7 +185,7 @@ func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
 }
 
 // TODO: make this better, obviously...
-func (forp *FujiOperationResponsePacket) WasSuccessfull() bool {
+func (forp *FujiOperationResponsePacket) WasSuccessful() bool {
 	return forp.OperationResponseCode == ptp.RC_OK ||
 		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
 		forp.OperationResponseCode == RC_Fuji_DevicePropValue ||
@@ -278,7 +278,7 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 		return err
 	}
 
-	if !p.WasSuccessfull() {
+	if !p.WasSuccessful() {
 		return p.ReasonAsError()
 	}
 
@@ -304,7 +304,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 		return 0, err
 	}
 
-	if !p.WasSuccessfull() {
+	if !p.WasSuccessful() {
 		return 0, p.ReasonAsError()
 	}
 
@@ -330,7 +330,7 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (
 		return 0, err
 	}
 
-	if !p.WasSuccessfull() {
+	if !p.WasSuccessful() {
 		return 0, p.ReasonAsError()
 	}
 
