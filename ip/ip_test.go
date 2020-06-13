@@ -325,6 +325,29 @@ func TestClient_readResponse(t *testing.T) {
 	}
 }
 
+func TestClient_readRawResponse(t *testing.T) {
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "wrîter", "617b38ef-b6e6-4ef6-b2ad-ea51cecdbbd3")
+	if err != nil {
+		t.Errorf("readRawResponse() err = %s; want <nil>", err)
+	}
+
+	guidR, _ := uuid.Parse("d2d4fce6-1181-42dd-a185-5cc40ca68321")
+	p := &InitCommandAckPacket{uint32(1), guidR, "rèmote", uint32(0x00020005)}
+
+	var b bytes.Buffer
+	c.sendAnyPacket(&b, p)
+
+	got, err := c.readRawResponse(&b)
+	if err != nil {
+		t.Errorf("readRawResponse() error = %s; want <nil>", err)
+	}
+
+	want := []byte{0x2e, 0x0, 0x0, 0x0, 0x2, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0xd2, 0xd4, 0xfc, 0xe6, 0x11, 0x81, 0x42, 0xdd, 0xa1, 0x85, 0x5c, 0xc4, 0xc, 0xa6, 0x83, 0x21, 0x72, 0x0, 0xe8, 0x0, 0x6d, 0x0, 0x6f, 0x0, 0x74, 0x0, 0x65, 0x0, 0x0, 0x0, 0x5, 0x0, 0x2, 0x0}
+	if bytes.Compare(got, want) != 0 {
+		t.Errorf("readRawResponse() raw = %v; want %v", got, want)
+	}
+}
+
 func TestClient_initCommandDataConn(t *testing.T) {
 	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
 	defer c.Close()

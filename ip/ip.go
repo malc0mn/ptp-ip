@@ -375,6 +375,13 @@ func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	return c.readResponse(c.commandDataConn, p)
 }
 
+// ReadRawFromCmdDataConn reads raw data from the command/data connection with a read timout of 5 seconds. It is
+// intended primarily for debugging and/or reverse engineering purposes.
+func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {
+	c.commandDataConn.SetReadDeadline(time.Now().Add(5*time.Second))
+	return c.readRawResponse(c.commandDataConn)
+}
+
 // WaitForPacketFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
 func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	var (
@@ -470,6 +477,23 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 	}
 
 	return p, nil
+}
+
+// The reading approach taken here is so that we can return the full raw data but still reliably read the complete
+// expected data length.
+func (c *Client) readRawResponse(r io.Reader) ([]byte, error) {
+	l := make([]byte, 4)
+	if err := binary.Read(r, binary.LittleEndian, &l); err != nil {
+		return nil, err
+	}
+
+	len := binary.LittleEndian.Uint32(l)
+	b := make([]byte, int(len)-4)
+	if err := binary.Read(r, binary.LittleEndian, &b); err != nil {
+		return nil, err
+	}
+
+	return append(l, b...), nil
 }
 
 func (c *Client) initCommandDataConn() error {
