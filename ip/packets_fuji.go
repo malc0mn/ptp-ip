@@ -70,8 +70,8 @@ const (
 	PV_Fuji ProtocolVersion = 0x8F53E4F2
 
 	// The response code to a OC_GetDevicePropValue. The first parameter in the packet will hold the property value.
-	RC_Fuji_DevicePropValue ptp.OperationResponseCode = 0x1015
-	RC_Fuji_DeviceInfo      ptp.OperationResponseCode = 0x902B
+	RC_Fuji_DevicePropValue = ptp.OperationResponseCode(ptp.OC_GetDevicePropValue)
+	RC_Fuji_DeviceInfo      = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
 )
 
 // The Fuji version of the PTP/IP InitCommandRequestPacket deviates from the standard. Looking at what is sent 'over the
