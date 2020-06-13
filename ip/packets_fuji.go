@@ -251,7 +251,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	return nil
 }
 
-// Sets a device property to the given value.
+// FujiSetDeviceProperty sets a device property to the given value.
 func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error {
 	c.incrementTransactionId()
 
@@ -285,7 +285,7 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 	return nil
 }
 
-// Get the value for the given device property.
+// FujiGetDevicePropertyValue gets the value for the given device property.
 // TODO: add third parameter to indicate how many parameters from the response object are expected?
 func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	var val uint32
@@ -310,7 +310,8 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 	return val, nil
 }
 
-// Send an operation request to the camera. If a parameter is not required, simply pass in PM_Fuji_NoParam!
+// FujiSendOperationRequest sends an operation request to the camera. If a parameter is not required, simply pass in
+// PM_Fuji_NoParam!
 func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (uint32, error) {
 	c.incrementTransactionId()
 
