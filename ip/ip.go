@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	DefaultVendor                        = "generic"
+	DefaultVendor         string         = "generic"
 	DefaultDialTimeout                   = 10 * time.Second
 	DefaultReadTimeout                   = 30 * time.Second
 	DefaultPort           uint16         = 15740
-	DefaultIpAddress                     = "192.168.0.1"
-	InitiatorFriendlyName                = "Golang PTP/IP client"
+	DefaultIpAddress      string         = "192.168.0.1"
+	InitiatorFriendlyName string         = "Golang PTP/IP client"
 	cmdDataConnection     connectionType = "cmd"
 	eventConnection       connectionType = "event"
 	streamConnection      connectionType = "stream"
@@ -36,6 +36,7 @@ var (
 
 type connectionType string
 
+// Initiator holds the identity of "ourselves".
 type Initiator struct {
 	GUID         uuid.UUID
 	FriendlyName string
@@ -79,8 +80,8 @@ func NewInitiator(friendlyName, guid string) (*Initiator, error) {
 	return i, nil
 }
 
-// Responder holds the information of our responder, i.e the camera. The PTP/IP protocol is designed to work perfectly
-// fine with a single port to handle the Command/Data and Event channels. However some vendors have chosen to work with
+// Responder holds the information of our responder, i.e. the camera. The PTP/IP protocol is designed to work perfectly
+// fine with a single port to handle the command/data and event channels. However some vendors have chosen to work with
 // a separate port for each channel, which is why there are three possible ports in this struct.
 type Responder struct {
 	Vendor          ptp.VendorExtension
@@ -93,22 +94,27 @@ type Responder struct {
 	ProtocolVersion uint32
 }
 
+// Network returns a fixed value: "tcp".
 func (r Responder) Network() string {
 	return "tcp"
 }
 
+// CommandDataAddress returns the address of the command/data channel as string in the form of host:port.
 func (r Responder) CommandDataAddress() string {
 	return fmt.Sprintf("%s:%d", r.IpAddress, r.CommandDataPort)
 }
 
+// EventAddress returns the address of the event channel as string in the form of host:port.
 func (r Responder) EventAddress() string {
 	return fmt.Sprintf("%s:%d", r.IpAddress, r.EventPort)
 }
 
+// StreamerAddress returns the address streamer channel as string in the form of host:port.
 func (r Responder) StreamerAddress() string {
 	return fmt.Sprintf("%s:%d", r.IpAddress, r.StreamerPort)
 }
 
+// NewResponder creates a new responder struct.
 func NewResponder(vendor string, ip string, cport uint16, eport uint16, sport uint16) *Responder {
 	return &Responder{
 		Vendor:          ptp.VendorStringToType(vendor),
@@ -119,6 +125,16 @@ func NewResponder(vendor string, ip string, cport uint16, eport uint16, sport ui
 	}
 }
 
+// Client holds all parts needed to build our PTP/IP client:
+//   - the connection number
+//   - the current transaction ID
+//   - the command/data channel connection
+//   - the event channel connection
+//   - the streamer channel connection
+//   - the initiator info, i.e. us
+//   - the responder info, i.e. camera
+//   - the loaded vendor extensions
+//   - a logger
 type Client struct {
 	connectionNumber uint32
 	transactionId    ptp.TransactionID
@@ -131,10 +147,13 @@ type Client struct {
 	log              Logger
 }
 
+// ConnectionNumber returns the connection number received from the responder after initialising the command/data
+// connection.
 func (c *Client) ConnectionNumber() uint32 {
 	return c.connectionNumber
 }
 
+// TransactionId returns the current transaction ID.
 func (c *Client) TransactionId() ptp.TransactionID {
 	return c.transactionId
 }
@@ -147,66 +166,82 @@ func (c *Client) incrementTransactionId() {
 	}
 }
 
+// Network returns a fixed value: "tcp".
 func (c *Client) Network() string {
 	return c.responder.Network()
 }
 
+// CommandDataAddress returns the address from the responder's command/data channel as string in the form of host:port.
 func (c *Client) CommandDataAddress() string {
 	return c.responder.CommandDataAddress()
 }
 
+// EventAddress returns the address from the responder's event channel as string in the form of host:port.
 func (c *Client) EventAddress() string {
 	return c.responder.EventAddress()
 }
 
+// StreamerAddress returns the address from the responder's streamer channel as string in the form of host:port.
 func (c *Client) StreamerAddress() string {
 	return c.responder.StreamerAddress()
 }
 
+// ResponderFriendlyName returns the responder's friendly name.
 func (c *Client) ResponderFriendlyName() string {
 	return c.responder.FriendlyName
 }
 
+// InitiatorFriendlyName returns the initiator's friendly name.
 func (c *Client) InitiatorFriendlyName() string {
 	return c.initiator.FriendlyName
 }
 
+// ResponderVendor returns the vendor code from the responder.
 func (c *Client) ResponderVendor() ptp.VendorExtension {
 	return c.responder.Vendor
 }
 
+// ResponderGUID returns the GUID from the responder as uuid.UUID.
 func (c *Client) ResponderGUID() uuid.UUID {
 	return c.responder.GUID
 }
 
+// ResponderGUIDAsString returns the GUID from the responder formatted as a string.
 func (c *Client) ResponderGUIDAsString() string {
 	return c.responder.GUID.String()
 }
 
+// InitiatorGUID returns the GUID from the initiator as uuid.UUID.
 func (c *Client) InitiatorGUID() uuid.UUID {
 	return c.initiator.GUID
 }
 
+// InitiatorGUIDAsString returns the GUID from the initiator formatted as a string.
 func (c *Client) InitiatorGUIDAsString() string {
 	return c.initiator.GUID.String()
 }
 
+// SetCommandDataPort allows setting the command/data channel port.
 func (c *Client) SetCommandDataPort(port uint16) {
 	c.responder.CommandDataPort = port
 }
 
+// SetEventPort allows setting the event channel port.
 func (c *Client) SetEventPort(port uint16) {
 	c.responder.EventPort = port
 }
 
+// SetStreamerPort allows setting the streamer channel port.
 func (c *Client) SetStreamerPort(port uint16) {
 	c.responder.StreamerPort = port
 }
 
+// SetLogger allows setting a custom logger. This defaults to the Go log package.
 func (c *Client) SetLogger(log Logger) {
 	c.log = log
 }
 
+// Dial will initialise the command/data and Event connections.
 func (c *Client) Dial() error {
 	var err error
 
@@ -223,6 +258,8 @@ func (c *Client) Dial() error {
 	return nil
 }
 
+// DialWithStreamer will call Dial and also attempt to open the steamer channel used for live preview. Not all devices
+// have such a channel.
 func (c *Client) DialWithStreamer() error {
 	var err error
 
@@ -239,6 +276,7 @@ func (c *Client) DialWithStreamer() error {
 	return nil
 }
 
+// Close closes all open connections for the client.
 func (c *Client) Close() error {
 	var err error
 
@@ -266,12 +304,12 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// Send a packet to the Command/Data connection.
+// SendPacketToCmdDataConn sends a packet to the command/data connection.
 func (c *Client) SendPacketToCmdDataConn(p PacketOut) error {
 	return c.sendPacket(c.commandDataConn, p)
 }
 
-// Send a packet to the Event connection.
+// SendPacketToEventConn sends a packet to the Event connection.
 func (c *Client) SendPacketToEventConn(p PacketOut) error {
 	return c.sendPacket(c.eventConn, p)
 }
@@ -330,14 +368,14 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	return nil
 }
 
-// Reads a packet from the Command/Data connection.
+// ReadPacketFromCmdDataConn reads a packet from the command/data connection.
 // When expecting a specific packet, you can pass it in, otherwise pass nil.
 func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.commandDataConn, p)
 }
 
-// Waits 30 seconds for a packet on the Command/Data connection.
+// WaitForPacketFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
 func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	var (
 		res PacketIn
@@ -364,13 +402,13 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	return res, nil
 }
 
-// Reads a packet from the Event connection.
+// ReadPacketFromEventConn reads a packet from the Event connection.
 func (c *Client) ReadPacketFromEventConn() (PacketIn, error) {
 	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.eventConn, nil)
 }
 
-// Waits 30 seconds for a packet on the Event connection.
+// WaitForPacketFromEventConn waits 30 seconds for a packet on the Event connection.
 func (c *Client) WaitForPacketFromEventConn() (PacketIn, error) {
 	var (
 		res PacketIn
@@ -483,7 +521,7 @@ func (c *Client) configureTcpConn(t connectionType) {
 	}
 }
 
-// Creates a new PTP/IP client.
+// NewClient creates a new PTP/IP client.
 // Passing an empty string to friendlyName will use the default friendly name.
 // Passing an empty string as guid will generate a random V4 UUID upon initialisation.
 func NewClient(vendor string, ip string, port uint16, friendlyName string, guid string) (*Client, error) {
