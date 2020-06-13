@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
+	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"log"
 	"net"
@@ -43,15 +45,30 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 
 	msg, err := rw.ReadString('\n')
 	if err != nil {
-		log.Printf("%s Error reading message '%s'", lmp, err)
+		log.Printf("%s error reading message '%s'", lmp, err)
 		return
 	}
 	msg = strings.TrimSuffix(msg, "\n")
-	log.Printf("%s Message received: '%s'", lmp, msg)
+	if msg == "" {
+		log.Printf("%s ignoring empty message!", lmp)
+		return
+	}
+	log.Printf("%s message received: '%s'", lmp, msg)
 
-	switch msg {
+	f := strings.Fields(msg)
+	switch f[0] {
 	case "info":
 		res, err := c.GetDeviceInfo()
 		log.Printf("%v - %T, %s", res, err, err)
+	case "opreq":
+		var res string
+		b, err := c.OperationRequestRaw(f[1], f[2:])
+		if err != nil {
+			res = fmt.Sprintf("Error: %s", err)
+		} else {
+			res = fmt.Sprintf("Received %d bytes. HEX dump:\n%s", len(b), hex.Dump(b))
+		}
+
+		conn.Write([]byte(res))
 	}
 }
