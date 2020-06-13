@@ -11,6 +11,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -569,4 +571,29 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 // the PTP/IP protocol but will, alas, greatly differ from vendor to vendor.
 func (c *Client) GetDeviceInfo() (PacketIn, error) {
 	return c.vendorExtensions.getDeviceInfo(c)
+}
+
+// OperationRequestRaw allows to perform any operation request and returns the raw result intended for reverse
+// engineering purposes.
+func (c *Client) OperationRequestRaw(code string, params []string) ([]byte, error) {
+	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, 64)
+	if err != nil {
+		c.log.Printf("Error converting: %s", err)
+		return nil, err
+	}
+	c.log.Printf("Converted uint32: %#x", uint32(cod))
+
+	p := make([]uint32, len(params))
+	for i, param := range params {
+		conv, err := strconv.ParseUint(strings.Replace(param, "0x", "", -1), 16, 64)
+		if err != nil {
+			c.log.Printf("Error converting: %s", err)
+			return nil, err
+		}
+		p[i] = uint32(conv)
+	}
+
+	c.log.Printf("Converted params: %#x", p)
+
+	return c.vendorExtensions.operationRequestRaw(c, uint32(cod), p)
 }

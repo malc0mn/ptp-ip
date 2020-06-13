@@ -345,6 +345,35 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 	return p.Parameter1, nil
 }
 
+// FujiOperationRequestRaw wraps FujiSendOperationRequest and returns the raw camera response data.
+func FujiOperationRequestRaw(c *Client, code uint32, params []uint32) ([]byte, error) {
+	field := uint32(PM_Fuji_NoParam)
+	if len(params) != 0 {
+		field = params[0]
+	}
+	if err := FujiSendOperationRequest(c, ptp.OperationCode(code), field); err != nil {
+		return nil, err
+	}
+
+	raw, err := c.ReadRawFromCmdDataConn()
+	dp := binary.LittleEndian.Uint16(raw[4:6])
+	if (dp == uint16(DP_DataOut)) {
+		// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
+		// handling.
+		// TODO: handle this in a centralised way.
+		p := new(FujiOperationResponsePacket)
+		if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+			return nil, err
+		}
+
+		if !p.WasSuccessful() {
+			return nil, p.ReasonAsError()
+		}
+	}
+
+	return raw, err
+}
+
 // FujiGetDeviceInfo retrieves the current settings of a Fuji device. It is not at all a GetDeviceInfo call as specified
 // in the PTP/IP specification, but it is more of a GetDevicePropDescList call that simply does not exist in the PTP/IP
 // specification.

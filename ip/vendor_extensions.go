@@ -16,6 +16,7 @@ type VendorExtensions struct {
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
 	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
 	getDeviceInfo        func(c *Client) (PacketIn, error)
+	operationRequestRaw  func(c *Client, code uint32, params []uint32) ([]byte, error)
 }
 
 func (c *Client) loadVendorExtensions() {
@@ -26,6 +27,7 @@ func (c *Client) loadVendorExtensions() {
 		newCmdDataInitPacket: NewInitCommandRequestPacket,
 		newEventInitPacket:   NewInitEventRequestPacket,
 		getDeviceInfo:        GenericGetDeviceInfo,
+		operationRequestRaw:  GenericOperationRequestRaw,
 	}
 
 	switch c.ResponderVendor() {
@@ -34,6 +36,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
+		c.vendorExtensions.operationRequestRaw = FujiOperationRequestRaw
 	}
 }
 
@@ -152,4 +155,8 @@ func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
 	}
 
 	return nil, err
+}
+
+func GenericOperationRequestRaw(c *Client, code uint32, params []uint32) ([]byte, error) {
+	return nil, nil
 }
