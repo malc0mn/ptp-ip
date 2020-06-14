@@ -10,18 +10,6 @@ import (
 )
 
 const (
-	// DPC_Fuji_InitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
-	// the initialisation sequence and depending on it's value, will require a different init sequence to be used.
-	// See PM_Fuji_InitSequence for further info.
-	DPC_Fuji_InitSequence ptp.DevicePropCode = 0xDF01
-	// DPC_Fuji_AppVersion indicates the minium application version the camera will accept. It MUST be set by the
-	// Initiator during the initialisation sequence. As soon as this is done, the camera will acknowledge the client and
-	// store the client's friendly name to allow future connections without the need for a confirmation.
-	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
-
-	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
-	DPC_Fuji_CurrentState ptp.DevicePropCode = 0xD212
-
 	DPC_Fuji_FilmSimulation       ptp.DevicePropCode = 0xD001
 	DPC_Fuji_ImageFormat          ptp.DevicePropCode = 0xD018
 	DPC_Fuji_RecmodeEnable        ptp.DevicePropCode = 0xD019
@@ -30,12 +18,23 @@ const (
 	DPC_Fuji_MovieIso             ptp.DevicePropCode = 0xD02B
 	DPC_Fuji_FocusPoint           ptp.DevicePropCode = 0xD17C
 	DPC_Fuji_FocusLock            ptp.DevicePropCode = 0xD209
-	DPC_Fuji_DeviceError          ptp.DevicePropCode = 0xD21B
-	DPC_Fuji_ImageSpaceSD         ptp.DevicePropCode = 0xD229
-	DPC_Fuji_MovieRemainingTime   ptp.DevicePropCode = 0xD22A
-	DPC_Fuji_ShutterSpeed         ptp.DevicePropCode = 0xD240
-	DPC_Fuji_ImageAspect          ptp.DevicePropCode = 0xD241
-	DPC_Fuji_BatteryLevel         ptp.DevicePropCode = 0xD242
+	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
+	DPC_Fuji_CurrentState       ptp.DevicePropCode = 0xD212
+	DPC_Fuji_DeviceError        ptp.DevicePropCode = 0xD21B
+	DPC_Fuji_ImageSpaceSD       ptp.DevicePropCode = 0xD229
+	DPC_Fuji_MovieRemainingTime ptp.DevicePropCode = 0xD22A
+	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
+	DPC_Fuji_ImageAspect        ptp.DevicePropCode = 0xD241
+	DPC_Fuji_BatteryLevel       ptp.DevicePropCode = 0xD242
+
+	// DPC_Fuji_InitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
+	// the initialisation sequence and depending on it's value, will require a different init sequence to be used.
+	// See PM_Fuji_InitSequence for further info.
+	DPC_Fuji_InitSequence ptp.DevicePropCode = 0xDF01
+	// DPC_Fuji_AppVersion indicates the minium application version the camera will accept. It MUST be set by the
+	// Initiator during the initialisation sequence. As soon as this is done, the camera will acknowledge the client and
+	// store the client's friendly name to allow future connections without the need for a confirmation.
+	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
 
 	// FR_Fuji_DeviceBusy is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
@@ -351,7 +350,7 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 			return 0, err
 		}
 		if pSize < 4 {
-			pad := make([]byte, 4 - pSize)
+			pad := make([]byte, 4-pSize)
 			b = append(b, pad...)
 		}
 		parameter = binary.LittleEndian.Uint32(b)
