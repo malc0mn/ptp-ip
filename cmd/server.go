@@ -64,8 +64,9 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 		var res string
 		d, err := c.OperationRequestRaw(f[1], f[2:])
 		if err != nil {
-			res = fmt.Sprintf("Error: %s", err)
+			res = fmt.Sprintf("%s error: %s", lmp, err)
 		} else {
+			log.Printf("%s received %d packets.", lmp, len(d))
 			for _, raw := range d {
 				res += fmt.Sprintf("\nReceived %d bytes. HEX dump:\n%s", len(raw), hex.Dump(raw))
 			}
