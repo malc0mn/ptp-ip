@@ -308,7 +308,7 @@ type DevicePropDesc struct {
 	CurrentValue []byte
 	// FormFlag indicates the format of the next field.
 	FormFlag DevicePropFormFlag
-	// Form is the Enumeration-Form or the Range-Form, or is absent if FormFlag = 0
+	// Form is the Enumeration-Form or the Range-Form, or is absent if FormFlag = 0.
 	Form interface{}
 }
 

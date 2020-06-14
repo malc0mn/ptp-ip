@@ -45,7 +45,7 @@ const (
 	// Seems to be an own version of RC_InvalidParameter.
 	FR_Fuji_InvalidParameter FailReason = 0x0000201D
 
-	// OC_Fuji_GetDeviceInfo is not really the same as OC_GetDeviceInfo in that it returns a list of device
+	// OC_Fuji_GetDeviceInfo returns a list of DevicePropDesc structs so it is not at all the same as OC_GetDeviceInfo.
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
 
 	// PM_Fuji_NoParam is for convenience: to be used with FujiSendOperationRequestAndGetResponse() when no parameter is required for
@@ -259,8 +259,8 @@ func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 //      This way we will always support any future versions as required by the firmware; unless of course a newer init
 //      sequence should be required.
 //   6. Finally, we send the operation request OC_InitiateOpenCapture which makes the Responder hand over control to the
-//      Initiator. This also opens up the event connection port used by Fuji on port 55741 so we can connect to it and
-//      complete the init sequence there.
+//      Initiator. This also opens up the event connection port 55741 used by Fuji so we can connect to it and complete
+//      the init sequence there.
 func FujiInitCommandDataConn(c *Client) error {
 	// The first part of the sequence is according to the PTP/IP standard, save for the different packet format.
 	if err := GenericInitCommandDataConn(c); err != nil {
