@@ -380,7 +380,7 @@ func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 // ReadRawFromCmdDataConn reads raw data from the command/data connection with a read timout of 5 seconds. It is
 // intended primarily for debugging and/or reverse engineering purposes.
 func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {
-	c.commandDataConn.SetReadDeadline(time.Now().Add(5*time.Second))
+	c.commandDataConn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	return c.readRawResponse(c.commandDataConn)
 }
 
@@ -575,7 +575,7 @@ func (c *Client) GetDeviceInfo() (PacketIn, error) {
 
 // OperationRequestRaw allows to perform any operation request and returns the raw result intended for reverse
 // engineering purposes.
-func (c *Client) OperationRequestRaw(code string, params []string) ([]byte, error) {
+func (c *Client) OperationRequestRaw(code string, params []string) ([][]byte, error) {
 	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, 16)
 	if err != nil {
 		c.log.Printf("Error converting: %s", err)

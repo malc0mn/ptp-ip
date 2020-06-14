@@ -93,6 +93,7 @@ purposes would be:
 ```text
 $ nc 127.0.0.1 15740
 opreq 0x902B
+
 Received 356 bytes. HEX dump:
 00000000  64 01 00 00 02 00 2b 90  07 00 00 00 08 00 00 00  |d.....+.........|
 00000010  16 00 00 00 12 50 04 00  01 00 00 00 00 02 03 00  |.....P..........|
@@ -117,11 +118,15 @@ Received 356 bytes. HEX dump:
 00000140  02 00 00 00 01 00 1e 00  00 00 7c d1 06 00 01 00  |..........|.....|
 00000150  00 00 00 04 04 02 03 01  00 00 00 00 07 07 09 10  |................|
 00000160  01 00 00 00                                       |....|
+
+Received 12 bytes. HEX dump:
+00000000  0c 00 00 00 03 00 01 20  06 00 00 00              |....... ....|
 ```
 As you can see the `opreq` command requires at least one parameter: the
 operation code to perform which must be in hexadecimal notation. It also
 supports an additional parameter, again in hex, to pass along with the
-operation request.
+operation request. The output depends on the command executed and can be one
+single packet or, depending on the data phase, an *end of data* packet as well.
 
 ## Library
 ### Usage examples

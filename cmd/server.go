@@ -62,11 +62,13 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 		log.Printf("%v - %T, %s", res, err, err)
 	case "opreq":
 		var res string
-		b, err := c.OperationRequestRaw(f[1], f[2:])
+		d, err := c.OperationRequestRaw(f[1], f[2:])
 		if err != nil {
 			res = fmt.Sprintf("Error: %s", err)
 		} else {
-			res = fmt.Sprintf("Received %d bytes. HEX dump:\n%s", len(b), hex.Dump(b))
+			for _, raw := range d {
+				res += fmt.Sprintf("\nReceived %d bytes. HEX dump:\n%s", len(raw), hex.Dump(raw))
+			}
 		}
 
 		conn.Write([]byte(res))

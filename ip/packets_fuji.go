@@ -346,7 +346,7 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 }
 
 // FujiOperationRequestRaw wraps FujiSendOperationRequest and returns the raw camera response data.
-func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([]byte, error) {
+func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
 	field := uint32(PM_Fuji_NoParam)
 	if len(params) != 0 {
 		field = params[0]
@@ -355,19 +355,16 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 		return nil, err
 	}
 
-	raw, err := c.ReadRawFromCmdDataConn()
-	dp := binary.LittleEndian.Uint16(raw[4:6])
-	if (dp == uint16(DP_DataOut)) {
-		// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
-		// handling.
-		// TODO: handle this in a centralised way.
-		p := new(FujiOperationResponsePacket)
-		if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
-			return nil, err
-		}
-
-		if !p.WasSuccessful() {
-			return nil, p.ReasonAsError()
+	var raw [][]byte
+	var err error
+	r, err := c.ReadRawFromCmdDataConn()
+	if err == nil {
+		raw = append(raw, r)
+		if len(raw[0]) > 7 && binary.LittleEndian.Uint16(raw[0][4:6]) == uint16(DP_DataOut) {
+			r, err := c.ReadRawFromCmdDataConn()
+			if err == nil {
+				raw = append(raw, r)
+			}
 		}
 	}
 

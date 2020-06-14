@@ -16,7 +16,7 @@ type VendorExtensions struct {
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
 	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
 	getDeviceInfo        func(c *Client) (PacketIn, error)
-	operationRequestRaw  func(c *Client, code ptp.OperationCode, params []uint32) ([]byte, error)
+	operationRequestRaw  func(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error)
 }
 
 func (c *Client) loadVendorExtensions() {
@@ -157,7 +157,7 @@ func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
 	return nil, err
 }
 
-func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([]byte, error) {
+func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
 	or := ptp.OperationRequest{
 		OperationCode: code,
 	}
@@ -189,5 +189,9 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 		return nil, err
 	}
 
-	return c.ReadRawFromCmdDataConn()
+	var raw [][]byte
+	raw[0], err = c.ReadRawFromCmdDataConn()
+	// TODO: handle possible followup packets depending on the data phase returned.
+
+	return raw, err
 }
