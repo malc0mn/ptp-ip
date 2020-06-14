@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	// DPC_Fuji_UseInitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
+	// DPC_Fuji_InitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
 	// the initialisation sequence and depending on it's value, will require a different init sequence to be used.
 	// See PM_Fuji_InitSequence for further info.
-	DPC_Fuji_UseInitSequence ptp.DevicePropCode = 0xDF01
+	DPC_Fuji_InitSequence ptp.DevicePropCode = 0xDF01
 	// DPC_Fuji_AppVersion indicates the minium application version the camera will accept. It MUST be set by the
 	// Initiator during the initialisation sequence. As soon as this is done, the camera will acknowledge the client and
 	// store the client's friendly name to allow future connections without the need for a confirmation.
@@ -206,7 +206,7 @@ func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 // command/data connection is properly setup. This additional initialisation is performed here.
 // The sequence is as follows:
 //   1. Open a session.
-//   2. Set device property DPC_Fuji_UseInitSequence to the correct number of the init sequence being used by the
+//   2. Set device property DPC_Fuji_InitSequence to the correct number of the init sequence being used by the
 //      Initiator.
 //   3. If the client name differs from the one stored, the Responder will now prompt the user to acknowledge the client
 //      connection, displaying the client name that was communicated using the InitCommandRequestPacket.
@@ -233,7 +233,7 @@ func FujiInitCommandDataConn(c *Client) error {
 
 	c.log.Print("Setting correct init sequence number...")
 	c.log.Printf("Should you be prompted, please accept the new connection request on the %s.", c.ResponderFriendlyName())
-	if err := FujiSetDeviceProperty(c, DPC_Fuji_UseInitSequence, PM_Fuji_InitSequence); err != nil {
+	if err := FujiSetDeviceProperty(c, DPC_Fuji_InitSequence, PM_Fuji_InitSequence); err != nil {
 		return err
 	}
 
