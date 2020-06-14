@@ -46,17 +46,16 @@ or chat applications such as Slack, WhatsApp etc.
 
 ## CLI command
 ### Config file
-The config file is in the classic INI file format.
+The config file is in the classic INI file format. Some examples:
 ```ini
 ; This is us
 [initiator]
-friendly_name = "Golang PTP/IP client"
+friendly_name = "Golang PTP/IP generic client"
 ; Generate a new random one using uuidgen or some other tool!
 guid = "cca455de-79ac-4b12-9731-91e433a899cf"
 
 ; The target we will be connecting to
 [responder]
-vendor = "fuji"
 host = "192.168.0.1"
 port = 15740
 
@@ -67,7 +66,27 @@ enabled = true
 address = "127.0.0.1"
 port = 15740
 ```
+```ini
+; This is us
+[initiator]
+friendly_name = "Golang PTP/IP Fuji client"
+; Generate a new random one using uuidgen or some other tool!
+guid = "9fe5160c-4951-404d-9505-10baaf725606"
 
+; The target we will be connecting to
+[responder]
+vendor = "fuji"
+cmd_data_port = 55740
+event_port = 55741
+stream_port = 55742
+
+; Config when running as a daemon
+[server]
+; Setting this to true will enable server mode
+enabled = true
+address = "127.0.0.1"
+port = 15740
+```
 ### Exit codes
 Depending on the error, the exit code of the `ptpip` command will differ:
 1. Unspecified: `1`
