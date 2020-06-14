@@ -221,6 +221,80 @@ const (
 	DTC_STR DataTypeCode = 0xFFFF
 )
 
+// DevicePropCodeAsString returns the DevicePropCode as string. When the DevicePropCode is unknown, it returns an empty
+// string.
+func DevicePropCodeAsString(code DevicePropCode) string {
+	var msg string
+	switch code {
+	case DPC_BatteryLevel:
+		msg = "battery level"
+	case DPC_FunctionalMode:
+		msg = "functional mode"
+	case DPC_ImageSize:
+		msg = "image size"
+	case DPC_CompressionSetting:
+		msg = "compression setting"
+	case DPC_WiteBalance:
+		msg = "white balance"
+	case DPC_RGBGain:
+		msg = "RGB gain"
+	case DPC_FNumber:
+		msg = "F number"
+	case DPC_FocalLength:
+		msg = "focal length"
+	case DPC_FocusDistance:
+		msg = "focus distance"
+	case DPC_FocusMode:
+		msg = "focus mode"
+	case DPC_ExposureMeteringMode:
+		msg = "exposure metering mode"
+	case DPC_FlashMode:
+		msg = "flash mode"
+	case DPC_ExposureTime:
+		msg = "exposure time"
+	case DPC_ExposureProgramMode:
+		msg = "exposure program mode"
+	case DPC_ExposureIndex:
+		msg = "exposure index"
+	case DPC_ExposureBiasCompensation:
+		msg = "exposure bias compensation"
+	case DPC_DateTime:
+		msg = "date time"
+	case DPC_CaptureDelay:
+		msg = "capture delay"
+	case DPC_StillCaptureMode:
+		msg = "still capture mode"
+	case DPC_Contrast:
+		msg = "contrast"
+	case DPC_Sharpness:
+		msg = "sharpness"
+	case DPC_DigitalZoom:
+		msg = "digital zoom"
+	case DPC_EffectMode:
+		msg = "effect mode"
+	case DPC_BurstNumber:
+		msg = "burst number"
+	case DPC_BurstInterval:
+		msg = "burst interval"
+	case DPC_TimelapseNumber:
+		msg = "timelapse number"
+	case DPC_TimelapseInterval:
+		msg = "timelapse interval"
+	case DPC_FocusMeteringMode:
+		msg = "focus metering mode"
+	case DPC_UploadURL:
+		msg = "upload URL"
+	case DPC_Artist:
+		msg = "artist"
+	case DPC_CopyrightInfo:
+		msg = "copyright info"
+	default:
+		msg = ""
+	}
+
+	return msg
+}
+
 type DevicePropDesc struct {
 	// A specific DevicePropCode
 	DevicePropertyCode DevicePropCode

@@ -10,14 +10,14 @@ import (
 )
 
 const (
-	DPC_Fuji_FilmSimulation       ptp.DevicePropCode = 0xD001
-	DPC_Fuji_ImageFormat          ptp.DevicePropCode = 0xD018
-	DPC_Fuji_RecmodeEnable        ptp.DevicePropCode = 0xD019
-	DPC_Fuji_CommandDialOperation ptp.DevicePropCode = 0xD028
-	DPC_Fuji_Iso                  ptp.DevicePropCode = 0xD02A
-	DPC_Fuji_MovieIso             ptp.DevicePropCode = 0xD02B
-	DPC_Fuji_FocusPoint           ptp.DevicePropCode = 0xD17C
-	DPC_Fuji_FocusLock            ptp.DevicePropCode = 0xD209
+	DPC_Fuji_FilmSimulation  ptp.DevicePropCode = 0xD001
+	DPC_Fuji_ImageFormat     ptp.DevicePropCode = 0xD018
+	DPC_Fuji_Recmode         ptp.DevicePropCode = 0xD019
+	DPC_Fuji_CommandDialMode ptp.DevicePropCode = 0xD028
+	DPC_Fuji_ISO             ptp.DevicePropCode = 0xD02A
+	DPC_Fuji_MovieISO        ptp.DevicePropCode = 0xD02B
+	DPC_Fuji_FocusPoint      ptp.DevicePropCode = 0xD17C
+	DPC_Fuji_FocusLock       ptp.DevicePropCode = 0xD209
 	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
 	DPC_Fuji_CurrentState       ptp.DevicePropCode = 0xD212
 	DPC_Fuji_DeviceError        ptp.DevicePropCode = 0xD21B
@@ -26,7 +26,6 @@ const (
 	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
 	DPC_Fuji_ImageAspect        ptp.DevicePropCode = 0xD241
 	DPC_Fuji_BatteryLevel       ptp.DevicePropCode = 0xD242
-
 	// DPC_Fuji_InitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
 	// the initialisation sequence and depending on it's value, will require a different init sequence to be used.
 	// See PM_Fuji_InitSequence for further info.
@@ -81,6 +80,50 @@ const (
 	// RC_Fuji_DeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
 	RC_Fuji_DeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
 )
+
+func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
+	msg := ptp.DevicePropCodeAsString(code)
+	if msg == "" {
+		switch code {
+		case DPC_Fuji_FilmSimulation:
+			msg = "film simulation"
+		case DPC_Fuji_ImageFormat:
+			msg = "image format"
+		case DPC_Fuji_Recmode:
+			msg = "rec mode"
+		case DPC_Fuji_CommandDialMode:
+			msg = "command dial mode"
+		case DPC_Fuji_ISO:
+			msg = "ISO"
+		case DPC_Fuji_MovieISO:
+			msg = "movie ISO"
+		case DPC_Fuji_FocusPoint:
+			msg = "focus point"
+		case DPC_Fuji_FocusLock:
+			msg = "focus lock"
+		case DPC_Fuji_DeviceError:
+			msg = "device error"
+		case DPC_Fuji_ImageSpaceSD:
+			msg = "image space SD"
+		case DPC_Fuji_MovieRemainingTime:
+			msg = "movie remaining time"
+		case DPC_Fuji_ShutterSpeed:
+			msg = "shutter speed"
+		case DPC_Fuji_ImageAspect:
+			msg = "image aspect"
+		case DPC_Fuji_BatteryLevel:
+			msg = "battery level"
+		case DPC_Fuji_InitSequence:
+			msg = "init sequence"
+		case DPC_Fuji_AppVersion:
+			msg = "app version"
+		default:
+			msg = ""
+		}
+	}
+
+	return msg
+}
 
 // FujiInitCommandRequestPacket is the Fuji version of the PTP/IP InitCommandRequestPacket which deviates from the
 // standard. Looking at what is sent 'over the wire', we see this sequence in little endian format as the START of the
