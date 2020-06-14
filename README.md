@@ -122,10 +122,36 @@ Received 356 bytes. HEX dump:
 Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  06 00 00 00              |....... ....|
 ```
+Take note that the `0x902B` code is Fuji specific and not part of the PTP/IP
+standard!
+
 As you can see the `opreq` command requires at least one parameter: the
-operation code to perform which must be in hexadecimal notation. It also
+operation code to perform which must be in hexadecimal notation.
+
+It also
 supports an additional parameter, again in hex, to pass along with the
-operation request. The output depends on the command executed and can be one
+operation request. An example of executing `GetDevicePropValue` from the PTP
+specification would be:
+```text
+$ nc 127.0.0.1 15740
+opreq 0x1015 0xD212
+
+Received 116 bytes. HEX dump:
+00000000  74 00 00 00 02 00 15 10  06 00 00 00 11 00 01 50  |t..............P|
+00000010  03 00 00 00 41 d2 0a 00  00 00 05 50 02 00 00 00  |....A......P....|
+00000020  0a 50 01 80 00 00 0c 50  0a 80 00 00 0e 50 02 00  |.P.....P.....P..|
+00000030  00 00 10 50 00 00 00 00  12 50 00 00 00 00 01 d0  |...P.....P......|
+00000040  02 00 00 00 18 d0 04 00  00 00 28 d0 00 00 00 00  |..........(.....|
+00000050  2a d0 00 19 00 80 7c d1  04 04 02 03 09 d2 00 00  |*.....|.........|
+00000060  00 00 1b d2 00 00 00 00  29 d2 97 05 00 00 2a d2  |........).....*.|
+00000070  8f 06 00 00                                       |....|
+
+Received 12 bytes. HEX dump:
+00000000  0c 00 00 00 03 00 01 20  06 00 00 00              |....... ....|
+```
+Again: the `0xD212` code is Fuji specific and not part of the PTP/IP standard!
+
+The output depends on the command executed and can be one
 single packet or, depending on the data phase, an *end of data* packet as well.
 
 ## Library
