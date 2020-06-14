@@ -169,11 +169,12 @@ func (forp *FujiOperationRequestPacket) Payload() []byte {
 //   - the packet type should be PKT_OperationResponse, but there is NO packet type sent out in the packet header which
 //     is, as one can imagine, extremely annoying when parsing the TCP/IP data coming in.
 //   - the DataPhase should be uint32 but Fuji uses uint16
+//   - the parameters returned vary in size but the PTP/IP spec defines them as UINT32, extremely annoying
+// To solve the varying parameter length, no parameters have been added to the struct but are handled separately.
 type FujiOperationResponsePacket struct {
 	DataPhase             uint16
 	OperationResponseCode ptp.OperationResponseCode
 	TransactionID         ptp.TransactionID
-	Parameter1            uint32
 }
 
 func (forp *FujiOperationResponsePacket) PacketType() PacketType {
@@ -223,7 +224,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Opening a session...")
-	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001); err != nil {
+	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
 		return err
 	}
 
@@ -244,7 +245,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.log.Print("Initiating open capture...")
-	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam); err != nil {
+	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
 		return err
 	}
 
@@ -292,7 +293,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 	var err error
 
 	// First we get the actual value from the Responder.
-	if val, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc)); err != nil {
+	if val, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
 		return 0, err
 	}
 
@@ -328,7 +329,9 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) e
 
 // FujiSendOperationRequestAndGetResponse sends an operation request to the camera. If a parameter is not required,
 // simply pass in PM_Fuji_NoParam!
-func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32) (uint32, error) {
+// Sometimes, the response will have an additional variable sized parameter. Use pSize to indicate you are expecting one
+// by passing the size in bytes of the expected data. Pass 0 when not expecting anything.
+func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, error) {
 	if err := FujiSendOperationRequest(c, code, param); err != nil {
 		return 0, err
 	}
@@ -338,11 +341,24 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 		return 0, err
 	}
 
+	var parameter uint32
+	if pSize > 0 {
+		b := make([]byte, pSize)
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &b); err != nil {
+			return 0, err
+		}
+		if pSize < 4 {
+			pad := make([]byte, 4 - pSize)
+			b = append(b, pad...)
+		}
+		parameter = binary.LittleEndian.Uint32(b)
+	}
+
 	if !p.WasSuccessful() {
 		return 0, p.ReasonAsError()
 	}
 
-	return p.Parameter1, nil
+	return parameter, nil
 }
 
 // FujiOperationRequestRaw wraps FujiSendOperationRequest and returns the raw camera response data.
@@ -376,7 +392,7 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 // specification.
 func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 	c.log.Printf("Requesting %s device info...", c.ResponderFriendlyName())
-	numProps, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam)
+	numProps, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
 	if err != nil {
 		return nil, err
 	}
