@@ -19,20 +19,23 @@ const (
 	// store the client's friendly name to allow future connections without the need for a confirmation.
 	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
 
-	DPC_Fuji_FilmSimulation     ptp.DevicePropCode = 0xD001
-	DPC_Fuji_ImageFormat        ptp.DevicePropCode = 0xD018
-	DPC_Fuji_RecmodeEnable      ptp.DevicePropCode = 0xD019
-	DPC_Fuji_CommandDial        ptp.DevicePropCode = 0xD028
-	DPC_Fuji_Iso                ptp.DevicePropCode = 0xD02A
-	DPC_Fuji_MovieIso           ptp.DevicePropCode = 0xD02B
-	DPC_Fuji_FocusPoint         ptp.DevicePropCode = 0xD17C
-	DPC_Fuji_FocusLock          ptp.DevicePropCode = 0xD209
-	DPC_Fuji_DeviceError        ptp.DevicePropCode = 0xD21B
-	DPC_Fuji_ImageSpaceSD       ptp.DevicePropCode = 0xD229
-	DPC_Fuji_MovieRemainingRime ptp.DevicePropCode = 0xD22A
-	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
-	DPC_Fuji_ImageAspect        ptp.DevicePropCode = 0xD241
-	DPC_Fuji_BatteryLevel       ptp.DevicePropCode = 0xD242
+	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
+	DPC_Fuji_CurrentState ptp.DevicePropCode = 0xD212
+
+	DPC_Fuji_FilmSimulation       ptp.DevicePropCode = 0xD001
+	DPC_Fuji_ImageFormat          ptp.DevicePropCode = 0xD018
+	DPC_Fuji_RecmodeEnable        ptp.DevicePropCode = 0xD019
+	DPC_Fuji_CommandDialOperation ptp.DevicePropCode = 0xD028
+	DPC_Fuji_Iso                  ptp.DevicePropCode = 0xD02A
+	DPC_Fuji_MovieIso             ptp.DevicePropCode = 0xD02B
+	DPC_Fuji_FocusPoint           ptp.DevicePropCode = 0xD17C
+	DPC_Fuji_FocusLock            ptp.DevicePropCode = 0xD209
+	DPC_Fuji_DeviceError          ptp.DevicePropCode = 0xD21B
+	DPC_Fuji_ImageSpaceSD         ptp.DevicePropCode = 0xD229
+	DPC_Fuji_MovieRemainingTime   ptp.DevicePropCode = 0xD22A
+	DPC_Fuji_ShutterSpeed         ptp.DevicePropCode = 0xD240
+	DPC_Fuji_ImageAspect          ptp.DevicePropCode = 0xD241
+	DPC_Fuji_BatteryLevel         ptp.DevicePropCode = 0xD242
 
 	// FR_Fuji_DeviceBusy is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
@@ -483,6 +486,51 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 			}
 			dpd.Form = form
 		}
+
+		list = append(list, dpd)
+	}
+
+	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
+	// handling.
+	// TODO: handle this in a centralised way.
+	p := new(FujiOperationResponsePacket)
+	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+		return nil, err
+	}
+
+	if !p.WasSuccessful() {
+		return nil, p.ReasonAsError()
+	}
+
+	// TODO: what to return??
+	return nil, nil
+}
+
+func FujiGetDeviceState(c *Client) (PacketIn, error) {
+	c.log.Printf("Requesting %s device state...", c.ResponderFriendlyName())
+	numProps, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
+	if err != nil {
+		return nil, err
+	}
+
+	c.log.Printf("Number of properties returned: %d", numProps)
+
+	list := make([]*ptp.DevicePropDesc, numProps)
+
+	for i := 0; i < int(numProps); i++ {
+		dpd := new(ptp.DevicePropDesc)
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
+			return nil, err
+		}
+		c.log.Printf("Property code: %#x", dpd.DevicePropertyCode)
+
+		dpd.DataType = ptp.DTC_UINT32
+		cv := make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &cv); err != nil {
+			return nil, err
+		}
+		dpd.CurrentValue = cv
+		c.log.Printf("Property value: %#x", dpd.CurrentValue)
 
 		list = append(list, dpd)
 	}
