@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
-	"strings"
 )
 
 const (
@@ -454,26 +453,29 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 
 		c.log.Printf("Property length: %d", l)
 
-		// First read DevicePropertyCode, DataType and GetSet; i.e. read until we encounter the first interface field.
 		dpd := new(ptp.DevicePropDesc)
-		if err := ipInternal.UnmarshalLittleEndian(c.commandDataConn, dpd, int(l)-4, 0); err != nil && !strings.Contains(err.Error(), "invalid type *interface") {
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
+			return nil, err
+		}
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DataType); err != nil {
+			return nil, err
+		}
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.GetSet); err != nil {
 			return nil, err
 		}
 
 		c.log.Printf("Size of property values in bytes: %d", dpd.SizeOfValueInBytes())
 
 		// We now know the DataTypeCode so we know what to expect next.
-		fdv := make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &fdv); err != nil {
+		dpd.FactoryDefaultValue = make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.FactoryDefaultValue); err != nil {
 			return nil, err
 		}
-		dpd.FactoryDefaultValue = fdv
 
-		cv := make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &cv); err != nil {
+		dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.CurrentValue); err != nil {
 			return nil, err
 		}
-		dpd.CurrentValue = cv
 
 		// Read the type of form that will follow.
 		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.FormFlag); err != nil {
@@ -486,25 +488,22 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 			c.log.Printf("Property is a range type, filling range form...")
 
 			// Minimum possible value.
-			min := make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &min); err != nil {
+			form.MinimumValue = make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, form.MinimumValue); err != nil {
 				return nil, err
 			}
-			form.MinimumValue = min
 
 			// Maximum possible value.
-			max := make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &max); err != nil {
+			form.MaximumValue = make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, form.MaximumValue); err != nil {
 				return nil, err
 			}
-			form.MaximumValue = max
 
 			// Stepper value.
-			step := make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &step); err != nil {
+			form.StepSize = make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(c.commandDataConn, binary.LittleEndian, form.StepSize); err != nil {
 				return nil, err
 			}
-			form.StepSize = step
 
 			dpd.Form = form
 		case ptp.DPF_FormFlag_Enum:
@@ -567,11 +566,10 @@ func FujiGetDeviceState(c *Client) (PacketIn, error) {
 		c.log.Printf("Property code: %#x", dpd.DevicePropertyCode)
 
 		dpd.DataType = ptp.DTC_UINT32
-		cv := make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &cv); err != nil {
+		dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.CurrentValue); err != nil {
 			return nil, err
 		}
-		dpd.CurrentValue = cv
 		c.log.Printf("Property value: %#x", dpd.CurrentValue)
 
 		list = append(list, dpd)

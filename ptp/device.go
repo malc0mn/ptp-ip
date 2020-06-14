@@ -303,9 +303,9 @@ type DevicePropDesc struct {
 	// GetSet indicates whether the property is read-only (Get) or read-write (Get/Set).
 	GetSet DevicePropDescCode
 	// FactoryDefaultValue identifies the value of the factory default setting for the property.
-	FactoryDefaultValue interface{}
+	FactoryDefaultValue []byte
 	// CurrentValue identifies the current value of the property.
-	CurrentValue interface{}
+	CurrentValue []byte
 	// FormFlag indicates the format of the next field.
 	FormFlag DevicePropFormFlag
 	// Form is the Enumeration-Form or the Range-Form, or is absent if FormFlag = 0
@@ -329,20 +329,20 @@ func (dpd *DevicePropDesc) SizeOfValueInBytes() int {
 
 type RangeForm struct {
 	// MinimumValue is the minimum value of the property supported by the device.
-	MinimumValue interface{}
+	MinimumValue []byte
 	// MaximumValue is the maximum value of the property supported by the device.
-	MaximumValue interface{}
+	MaximumValue []byte
 	// StepSize indicates the size of steps that can be used to increment or decrement a value.
 	// A particular vendor's device shall support all values of a property defined by MinimumValue + N x StepSize which
 	// is less than or equal to MaximumValue where N=0 to a vendor defined maximum.
-	StepSize interface{}
+	StepSize []byte
 }
 
 type EnumerationForm struct {
 	// NumberOfValues indicates the number of values of size DTS of the particular property supported by the device.
 	NumberOfValues  int
 	// SupportedValues holds the list of supported values.
-	SupportedValues []interface{}
+	SupportedValues [][]byte
 }
 
 // DeviceInfo is used to hold the description information for a device. The Initiator can obtain this dataset from the
