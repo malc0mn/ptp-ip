@@ -45,6 +45,39 @@ The first shutdown candidates here are any web browser (Chrome, Firefox, Edge)
 or chat applications such as Slack, WhatsApp etc.
 
 ## CLI command
+### Usage
+Executing the `ptpip` command without arguments or with the `-?` flag will
+print its usage:
+```text
+Usage of ptpip:
+  -?	Display usage information.
+  -c string
+        The command to send to the responder.
+  -f string
+        Read all settings from a config file. The config file will override any command line flags present.
+  -g string
+        A custom GUID to use for the initiator. (default random)
+  -h string
+        The responder host to connect to. (default "192.168.0.1")
+  -n string
+        A custom friendly name to use for the initiator.
+  -p value
+        The responder port to connect to. Use this flag when the responder has only ONE port for all channels! (default 15740)
+  -pc value
+        The responder port used for the Command/Data connection.
+  -pe value
+        The responder port used for the Event connection.
+  -ps value
+        The responder port used for the streamer or 'live view' connection.
+  -s    This will run the ptpip command as a server
+  -sa string
+        To be used in combination with '-s': this defines the server address to listen on. (default "127.0.0.1")
+  -sp value
+        To be used in combination with '-s': this defines the server port to listen on. (default 15740)
+  -t string
+        The vendor of the responder that will be connected to. (default "generic")
+  -v    Display version info.
+```
 ### Config file
 The config file is in the classic INI file format. Some examples:
 ```ini
