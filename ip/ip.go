@@ -576,12 +576,12 @@ func (c *Client) GetDeviceInfo() (PacketIn, error) {
 // OperationRequestRaw allows to perform any operation request and returns the raw result intended for reverse
 // engineering purposes.
 func (c *Client) OperationRequestRaw(code string, params []string) ([]byte, error) {
-	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, 64)
+	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, 16)
 	if err != nil {
 		c.log.Printf("Error converting: %s", err)
 		return nil, err
 	}
-	c.log.Printf("Converted uint32: %#x", uint32(cod))
+	c.log.Printf("Converted uint16: %#x", cod)
 
 	p := make([]uint32, len(params))
 	for i, param := range params {
@@ -595,5 +595,5 @@ func (c *Client) OperationRequestRaw(code string, params []string) ([]byte, erro
 
 	c.log.Printf("Converted params: %#x", p)
 
-	return c.vendorExtensions.operationRequestRaw(c, uint32(cod), p)
+	return c.vendorExtensions.operationRequestRaw(c, ptp.OperationCode(cod), p)
 }

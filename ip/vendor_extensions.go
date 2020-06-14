@@ -16,7 +16,7 @@ type VendorExtensions struct {
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
 	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
 	getDeviceInfo        func(c *Client) (PacketIn, error)
-	operationRequestRaw  func(c *Client, code uint32, params []uint32) ([]byte, error)
+	operationRequestRaw  func(c *Client, code ptp.OperationCode, params []uint32) ([]byte, error)
 }
 
 func (c *Client) loadVendorExtensions() {
@@ -157,6 +157,37 @@ func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
 	return nil, err
 }
 
-func GenericOperationRequestRaw(c *Client, code uint32, params []uint32) ([]byte, error) {
-	return nil, nil
+func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([]byte, error) {
+	or := ptp.OperationRequest{
+		OperationCode: code,
+	}
+
+	// TODO: how to eliminate this crazyness? Rework the OperationRequest struct perhaps with a [5]interface{} instead
+	//  of 5 separate fields...?
+	if len(params) >= 1 {
+		or.Parameter1 = params[0]
+	}
+	if len(params) >= 2 {
+		or.Parameter2 = params[1]
+	}
+	if len(params) >= 3 {
+		or.Parameter3 = params[2]
+	}
+	if len(params) >= 4 {
+		or.Parameter4 = params[3]
+	}
+	if len(params) == 5 {
+		or.Parameter5 = params[5]
+	}
+
+	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
+		DataPhaseInfo:    DP_NoDataOrDataIn,
+		OperationRequest: or,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return c.ReadRawFromCmdDataConn()
 }

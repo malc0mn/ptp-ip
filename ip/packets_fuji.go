@@ -346,12 +346,12 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 }
 
 // FujiOperationRequestRaw wraps FujiSendOperationRequest and returns the raw camera response data.
-func FujiOperationRequestRaw(c *Client, code uint32, params []uint32) ([]byte, error) {
+func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([]byte, error) {
 	field := uint32(PM_Fuji_NoParam)
 	if len(params) != 0 {
 		field = params[0]
 	}
-	if err := FujiSendOperationRequest(c, ptp.OperationCode(code), field); err != nil {
+	if err := FujiSendOperationRequest(c, code, field); err != nil {
 		return nil, err
 	}
 
