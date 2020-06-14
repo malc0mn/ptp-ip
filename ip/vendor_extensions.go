@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
@@ -16,6 +17,7 @@ type VendorExtensions struct {
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
 	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
 	getDeviceInfo        func(c *Client) (PacketIn, error)
+	getDeviceState       func(c *Client) (PacketIn, error)
 	operationRequestRaw  func(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error)
 }
 
@@ -27,6 +29,7 @@ func (c *Client) loadVendorExtensions() {
 		newCmdDataInitPacket: NewInitCommandRequestPacket,
 		newEventInitPacket:   NewInitEventRequestPacket,
 		getDeviceInfo:        GenericGetDeviceInfo,
+		getDeviceState:       GenericGetDeviceState,
 		operationRequestRaw:  GenericOperationRequestRaw,
 	}
 
@@ -36,6 +39,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
+		c.vendorExtensions.getDeviceState = FujiGetDeviceState
 		c.vendorExtensions.operationRequestRaw = FujiOperationRequestRaw
 	}
 }
@@ -155,6 +159,11 @@ func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
 	}
 
 	return nil, err
+}
+
+// Request the Responder's device status.
+func GenericGetDeviceState(c *Client) (PacketIn, error) {
+	return nil, errors.New("Command not supported!")
 }
 
 func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {

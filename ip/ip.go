@@ -573,6 +573,12 @@ func (c *Client) GetDeviceInfo() (PacketIn, error) {
 	return c.vendorExtensions.getDeviceInfo(c)
 }
 
+// GetDeviceState requests the Responder's device status. This is not part of the PTP/IP specification but is
+// implemented by Fuji as a means to display the current camera settings in their mobile app.
+func (c *Client) GetDeviceState() (PacketIn, error) {
+	return c.vendorExtensions.getDeviceState(c)
+}
+
 // OperationRequestRaw allows to perform any operation request and returns the raw result intended for reverse
 // engineering purposes.
 func (c *Client) OperationRequestRaw(code string, params []string) ([][]byte, error) {
