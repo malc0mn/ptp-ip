@@ -146,7 +146,7 @@ type Client struct {
 	initiator        *Initiator
 	responder        *Responder
 	vendorExtensions *VendorExtensions
-	log              Logger
+	Logger
 }
 
 // ConnectionNumber returns the connection number received from the responder after initialising the command/data
@@ -240,7 +240,7 @@ func (c *Client) SetStreamerPort(port uint16) {
 
 // SetLogger allows setting a custom logger. This defaults to the Go log package.
 func (c *Client) SetLogger(log Logger) {
-	c.log = log
+	c.Logger = log
 }
 
 // Dial will initialise the command/data and Event connections.
@@ -325,7 +325,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if p == nil {
 		return InvalidPacketError
 	}
-	c.log.Printf("[sendPacket] sending %T", p)
+	c.Printf("[sendPacket] sending %T", p)
 
 	pl := p.Payload()
 	pll := len(pl)
@@ -349,12 +349,12 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		if n != HeaderSize {
 			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 		}
-		c.log.Printf("[sendPacket] header bytes written %d", n)
+		c.Printf("[sendPacket] header bytes written %d", n)
 	}
 
 	// Send payload.
 	if pll == 0 {
-		c.log.Printf("[sendPacket] packet has no payload")
+		c.Printf("[sendPacket] packet has no payload")
 		return nil
 	}
 
@@ -365,7 +365,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
-	c.log.Printf("[sendPacket] payload bytes written %d", n)
+	c.Printf("[sendPacket] payload bytes written %d", n)
 
 	return nil
 }
@@ -533,17 +533,17 @@ func (c *Client) configureTcpConn(t connectionType) {
 
 	// The PTP/IP protocol specifically asks to enable keep alive.
 	if err := conn.(*net.TCPConn).SetKeepAlive(true); err != nil {
-		c.log.Printf("TCP_KEEPALIVE not enabled for %s connection: %s", t, err)
+		c.Printf("TCP_KEEPALIVE not enabled for %s connection: %s", t, err)
 	} else {
-		c.log.Printf("TCP_KEEPALIVE enabled for %s connection", t)
+		c.Printf("TCP_KEEPALIVE enabled for %s connection", t)
 	}
 
 	// The PTP/IP protocol specifically asks to disable Nagle's algorithm. TCP_NODELAY SHOULD be enabled by default in
 	// golang but there's no harm in making sure since performance here is negligible.
 	if err := conn.(*net.TCPConn).SetNoDelay(true); err != nil {
-		c.log.Printf("TCP_NODELAY not enabled for %s connection: %s", t, err)
+		c.Printf("TCP_NODELAY not enabled for %s connection: %s", t, err)
 	} else {
-		c.log.Printf("TCP_NODELAY enabled for %s connection", t)
+		c.Printf("TCP_NODELAY enabled for %s connection", t)
 	}
 }
 
@@ -559,7 +559,7 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 	c := &Client{
 		initiator: i,
 		responder: NewResponder(vendor, ip, port, port, port),
-		log:       log.New(os.Stderr, "", log.LstdFlags),
+		Logger:    log.New(os.Stderr, "", log.LstdFlags),
 	}
 
 	c.loadVendorExtensions()
@@ -584,22 +584,22 @@ func (c *Client) GetDeviceState() (PacketIn, error) {
 func (c *Client) OperationRequestRaw(code string, params []string) ([][]byte, error) {
 	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, 16)
 	if err != nil {
-		c.log.Printf("Error converting: %s", err)
+		c.Printf("Error converting: %s", err)
 		return nil, err
 	}
-	c.log.Printf("Converted uint16: %#x", cod)
+	c.Printf("Converted uint16: %#x", cod)
 
 	p := make([]uint32, len(params))
 	for i, param := range params {
 		conv, err := strconv.ParseUint(strings.Replace(param, "0x", "", -1), 16, 64)
 		if err != nil {
-			c.log.Printf("Error converting: %s", err)
+			c.Printf("Error converting: %s", err)
 			return nil, err
 		}
 		p[i] = uint32(conv)
 	}
 
-	c.log.Printf("Converted params: %#x", p)
+	c.Printf("Converted params: %#x", p)
 
 	return c.vendorExtensions.operationRequestRaw(c, ptp.OperationCode(cod), p)
 }

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/malc0mn/ptp-ip/internal"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
+	"log"
 	"os"
 	"testing"
 )
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 }
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
-	c.log.Printf("[ip_test] sendAnyPacket() sending %T", p)
+	c.Printf("[ip_test] sendAnyPacket() sending %T", p)
 
 	pl := ipInternal.MarshalLittleEndian(p)
 	pll := len(pl)
@@ -36,19 +36,23 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 
 	// Send header.
 	n, err := w.Write(h)
-	internal.FailOnError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	c.log.Printf("[ip_test] sendAnyPacket() header bytes written %d", n)
+	c.Printf("[ip_test] sendAnyPacket() header bytes written %d", n)
 
 	// Send payload.
 	n, err = w.Write(pl)
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
-	internal.FailOnError(err)
-	c.log.Printf("[ip_test] sendAnyPacket() payload bytes written %d", n)
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.Printf("[ip_test] sendAnyPacket() payload bytes written %d", n)
 
 	return nil
 }

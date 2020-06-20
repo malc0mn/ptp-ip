@@ -267,28 +267,28 @@ func FujiInitCommandDataConn(c *Client) error {
 		return err
 	}
 
-	c.log.Print("Opening a session...")
+	c.Print("Opening a session...")
 	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
 		return err
 	}
 
-	c.log.Print("Setting correct init sequence number...")
-	c.log.Printf("Should you be prompted, please accept the new connection request on the %s.", c.ResponderFriendlyName())
+	c.Print("Setting correct init sequence number...")
+	c.Printf("Should you be prompted, please accept the new connection request on the %s.", c.ResponderFriendlyName())
 	if err := FujiSetDeviceProperty(c, DPC_Fuji_InitSequence, PM_Fuji_InitSequence); err != nil {
 		return err
 	}
 
-	c.log.Print("Getting current minimum application version...")
+	c.Print("Getting current minimum application version...")
 	val, err := FujiGetDevicePropertyValue(c, DPC_Fuji_AppVersion)
 	if err != nil {
 		return err
 	}
-	c.log.Printf("Acknowledging current minimal application version as communicated by the %s: %#x", c.ResponderFriendlyName(), val)
+	c.Printf("Acknowledging current minimal application version as communicated by the %s: %#x", c.ResponderFriendlyName(), val)
 	if err := FujiSetDeviceProperty(c, DPC_Fuji_AppVersion, val); err != nil {
 		return err
 	}
 
-	c.log.Print("Initiating open capture...")
+	c.Print("Initiating open capture...")
 	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
 		return err
 	}
@@ -435,13 +435,13 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 // in the PTP/IP specification, but it is more of a GetDevicePropDescList call that simply does not exist in the PTP/IP
 // specification.
 func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
-	c.log.Printf("Requesting %s device info...", c.ResponderFriendlyName())
+	c.Printf("Requesting %s device info...", c.ResponderFriendlyName())
 	numProps, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
 	if err != nil {
 		return nil, err
 	}
 
-	c.log.Printf("Number of properties returned: %d", numProps)
+	c.Printf("Number of properties returned: %d", numProps)
 
 	list := make([]*ptp.DevicePropDesc, numProps)
 
@@ -451,7 +451,7 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 			return nil, err
 		}
 
-		c.log.Printf("Property length: %d", l)
+		c.Printf("Property length: %d", l)
 
 		dpd := new(ptp.DevicePropDesc)
 		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
@@ -464,7 +464,7 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 			return nil, err
 		}
 
-		c.log.Printf("Size of property values in bytes: %d", dpd.SizeOfValueInBytes())
+		c.Printf("Size of property values in bytes: %d", dpd.SizeOfValueInBytes())
 
 		// We now know the DataTypeCode so we know what to expect next.
 		dpd.FactoryDefaultValue = make([]byte, dpd.SizeOfValueInBytes())
@@ -485,7 +485,7 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 		switch dpd.FormFlag {
 		case ptp.DPF_FormFlag_Range:
 			form := new(ptp.RangeForm)
-			c.log.Printf("Property is a range type, filling range form...")
+			c.Printf("Property is a range type, filling range form...")
 
 			// Minimum possible value.
 			form.MinimumValue = make([]byte, dpd.SizeOfValueInBytes())
@@ -508,7 +508,7 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 			dpd.Form = form
 		case ptp.DPF_FormFlag_Enum:
 			form := new(ptp.EnumerationForm)
-			c.log.Printf("Property is an enum type, filling enum form...")
+			c.Printf("Property is an enum type, filling enum form...")
 
 			// First read the number of values that will follow.
 			var num uint16
@@ -548,13 +548,13 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 }
 
 func FujiGetDeviceState(c *Client) (PacketIn, error) {
-	c.log.Printf("Requesting %s device state...", c.ResponderFriendlyName())
+	c.Printf("Requesting %s device state...", c.ResponderFriendlyName())
 	numProps, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
 	if err != nil {
 		return nil, err
 	}
 
-	c.log.Printf("Number of properties returned: %d", numProps)
+	c.Printf("Number of properties returned: %d", numProps)
 
 	list := make([]*ptp.DevicePropDesc, numProps)
 
@@ -563,14 +563,14 @@ func FujiGetDeviceState(c *Client) (PacketIn, error) {
 		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
 			return nil, err
 		}
-		c.log.Printf("Property code: %#x", dpd.DevicePropertyCode)
+		c.Printf("Property code: %#x", dpd.DevicePropertyCode)
 
 		dpd.DataType = ptp.DTC_UINT32
 		dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
 		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.CurrentValue); err != nil {
 			return nil, err
 		}
-		c.log.Printf("Property value: %#x", dpd.CurrentValue)
+		c.Printf("Property value: %#x", dpd.CurrentValue)
 
 		list = append(list, dpd)
 	}
