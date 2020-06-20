@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 }
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
-	c.Printf("[ip_test] sendAnyPacket() sending %T", p)
+	c.Debugf("[ip_test] sendAnyPacket() sending %T", p)
 
 	pl := ipInternal.MarshalLittleEndian(p)
 	pll := len(pl)
@@ -42,7 +42,7 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 	if n != HeaderSize {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 	}
-	c.Printf("[ip_test] sendAnyPacket() header bytes written %d", n)
+	c.Debugf("[ip_test] sendAnyPacket() header bytes written %d", n)
 
 	// Send payload.
 	n, err = w.Write(pl)
@@ -52,7 +52,7 @@ func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.Printf("[ip_test] sendAnyPacket() payload bytes written %d", n)
+	c.Debugf("[ip_test] sendAnyPacket() payload bytes written %d", n)
 
 	return nil
 }
@@ -112,7 +112,7 @@ func TestNewResponder(t *testing.T) {
 
 func TestNewClient(t *testing.T) {
 	guid := "cf2407bc-4b4c-4525-9622-afb30db356df"
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", guid)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", guid, LevelDebug)
 	if err != nil {
 		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
@@ -179,7 +179,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_SetCommandDataPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234")
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", LevelDebug)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +197,7 @@ func TestClient_SetCommandDataPort(t *testing.T) {
 }
 
 func TestClient_SetEventPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234")
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", LevelDebug)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +215,7 @@ func TestClient_SetEventPort(t *testing.T) {
 }
 
 func TestClient_SetStreamerPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234")
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", LevelDebug)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,7 +258,7 @@ func TestClient_incrementTransactionId(t *testing.T) {
 }
 
 func TestClient_sendPacket(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd", LevelDebug)
 	if err != nil {
 		t.Errorf("sendPacket() err = %s; want <nil>", err)
 	}
@@ -277,7 +277,7 @@ func TestClient_sendPacket(t *testing.T) {
 }
 
 func TestClient_readResponse(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6", LevelDebug)
 	if err != nil {
 		t.Errorf("readResponse() err = %s; want <nil>", err)
 	}
@@ -330,7 +330,7 @@ func TestClient_readResponse(t *testing.T) {
 }
 
 func TestClient_readRawResponse(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "wrîter", "617b38ef-b6e6-4ef6-b2ad-ea51cecdbbd3")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "wrîter", "617b38ef-b6e6-4ef6-b2ad-ea51cecdbbd3", LevelDebug)
 	if err != nil {
 		t.Errorf("readRawResponse() err = %s; want <nil>", err)
 	}
@@ -353,7 +353,7 @@ func TestClient_readRawResponse(t *testing.T) {
 }
 
 func TestClient_initCommandDataConn(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -370,7 +370,7 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	}
 }
 func TestClient_initCommandDataConnFail(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6")
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -388,7 +388,7 @@ func TestClient_initCommandDataConnFail(t *testing.T) {
 }
 
 func TestClient_initEventConn(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c")
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -406,7 +406,7 @@ func TestClient_initEventConn(t *testing.T) {
 }
 
 func TestClient_initEventConnFail(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278")
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -424,7 +424,7 @@ func TestClient_initEventConnFail(t *testing.T) {
 }
 
 func TestClient_Dial(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0")
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -435,7 +435,7 @@ func TestClient_Dial(t *testing.T) {
 		t.Errorf("Dial() err = %s; want <nil>", err)
 	}
 
-	c, err = NewClient(DefaultVendor, address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024")
+	c, err = NewClient(DefaultVendor, address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -448,7 +448,7 @@ func TestClient_Dial(t *testing.T) {
 }
 
 func TestClient_GetDeviceInfo(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d")
+	c, err := NewClient(DefaultVendor, address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d", LevelDebug)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)

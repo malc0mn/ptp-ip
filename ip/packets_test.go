@@ -21,7 +21,7 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 }
 
 func TestNewInitCommandRequestPacketForClient(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "test", "")
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "test", "", LevelDebug)
 	if err != nil {
 		t.Errorf("NewInitCommandRequestPacketForClient() err = %s; want <nil>", err)
 	}
