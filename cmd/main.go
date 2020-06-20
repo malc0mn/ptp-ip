@@ -53,7 +53,7 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan bool, 1)
 
-	client, err := ip.NewClient(conf.vendor, conf.host, uint16(conf.port), conf.fname, conf.guid)
+	client, err := ip.NewClient(conf.vendor, conf.host, uint16(conf.port), conf.fname, conf.guid, verbosity)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating PTP/IP client - %s\n", err)
 		os.Exit(errCreateClient)
