@@ -57,23 +57,27 @@ const (
 	SCM_Burst     StillCaptureMode = 0x0002
 	SCM_Timelapse StillCaptureMode = 0x0003
 
-	// Default device-specific self-test
+	// STT_Default is the default device-specific self-test.
 	STT_Default SelfTestType = 0x0000
 
 	WB_Undefined WhiteBalance = 0x0000
-	// The white balance is set directly using the RGB Gain property and is static until changed.
+	// WB_Manual indicates the white balance is set directly using the RGB Gain property and is static until changed.
 	WB_Manual WhiteBalance = 0x0001
-	// The device attempts to set the white balance using some kind of automatic mechanism.
+	// WB_Automatic indicates the device attempts to set the white balance using some kind of automatic mechanism.
 	WB_Automatic WhiteBalance = 0x0002
-	// The user must press the capture button while pointing the device at a white field, at which time the device
-	// determines the white balance setting.
+	// WB_OnePushAutomatic indicates the user must press the capture button while pointing the device at a white field,
+	// at which time the device determines the white balance setting.
 	WB_OnePushAutomatic WhiteBalance = 0x0003
-	// The device attempts to set the white balance to a value that is appropriate for use in daylight conditions.
+	// WB_Daylight indicates the device attempts to set the white balance to a value that is appropriate for use in
+	// daylight conditions.
 	WB_Daylight    WhiteBalance = 0x0004
+	// WB_Fluorescent indicates the device attempts to set the white balance to a value that is appropriate for use in
+	// with fluorescent lighting conditions.
 	WB_Fluorescent WhiteBalance = 0x0005
-	// The device attempts to set the white balance to a value that is appropriate for use in conditions with a tungsten
-	// light source.
+	// WB_Tungsten indicates the device attempts to set the white balance to a value that is appropriate for use in
+	// conditions with a tungsten light source.
 	WB_Tungsten WhiteBalance = 0x0006
-	// The device attempts to set the white balance to a value that is appropriate for flash conditions.
+	// WB_Flash indicates the device attempts to set the white balance to a value that is appropriate for flash
+	// conditions.
 	WB_Flash WhiteBalance = 0x0007
 )
