@@ -47,9 +47,9 @@ const (
 	// assign specific values of this property with any absolute benchmark, so any available settings on a device are
 	// relative to that device only and are therefore device-specific.
 	DPC_CompressionSetting DevicePropCode = 0x5004
-	// DPC_WiteBalance is used to set how the device weights color channels. The device enumerates its supported values
+	// DPC_WhiteBalance is used to set how the device weights color channels. The device enumerates its supported values
 	// for this property.
-	DPC_WiteBalance DevicePropCode = 0x5005
+	DPC_WhiteBalance DevicePropCode = 0x5005
 	// DPC_RGBGain takes the form of a Unicode, null-terminated string that is parsed as follows: "R:G:B" where the R
 	// represents the red gain, the G represents the green gain, and the B represents the blue gain. For example, for an
 	// RGB ratio of (red=4, green=2, blue=3), RGB string could be "4:2:3" (null-terminated) or "2000:1000:1500"
@@ -233,7 +233,7 @@ func DevicePropCodeAsString(code DevicePropCode) string {
 		return "image size"
 	case DPC_CompressionSetting:
 		return "compression setting"
-	case DPC_WiteBalance:
+	case DPC_WhiteBalance:
 		return "white balance"
 	case DPC_RGBGain:
 		return "RGB gain"
