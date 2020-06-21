@@ -569,13 +569,13 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 
 // GetDeviceInfo requests the Responder's device information. The data that should be returned is clearly specified by
 // the PTP/IP protocol but will, alas, greatly differ from vendor to vendor.
-func (c *Client) GetDeviceInfo() (PacketIn, error) {
+func (c *Client) GetDeviceInfo() (interface{}, error) {
 	return c.vendorExtensions.getDeviceInfo(c)
 }
 
 // GetDeviceState requests the Responder's device status. This is not part of the PTP/IP specification but is
 // implemented by Fuji as a means to display the current camera settings in their mobile app.
-func (c *Client) GetDeviceState() (PacketIn, error) {
+func (c *Client) GetDeviceState() (interface{}, error) {
 	return c.vendorExtensions.getDeviceState(c)
 }
 

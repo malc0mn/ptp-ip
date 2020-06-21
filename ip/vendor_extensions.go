@@ -10,14 +10,17 @@ import (
 
 // TODO: This solution is not OK, vendors can differ massively so it seems. Should this become an interface that all
 //  vendors need to implement...? It would turn out to be a huge interface, so there will no doubt be a better solution?
+//  Embedding ip.Client in a stuct ip.FujiClient wasn't that good either. Take the Dial() method for example, this calls
+//  the initCommandDataConn() and initEventConn() methods but when using embedding the methods on ip.Client get called
+//  and not the ones on ip.FujiClient so you would also have to "override" the Dial() as well.
 type VendorExtensions struct {
 	cmdDataInit          func(c *Client) error
 	eventInit            func(c *Client) error
 	streamerInit         func(c *Client) error
 	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
 	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
-	getDeviceInfo        func(c *Client) (PacketIn, error)
-	getDeviceState       func(c *Client) (PacketIn, error)
+	getDeviceInfo        func(c *Client) (interface{}, error)
+	getDeviceState       func(c *Client) (interface{}, error)
 	operationRequestRaw  func(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error)
 }
 
@@ -136,7 +139,7 @@ func GenericInitStreamerConn(c *Client) error {
 }
 
 // Request the Responder's device information.
-func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
+func GenericGetDeviceInfo(c *Client) (interface{}, error) {
 	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
 		DataPhaseInfo:    DP_NoDataOrDataIn,
 		OperationRequest: ptp.GetDeviceInfo(),
@@ -162,7 +165,7 @@ func GenericGetDeviceInfo(c *Client) (PacketIn, error) {
 }
 
 // Request the Responder's device status.
-func GenericGetDeviceState(c *Client) (PacketIn, error) {
+func GenericGetDeviceState(c *Client) (interface{}, error) {
 	return nil, errors.New("Command not supported!")
 }
 

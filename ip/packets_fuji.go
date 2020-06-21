@@ -799,7 +799,7 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 // FujiGetDeviceInfo retrieves the current settings of a Fuji device. It is not at all a GetDeviceInfo call as specified
 // in the PTP/IP specification, but it is more of a GetDevicePropDescList call that simply does not exist in the PTP/IP
 // specification.
-func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
+func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device info...", c.ResponderFriendlyName())
 	numProps, rp, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
 	if err != nil {
@@ -905,11 +905,10 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 		return nil, eodp.ReasonAsError()
 	}
 
-	// TODO: what to return??
-	return nil, nil
+	return list, nil
 }
 
-func FujiGetDeviceState(c *Client) (PacketIn, error) {
+func FujiGetDeviceState(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device state...", c.ResponderFriendlyName())
 	numProps, rp, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
 	if err != nil {
@@ -946,6 +945,5 @@ func FujiGetDeviceState(c *Client) (PacketIn, error) {
 		return nil, eodp.ReasonAsError()
 	}
 
-	// TODO: what to return??
-	return nil, nil
+	return list, nil
 }
