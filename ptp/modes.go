@@ -81,3 +81,192 @@ const (
 	// conditions.
 	WB_Flash WhiteBalance = 0x0007
 )
+
+func ModeAsString(m interface{}) string {
+	switch m.(type) {
+	case EffectMode:
+		return EffectModeAsString(m.(EffectMode))
+	case ExposureMeteringMode:
+		return ExposureMeteringModeAsString(m.(ExposureMeteringMode))
+	case ExposureProgramMode:
+		return ExposureProgramModeAsString(m.(ExposureProgramMode))
+	case FlashMode:
+		return FlashModeAsString(m.(FlashMode))
+	case FocusMeteringMode:
+		return FocusMeteringModeAsString(m.(FocusMeteringMode))
+	case FocusMode:
+		return FocusModeAsString(m.(FocusMode))
+	case FunctionalMode:
+		return FunctionalModeAsString(m.(FunctionalMode))
+	case SelfTestType:
+		return SelfTestTypeAsString(m.(SelfTestType))
+	case StillCaptureMode:
+		return StillCaptureModeAsString(m.(StillCaptureMode))
+	case WhiteBalance:
+		return WhiteBalanceAsString(m.(WhiteBalance))
+	}
+
+	return ""
+}
+
+func EffectModeAsString(fxm EffectMode) string {
+	switch fxm {
+	case FXM_Undefined:
+		return "undefined"
+	case FXM_Standard:
+		return "standard"
+	case FXM_BlackWhite:
+		return "black and white"
+	case FXM_Sepia:
+		return "sepia"
+	default:
+		return ""
+	}
+}
+
+func ExposureMeteringModeAsString(emm ExposureMeteringMode) string {
+	switch emm {
+	case EMM_Undefined:
+		return "undefined"
+	case EMM_Avarage:
+		return "average"
+	case EMM_CenterWeightedAvarage:
+		return "center weighted average"
+	case EMM_MultiSpot:
+		return "multi spot"
+	case EMM_CenterSpot:
+		return "center spot"
+	default:
+		return ""
+	}
+}
+
+func ExposureProgramModeAsString(epm ExposureProgramMode) string {
+	switch epm {
+	case EPM_Undefined:
+		return "undefined"
+	case EPM_Manual:
+		return "manual"
+	case EPM_Automatic:
+		return "automatic"
+	case EPM_AperturePriority:
+		return "aperture priority"
+	case EPM_ShutterPriority:
+		return "shutter priority"
+	case EPM_ProgramCreative:
+		return "program creative"
+	case EPM_ProgramAction:
+		return "program action"
+	case EPM_Portrait:
+		return "portrait"
+	default:
+		return ""
+	}
+}
+
+func FlashModeAsString(flm FlashMode) string {
+	switch flm {
+	case FLM_Undefined:
+		return "undefined"
+	case FLM_AutoFlash:
+		return "auto flash"
+	case FLM_FlashOff:
+		return "off"
+	case FLM_FillFlash:
+		return "fill"
+	case FLM_RedEyeAuto:
+		return "red eye auto"
+	case FLM_RedEyeFill:
+		return "red eye fill"
+	case FLM_ExternalSync:
+		return "external sync"
+	default:
+		return ""
+	}
+}
+
+func FocusMeteringModeAsString(fmm FocusMeteringMode) string {
+	switch fmm {
+	case FMM_Undefined:
+		return "undefined"
+	case FMM_CenterSpot:
+		return "center spot"
+	case FMM_MultiSpot:
+		return "multi spot"
+	default:
+		return ""
+	}
+}
+
+func FocusModeAsString(fcm FocusMode) string {
+	switch fcm {
+	case FCM_Undefined:
+		return "undefined"
+	case FCM_Manual:
+		return "manual"
+	case FCM_Automatic:
+		return "automatic"
+	case FCM_AutomaticMacro:
+		return "automatic macro"
+	default:
+		return ""
+	}
+}
+
+func FunctionalModeAsString(fum FunctionalMode) string {
+	switch fum {
+	case FUM_StandardMode:
+		return "standard"
+	case FUM_SleepState:
+		return "sleep"
+	default:
+		return ""
+	}
+}
+
+func SelfTestTypeAsString (stt SelfTestType) string {
+	switch stt {
+	case STT_Default:
+		return "default"
+	default:
+		return ""
+	}
+}
+
+func StillCaptureModeAsString(scm StillCaptureMode) string {
+	switch scm {
+	case SCM_Undefined:
+		return "undefined"
+	case SCM_Normal:
+		return "normal"
+	case SCM_Burst:
+		return "burst"
+	case SCM_Timelapse:
+		return "timelapse"
+	default:
+		return ""
+	}
+}
+
+func WhiteBalanceAsString(wb WhiteBalance) string {
+	switch wb {
+	case WB_Undefined:
+		return "undefined"
+	case WB_Manual:
+		return "manual"
+	case WB_Automatic:
+		return "automatic"
+	case WB_OnePushAutomatic:
+		return "one push automatic"
+	case WB_Daylight:
+		return "daylight"
+	case WB_Fluorescent:
+		return "fluorescent"
+	case WB_Tungsten:
+		return "tungsten"
+	case WB_Flash:
+		return "flash"
+	default:
+		return ""
+	}
+}
