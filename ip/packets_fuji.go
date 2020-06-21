@@ -8,9 +8,104 @@ import (
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
+type FujiBatteryLevel uint16
+type FujiCommandDialMode uint16
+type FujiDeviceError uint16
+type FujiFilmSimulation uint16
+type FujiFocusLock uint16
+type FujiImageSize uint16
+type FujiImageQuality uint16
+type FujiMovieMode uint16
+type FujiSelfTimer uint16
+
 const (
+	BAT_Fuji_3bCritical FujiBatteryLevel = 0x0001
+	BAT_Fuji_3bOne      FujiBatteryLevel = 0x0002
+	BAT_Fuji_3bTwo      FujiBatteryLevel = 0x0003
+	BAT_Fuji_3bFull     FujiBatteryLevel = 0x0004
+	BAT_Fuji_5bCritical FujiBatteryLevel = 0x0006
+	BAT_Fuji_5bOne      FujiBatteryLevel = 0x0007
+	BAT_Fuji_5bTwo      FujiBatteryLevel = 0x0008
+	BAT_Fuji_5bThree    FujiBatteryLevel = 0x0009
+	BAT_Fuji_5bFour     FujiBatteryLevel = 0x000A
+	BAT_Fuji_5bFull     FujiBatteryLevel = 0x000B
+
+	CMD_Fuji_Both         FujiCommandDialMode = 0x0000
+	CMD_Fuji_Aperture     FujiCommandDialMode = 0x0001
+	CMD_Fuji_ShutterSpeed FujiCommandDialMode = 0x0002
+	CMD_Fuji_None         FujiCommandDialMode = 0x0003
+
+	FCM_Fuji_Single_Auto     ptp.FocusMode = 0x8001
+	FCM_Fuji_Continuous_Auto ptp.FocusMode = 0x8002
+
+	FM_Fuji_On         ptp.FlashMode = 0x8001
+	FM_Fuji_RedEye     ptp.FlashMode = 0x8002
+	FM_Fuji_RedEyeOn   ptp.FlashMode = 0x8003
+	FM_Fuji_RedEyeSync ptp.FlashMode = 0x8004
+	FM_Fuji_RedEyeRear ptp.FlashMode = 0x8005
+	FM_Fuji_SlowSync   ptp.FlashMode = 0x8006
+	FM_Fuji_RearSync   ptp.FlashMode = 0x8007
+	FM_Fuji_Commander  ptp.FlashMode = 0x8008
+	FM_Fuji_Disabled   ptp.FlashMode = 0x8009
+	FM_Fuji_Enabled    ptp.FlashMode = 0x800A
+
+	FL_Fuji_Off FujiFocusLock = 0x0000
+	FL_Fuji_On  FujiFocusLock = 0x0001
+
+	DE_Fuji_None FujiDeviceError = 0x0000
+
+	FS_Fuji_Provia             FujiFilmSimulation = 0x0001
+	FS_Fuji_Velvia             FujiFilmSimulation = 0x0002
+	FS_Fuji_Astia              FujiFilmSimulation = 0x0003
+	FS_Fuji_Monochrome         FujiFilmSimulation = 0x0004
+	FS_Fuji_Sepia              FujiFilmSimulation = 0x0005
+	FS_Fuji_ProNegHigh         FujiFilmSimulation = 0x0006
+	FS_Fuji_ProNegStandard     FujiFilmSimulation = 0x0007
+	FS_Fuji_MonochromeYeFilter FujiFilmSimulation = 0x0008
+	FS_Fuji_MonochromeRFilter  FujiFilmSimulation = 0x0009
+	FS_Fuji_MonochromeGFilter  FujiFilmSimulation = 0x000A
+	FS_Fuji_ClassicChrome      FujiFilmSimulation = 0x000B
+	FS_Fuji_ACROS              FujiFilmSimulation = 0x000C
+	FS_Fuji_ACROSYe            FujiFilmSimulation = 0x000D
+	FS_Fuji_ACROSR             FujiFilmSimulation = 0x000E
+	FS_Fuji_ACROSG             FujiFilmSimulation = 0x000F
+	FS_Fuji_ETERNA             FujiFilmSimulation = 0x0010
+
+	IS_Fuji_Small_3x2   FujiImageSize = 0x0002
+	IS_Fuji_Small_16x9  FujiImageSize = 0x0003
+	IS_Fuji_Small_1x1   FujiImageSize = 0x0004
+	IS_Fuji_Medium_3x2  FujiImageSize = 0x0006
+	IS_Fuji_Medium_16x9 FujiImageSize = 0x0007
+	IS_Fuji_Medium_1x1  FujiImageSize = 0x0008
+	IS_Fuji_Large_3x2   FujiImageSize = 0x000A
+	IS_Fuji_Large_16x9  FujiImageSize = 0x000B
+	IS_Fuji_Large_1x1   FujiImageSize = 0x000C
+
+	IQ_Fuji_Fine         FujiImageQuality = 0x0002
+	IQ_Fuji_Normal       FujiImageQuality = 0x0003
+	IQ_Fuji_FineAndRAW   FujiImageQuality = 0x0004
+	IQ_Fuji_NormalAndRAW FujiImageQuality = 0x0005
+	IQ_Fuji_RAW          FujiImageQuality = 0x0006
+
+	MM_Fuji_None    FujiMovieMode = 0x0000
+	MM_Fuji_Present FujiMovieMode = 0x0001
+
+	ST_Fuji_Off   FujiSelfTimer = 0x0000
+	ST_Fuji_1Sec  FujiSelfTimer = 0x0001
+	ST_Fuji_2Sec  FujiSelfTimer = 0x0002
+	ST_Fuji_5Sec  FujiSelfTimer = 0x0003
+	ST_Fuji_10Sec FujiSelfTimer = 0x0004
+
+	WB_Fuji_Fluorescent1 ptp.WhiteBalance = 0x8001
+	WB_Fuji_Fluorescent2 ptp.WhiteBalance = 0x8002
+	WB_Fuji_Fluorescent3 ptp.WhiteBalance = 0x8003
+	WB_Fuji_Shade        ptp.WhiteBalance = 0x8006
+	WB_Fuji_Underwater   ptp.WhiteBalance = 0x800A
+	WB_Fuji_Temperature  ptp.WhiteBalance = 0x800B
+	WB_Fuji_Custom       ptp.WhiteBalance = 0x800C
+
 	DPC_Fuji_FilmSimulation  ptp.DevicePropCode = 0xD001
-	DPC_Fuji_ImageFormat     ptp.DevicePropCode = 0xD018
+	DPC_Fuji_ImageQuality    ptp.DevicePropCode = 0xD018
 	DPC_Fuji_Recmode         ptp.DevicePropCode = 0xD019
 	DPC_Fuji_CommandDialMode ptp.DevicePropCode = 0xD028
 	DPC_Fuji_ISO             ptp.DevicePropCode = 0xD02A
@@ -23,7 +118,7 @@ const (
 	DPC_Fuji_ImageSpaceSD       ptp.DevicePropCode = 0xD229
 	DPC_Fuji_MovieRemainingTime ptp.DevicePropCode = 0xD22A
 	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
-	DPC_Fuji_ImageAspect        ptp.DevicePropCode = 0xD241
+	DPC_Fuji_ImageSize          ptp.DevicePropCode = 0xD241
 	DPC_Fuji_BatteryLevel       ptp.DevicePropCode = 0xD242
 	// DPC_Fuji_InitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
 	// the initialisation sequence and depending on it's value, will require a different init sequence to be used.
@@ -45,8 +140,16 @@ const (
 	// Seems to be an own version of RC_InvalidParameter.
 	FR_Fuji_InvalidParameter FailReason = 0x0000201D
 
+	OC_Fuji_GetLastImage    ptp.OperationCode = 0x9022
+	OC_Fuji_SetFocusPoint   ptp.OperationCode = 0x9026
+	OC_Fuji_ResetFocusPoint ptp.OperationCode = 0x9027
+
 	// OC_Fuji_GetDeviceInfo returns a list of DevicePropDesc structs so it is not at all the same as OC_GetDeviceInfo.
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
+
+	OC_Fuji_SetShutterSpeed         ptp.OperationCode = 0x902C
+	OC_Fuji_SetAperture             ptp.OperationCode = 0x902D
+	OC_Fuji_SetExposureCompensation ptp.OperationCode = 0x902E
 
 	// PM_Fuji_NoParam is for convenience: to be used with FujiSendOperationRequestAndGetResponse() when no parameter is required for
 	// the operation.
@@ -81,47 +184,298 @@ const (
 )
 
 func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
-	msg := ptp.DevicePropCodeAsString(code)
-	if msg == "" {
-		switch code {
-		case DPC_Fuji_FilmSimulation:
-			msg = "film simulation"
-		case DPC_Fuji_ImageFormat:
-			msg = "image format"
-		case DPC_Fuji_Recmode:
-			msg = "rec mode"
-		case DPC_Fuji_CommandDialMode:
-			msg = "command dial mode"
-		case DPC_Fuji_ISO:
-			msg = "ISO"
-		case DPC_Fuji_MovieISO:
-			msg = "movie ISO"
-		case DPC_Fuji_FocusPoint:
-			msg = "focus point"
-		case DPC_Fuji_FocusLock:
-			msg = "focus lock"
-		case DPC_Fuji_DeviceError:
-			msg = "device error"
-		case DPC_Fuji_ImageSpaceSD:
-			msg = "image space SD"
-		case DPC_Fuji_MovieRemainingTime:
-			msg = "movie remaining time"
-		case DPC_Fuji_ShutterSpeed:
-			msg = "shutter speed"
-		case DPC_Fuji_ImageAspect:
-			msg = "image aspect"
-		case DPC_Fuji_BatteryLevel:
-			msg = "battery level"
-		case DPC_Fuji_InitSequence:
-			msg = "init sequence"
-		case DPC_Fuji_AppVersion:
-			msg = "app version"
-		default:
-			msg = ""
-		}
+	if msg := ptp.DevicePropCodeAsString(code); msg != "" {
+		return msg
 	}
 
-	return msg
+	switch code {
+	case DPC_Fuji_FilmSimulation:
+		return "film simulation"
+	case DPC_Fuji_ImageQuality:
+		return "image quality"
+	case DPC_Fuji_Recmode:
+		return "rec mode"
+	case DPC_Fuji_CommandDialMode:
+		return "command dial mode"
+	case DPC_Fuji_ISO:
+		return "ISO"
+	case DPC_Fuji_MovieISO:
+		return "movie ISO"
+	case DPC_Fuji_FocusPoint:
+		return "focus point"
+	case DPC_Fuji_FocusLock:
+		return "focus lock"
+	case DPC_Fuji_DeviceError:
+		return "device error"
+	case DPC_Fuji_ImageSpaceSD:
+		return "image space SD"
+	case DPC_Fuji_MovieRemainingTime:
+		return "movie remaining time"
+	case DPC_Fuji_ShutterSpeed:
+		return "shutter speed"
+	case DPC_Fuji_ImageSize:
+		return "image size"
+	case DPC_Fuji_BatteryLevel:
+		return "battery level"
+	case DPC_Fuji_InitSequence:
+		return "init sequence"
+	case DPC_Fuji_AppVersion:
+		return "app version"
+	default:
+		return ""
+	}
+}
+
+func FujiDevicePropValueAsString(code ptp.DevicePropCode, v uint16) string {
+	if msg := ptp.DevicePropValueAsString(code, v); msg != "" {
+		return msg
+	}
+
+	switch code {
+	case ptp.DPC_BatteryLevel, DPC_Fuji_BatteryLevel:
+		return FujiBatteryLevelAsString(FujiBatteryLevel(v))
+	case DPC_Fuji_CommandDialMode:
+		return FujiCommandDialModeAsString(FujiCommandDialMode(v))
+	case DPC_Fuji_DeviceError:
+		return FujiDeviceErrorAsString(FujiDeviceError(v))
+	case DPC_Fuji_FilmSimulation:
+		return FujiFilmSimulationAsString(FujiFilmSimulation(v))
+	case ptp.DPC_FlashMode:
+		return FujiFlashModeAsString(ptp.FlashMode(v))
+	case DPC_Fuji_FocusLock:
+		return FujiFocusLockAsString(FujiFocusLock(v))
+	case ptp.DPC_FocusMode:
+		return FujiFocusModeAsString(ptp.FocusMode(v))
+	case DPC_Fuji_ImageSize:
+		return FujiImageSizeAsString(FujiImageSize(v))
+	case DPC_Fuji_ImageQuality:
+		return FujiImageQualityAsString(FujiImageQuality(v))
+	case ptp.DPC_WhiteBalance:
+		return FujiWhiteBalanceAsString(ptp.WhiteBalance(v))
+	case ptp.DPC_CaptureDelay:
+		return FujiSelfTimerAsString(FujiSelfTimer(v))
+	default:
+		return ""
+	}
+}
+
+func FujiBatteryLevelAsString(bat FujiBatteryLevel) string {
+	switch bat {
+	case BAT_Fuji_3bCritical:
+		return "critical"
+	case BAT_Fuji_3bOne:
+		return "1/3"
+	case BAT_Fuji_3bTwo:
+		return "2/3"
+	case BAT_Fuji_3bFull:
+		return "3/3"
+	case BAT_Fuji_5bCritical:
+		return "critical"
+	case BAT_Fuji_5bOne:
+		return "1/5"
+	case BAT_Fuji_5bTwo:
+		return "2/5"
+	case BAT_Fuji_5bThree:
+		return "3/5"
+	case BAT_Fuji_5bFour:
+		return "4/5"
+	case BAT_Fuji_5bFull:
+		return "5/5"
+	default:
+		return ""
+	}
+}
+
+func FujiCommandDialModeAsString(cmd FujiCommandDialMode) string {
+	switch cmd {
+	case CMD_Fuji_Both:
+		return "both"
+	case CMD_Fuji_Aperture:
+		return "aperture"
+	case CMD_Fuji_ShutterSpeed:
+		return "shutter speed"
+	case CMD_Fuji_None:
+		return "none"
+	default:
+		return ""
+	}
+}
+
+func FujiDeviceErrorAsString(de FujiDeviceError) string {
+	switch de {
+	case DE_Fuji_None:
+		return "none"
+	default:
+		return ""
+	}
+}
+
+func FujiFilmSimulationAsString(fs FujiFilmSimulation) string {
+	switch fs {
+	case FS_Fuji_Provia:
+		return "Provia"
+	case FS_Fuji_Velvia:
+		return "Velvia"
+	case FS_Fuji_Astia:
+		return "Astia"
+	case FS_Fuji_Monochrome:
+		return "Monochrome"
+	case FS_Fuji_Sepia:
+		return "Sepia"
+	case FS_Fuji_ProNegHigh:
+		return "Pro. Neg. Hi"
+	case FS_Fuji_ProNegStandard:
+		return "Pro Neg. Std."
+	case FS_Fuji_MonochromeYeFilter:
+		return "Monochrome + Ye Filter"
+	case FS_Fuji_MonochromeRFilter:
+		return "Monochrome + R Filter"
+	case FS_Fuji_MonochromeGFilter:
+		return "Monochrome + G Filter"
+	case FS_Fuji_ClassicChrome:
+		return "Classic Chrome"
+	case FS_Fuji_ACROS:
+		return "ACROS"
+	case FS_Fuji_ACROSYe:
+		return "ACROS Ye"
+	case FS_Fuji_ACROSR:
+		return "ACROS R"
+	case FS_Fuji_ACROSG:
+		return "ACROS G"
+	case FS_Fuji_ETERNA:
+		return "ETERNA"
+	default:
+		return ""
+	}
+}
+
+func FujiFlashModeAsString(mode ptp.FlashMode) string {
+	switch mode {
+	case FM_Fuji_On:
+		return "on"
+	case FM_Fuji_RedEye:
+		return "red eye"
+	case FM_Fuji_RedEyeOn:
+		return "red eye on"
+	case FM_Fuji_RedEyeSync:
+		return "red eye sync"
+	case FM_Fuji_RedEyeRear:
+		return "red eye rear"
+	case FM_Fuji_SlowSync:
+		return "slow sync"
+	case FM_Fuji_RearSync:
+		return "rear sync"
+	case FM_Fuji_Commander:
+		return "commander"
+	case FM_Fuji_Disabled:
+		return "disabled"
+	case FM_Fuji_Enabled:
+		return "enabled"
+	default:
+		return ""
+	}
+}
+
+func FujiFocusLockAsString(fl FujiFocusLock) string {
+	switch fl {
+	case FL_Fuji_On:
+		return "on"
+	case FL_Fuji_Off:
+		return "off"
+	default:
+		return ""
+	}
+}
+
+func FujiFocusModeAsString(fm ptp.FocusMode) string {
+	switch fm {
+	case FCM_Fuji_Single_Auto:
+		return "single auto"
+	case FCM_Fuji_Continuous_Auto:
+		return "continuous auto"
+	default:
+		return ""
+	}
+}
+
+func FujiImageSizeAsString(is FujiImageSize) string {
+	switch is {
+	case IS_Fuji_Small_3x2:
+		return "S 3:2"
+	case IS_Fuji_Small_16x9:
+		return "S 16:9"
+	case IS_Fuji_Small_1x1:
+		return "S 1:1"
+	case IS_Fuji_Medium_3x2:
+		return "M 3:2"
+	case IS_Fuji_Medium_16x9:
+		return "M 16:9"
+	case IS_Fuji_Medium_1x1:
+		return "M 1:1"
+	case IS_Fuji_Large_3x2:
+		return "L 3:2"
+	case IS_Fuji_Large_16x9:
+		return "L 16:9"
+	case IS_Fuji_Large_1x1:
+		return "L 1:1"
+	default:
+		return ""
+	}
+}
+
+func FujiImageQualityAsString (iq FujiImageQuality) string {
+	switch iq {
+	case IQ_Fuji_Fine:
+		return "fine"
+	case IQ_Fuji_Normal:
+		return "normal"
+	case IQ_Fuji_FineAndRAW:
+		return "fine + RAW"
+	case IQ_Fuji_NormalAndRAW:
+		return "normal + RAW"
+	case IQ_Fuji_RAW:
+		return "RAW"
+	default:
+		return ""
+	}
+}
+
+func FujiWhiteBalanceAsString(wb ptp.WhiteBalance) string {
+	switch wb {
+	case WB_Fuji_Fluorescent1:
+		return "fluorescent 1"
+	case WB_Fuji_Fluorescent2:
+		return "fluorescent 2"
+	case WB_Fuji_Fluorescent3:
+		return "fluorescent 3"
+	case WB_Fuji_Shade:
+		return "shade"
+	case WB_Fuji_Underwater:
+		return "underwater"
+	case WB_Fuji_Temperature:
+		return "temprerature"
+	case WB_Fuji_Custom:
+		return "custom"
+	default:
+		return ""
+	}
+}
+
+func FujiSelfTimerAsString(st FujiSelfTimer) string {
+	switch st {
+	case ST_Fuji_1Sec:
+		return "1 second"
+	case ST_Fuji_2Sec:
+		return "2 seconds"
+	case ST_Fuji_5Sec:
+		return "5 seconds"
+	case ST_Fuji_10Sec:
+		return "10 seconds"
+	case ST_Fuji_Off:
+		return "off"
+	default:
+		return ""
+	}
 }
 
 // FujiInitCommandRequestPacket is the Fuji version of the PTP/IP InitCommandRequestPacket which deviates from the
