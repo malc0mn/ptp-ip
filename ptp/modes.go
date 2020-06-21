@@ -82,31 +82,29 @@ const (
 	WB_Flash WhiteBalance = 0x0007
 )
 
-func ModeAsString(m interface{}) string {
-	switch m.(type) {
-	case EffectMode:
-		return EffectModeAsString(m.(EffectMode))
-	case ExposureMeteringMode:
-		return ExposureMeteringModeAsString(m.(ExposureMeteringMode))
-	case ExposureProgramMode:
-		return ExposureProgramModeAsString(m.(ExposureProgramMode))
-	case FlashMode:
-		return FlashModeAsString(m.(FlashMode))
-	case FocusMeteringMode:
-		return FocusMeteringModeAsString(m.(FocusMeteringMode))
-	case FocusMode:
-		return FocusModeAsString(m.(FocusMode))
-	case FunctionalMode:
-		return FunctionalModeAsString(m.(FunctionalMode))
-	case SelfTestType:
-		return SelfTestTypeAsString(m.(SelfTestType))
-	case StillCaptureMode:
-		return StillCaptureModeAsString(m.(StillCaptureMode))
-	case WhiteBalance:
-		return WhiteBalanceAsString(m.(WhiteBalance))
+func DevicePropValueAsString(code DevicePropCode, v uint16) string {
+	switch code {
+	case DPC_EffectMode:
+		return EffectModeAsString(EffectMode(v))
+	case DPC_ExposureMeteringMode:
+		return ExposureMeteringModeAsString(ExposureMeteringMode(v))
+	case DPC_ExposureProgramMode:
+		return ExposureProgramModeAsString(ExposureProgramMode(v))
+	case DPC_FlashMode:
+		return FlashModeAsString(FlashMode(v))
+	case DPC_FocusMeteringMode:
+		return FocusMeteringModeAsString(FocusMeteringMode(v))
+	case DPC_FocusMode:
+		return FocusModeAsString(FocusMode(v))
+	case DPC_FunctionalMode:
+		return FunctionalModeAsString(FunctionalMode(v))
+	case DPC_StillCaptureMode:
+		return StillCaptureModeAsString(StillCaptureMode(v))
+	case DPC_WhiteBalance:
+		return WhiteBalanceAsString(WhiteBalance(v))
+	default:
+		return ""
 	}
-
-	return ""
 }
 
 func EffectModeAsString(fxm EffectMode) string {
