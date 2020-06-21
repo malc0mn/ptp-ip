@@ -22,7 +22,7 @@ const (
 	EPM_Manual           ExposureProgramMode = 0x0001
 	EPM_Automatic        ExposureProgramMode = 0x0002
 	EPM_AperturePriority ExposureProgramMode = 0x0003
-	EPM_SutterPriority   ExposureProgramMode = 0x0004
+	EPM_ShutterPriority  ExposureProgramMode = 0x0004
 	EPM_ProgramCreative  ExposureProgramMode = 0x0005
 	EPM_ProgramAction    ExposureProgramMode = 0x0006
 	EPM_Portrait         ExposureProgramMode = 0x0007
@@ -69,8 +69,8 @@ const (
 	// determines the white balance setting.
 	WB_OnePushAutomatic WhiteBalance = 0x0003
 	// The device attempts to set the white balance to a value that is appropriate for use in daylight conditions.
-	WB_Daylight   WhiteBalance = 0x0004
-	WB_Florescent WhiteBalance = 0x0005
+	WB_Daylight    WhiteBalance = 0x0004
+	WB_Fluorescent WhiteBalance = 0x0005
 	// The device attempts to set the white balance to a value that is appropriate for use in conditions with a tungsten
 	// light source.
 	WB_Tungsten WhiteBalance = 0x0006
