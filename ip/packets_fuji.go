@@ -268,7 +268,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.Info("Opening a session...")
-	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
+	if _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
 		return err
 	}
 
@@ -289,7 +289,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.Info("Initiating open capture...")
-	if _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
+	if _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
 		return err
 	}
 
@@ -330,27 +330,38 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 	return nil
 }
 
+func FujiGetEndOfDataPacket(c *Client, orp *FujiOperationResponsePacket) (*FujiOperationResponsePacket, error) {
+	if orp.DataPhase != uint16(DP_DataOut) {
+		return nil, nil
+	}
+
+	eodp := new(FujiOperationResponsePacket)
+	if _, err := c.WaitForPacketFromCmdDataConn(eodp); err != nil {
+		return nil, err
+	}
+
+	return eodp, nil
+}
+
 // FujiGetDevicePropertyValue gets the value for the given device property.
 // TODO: add third parameter to indicate how many parameters from the response object are expected?
 func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	var val uint32
 	var err error
+	var rp *FujiOperationResponsePacket
 
 	// First we get the actual value from the Responder.
-	if val, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
+	if val, rp, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
 		return 0, err
 	}
 
-	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
-	// handling.
-	// TODO: handle this in a centralised way.
-	p := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+	eodp, err := FujiGetEndOfDataPacket(c, rp)
+	if err != nil {
 		return 0, err
 	}
 
-	if !p.WasSuccessful() {
-		return 0, p.ReasonAsError()
+	if eodp != nil && !eodp.WasSuccessful() {
+		return 0, eodp.ReasonAsError()
 	}
 
 	return val, nil
@@ -375,21 +386,21 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) e
 // simply pass in PM_Fuji_NoParam!
 // Sometimes, the response will have an additional variable sized parameter. Use pSize to indicate you are expecting one
 // by passing the size in bytes of the expected data. Pass 0 when not expecting anything.
-func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, error) {
+func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, *FujiOperationResponsePacket, error) {
 	if err := FujiSendOperationRequest(c, code, param); err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	p := new(FujiOperationResponsePacket)
 	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	var parameter uint32
 	if pSize > 0 {
 		b := make([]byte, pSize)
 		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &b); err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 		if pSize < 4 {
 			pad := make([]byte, 4-pSize)
@@ -399,10 +410,10 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 	}
 
 	if !p.WasSuccessful() {
-		return 0, p.ReasonAsError()
+		return 0, nil, p.ReasonAsError()
 	}
 
-	return parameter, nil
+	return parameter, p, nil
 }
 
 // FujiOperationRequestRaw wraps FujiSendOperationRequest and returns the raw camera response data.
@@ -436,7 +447,7 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 // specification.
 func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 	c.Infof("Requesting %s device info...", c.ResponderFriendlyName())
-	numProps, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
+	numProps, rp, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
 	if err != nil {
 		return nil, err
 	}
@@ -531,16 +542,13 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 		list = append(list, dpd)
 	}
 
-	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
-	// handling.
-	// TODO: handle this in a centralised way.
-	p := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+	eodp, err := FujiGetEndOfDataPacket(c, rp)
+	if err != nil {
 		return nil, err
 	}
 
-	if !p.WasSuccessful() {
-		return nil, p.ReasonAsError()
+	if eodp != nil && !eodp.WasSuccessful() {
+		return nil, eodp.ReasonAsError()
 	}
 
 	// TODO: what to return??
@@ -549,7 +557,7 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 
 func FujiGetDeviceState(c *Client) (PacketIn, error) {
 	c.Infof("Requesting %s device state...", c.ResponderFriendlyName())
-	numProps, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
+	numProps, rp, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
 	if err != nil {
 		return nil, err
 	}
@@ -575,16 +583,13 @@ func FujiGetDeviceState(c *Client) (PacketIn, error) {
 		list = append(list, dpd)
 	}
 
-	// Next we also get sort of an 'end of data' packet which is of no real use to us save for additional error
-	// handling.
-	// TODO: handle this in a centralised way.
-	p := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+	eodp, err := FujiGetEndOfDataPacket(c, rp)
+	if err != nil {
 		return nil, err
 	}
 
-	if !p.WasSuccessful() {
-		return nil, p.ReasonAsError()
+	if eodp != nil && !eodp.WasSuccessful() {
+		return nil, eodp.ReasonAsError()
 	}
 
 	// TODO: what to return??
