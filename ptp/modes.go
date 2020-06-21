@@ -70,7 +70,7 @@ const (
 	WB_OnePushAutomatic WhiteBalance = 0x0003
 	// WB_Daylight indicates the device attempts to set the white balance to a value that is appropriate for use in
 	// daylight conditions.
-	WB_Daylight    WhiteBalance = 0x0004
+	WB_Daylight WhiteBalance = 0x0004
 	// WB_Fluorescent indicates the device attempts to set the white balance to a value that is appropriate for use in
 	// with fluorescent lighting conditions.
 	WB_Fluorescent WhiteBalance = 0x0005
@@ -222,7 +222,7 @@ func FunctionalModeAsString(fum FunctionalMode) string {
 	}
 }
 
-func SelfTestTypeAsString (stt SelfTestType) string {
+func SelfTestTypeAsString(stt SelfTestType) string {
 	switch stt {
 	case STT_Default:
 		return "default"

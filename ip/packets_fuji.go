@@ -423,7 +423,7 @@ func FujiImageSizeAsString(is FujiImageSize) string {
 	}
 }
 
-func FujiImageQualityAsString (iq FujiImageQuality) string {
+func FujiImageQualityAsString(iq FujiImageQuality) string {
 	switch iq {
 	case IQ_Fuji_Fine:
 		return "fine"

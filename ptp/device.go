@@ -350,7 +350,7 @@ type RangeForm struct {
 
 type EnumerationForm struct {
 	// NumberOfValues indicates the number of values of size DTS of the particular property supported by the device.
-	NumberOfValues  int
+	NumberOfValues int
 	// SupportedValues holds the list of supported values.
 	SupportedValues [][]byte
 }
