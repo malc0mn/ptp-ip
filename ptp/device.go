@@ -1,5 +1,7 @@
 package ptp
 
+import "encoding/binary"
+
 type DataTypeCode uint16
 
 // The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
@@ -322,6 +324,17 @@ func (dpd *DevicePropDesc) SizeOfValueInBytes() int {
 	default:
 		return 0
 	}
+}
+
+func (dpd *DevicePropDesc) CurrentValueAsInt64() int64 {
+	v := dpd.CurrentValue
+	if dpd.SizeOfValueInBytes() < 8 {
+		pad := make([]byte, 8-dpd.SizeOfValueInBytes())
+		v = append(v, pad...)
+	}
+
+	// Converting between uint64 and int64 does not change the sign bit, only the way it is interpreted.
+	return int64(binary.LittleEndian.Uint64(v))
 }
 
 type RangeForm struct {
