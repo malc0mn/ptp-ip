@@ -539,7 +539,7 @@ func FujiGetDeviceInfo(c *Client) (PacketIn, error) {
 			dpd.Form = form
 		}
 
-		list = append(list, dpd)
+		list[i] = dpd
 	}
 
 	eodp, err := FujiGetEndOfDataPacket(c, rp)
@@ -580,7 +580,7 @@ func FujiGetDeviceState(c *Client) (PacketIn, error) {
 		}
 		c.Debugf("Property value: %#x", dpd.CurrentValue)
 
-		list = append(list, dpd)
+		list[i] = dpd
 	}
 
 	eodp, err := FujiGetEndOfDataPacket(c, rp)
