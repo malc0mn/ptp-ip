@@ -59,12 +59,20 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 	switch f[0] {
 	case "info":
 		res, err := c.GetDeviceInfo()
-		// TODO: pretty print to client!
-		log.Printf("%v - %T, %s", res, err, err)
+		log.Printf("%v - %T", res, res)
+
+		if err != nil {
+			res = err.Error()
+		}
+		conn.Write([]byte(PrintDeviceInfo(c.ResponderVendor(), res)))
 	case "state":
 		res, err := c.GetDeviceState()
-		// TODO: pretty print to client!
 		log.Printf("%v - %T, %s", res, err, err)
+
+		if err != nil {
+			res = err.Error()
+		}
+		conn.Write([]byte(PrintDeviceInfo(c.ResponderVendor(), res)))
 	case "opreq":
 		var res string
 		d, err := c.OperationRequestRaw(f[1], f[2:])
