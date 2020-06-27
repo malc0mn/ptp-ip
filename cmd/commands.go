@@ -46,13 +46,13 @@ type info struct {
 
 func (i info) execute() string {
 	res, err := i.c.GetDeviceInfo()
-	log.Printf("%v - %T", res, res)
+log.Printf("%v - %T", res, res)
 
 	if err != nil {
 		res = err.Error()
 	}
 
-	return printDeviceInfo(i.c.ResponderVendor(), res)
+	return formatDeviceInfo(i.c.ResponderVendor(), res, i.f)
 }
 
 type state struct {
@@ -62,13 +62,13 @@ type state struct {
 
 func (s state) execute() string {
 	res, err := s.c.GetDeviceState()
-	log.Printf("%v - %T, %s", res, err, err)
+log.Printf("%v - %T, %s", res, err, err)
 
 	if err != nil {
 		res = err.Error()
 	}
 
-	return printDeviceInfo(s.c.ResponderVendor(), res)
+	return formatDeviceInfo(s.c.ResponderVendor(), res, s.f)
 }
 
 type opreq struct {
