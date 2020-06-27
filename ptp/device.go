@@ -447,3 +447,67 @@ type DeviceInfo struct {
 	// field for one device infers that this field is non-zero and unique among all devices of that model and version.
 	SerialNumber string
 }
+
+func FormFlagAsString(flag DevicePropFormFlag) string {
+	switch flag {
+	case DPF_FormFlag_None:
+		return "none"
+	case DPF_FormFlag_Range:
+		return "range"
+	case DPF_FormFlag_Enum:
+		return "enum"
+	default:
+		return ""
+	}
+}
+
+func DataTypeCodeAsString(code DataTypeCode) string {
+	switch code {
+	case DTC_UNDEF:
+		return "undefined"
+	case DTC_INT8:
+		return "int8"
+	case DTC_UINT8:
+		return "uint8"
+	case DTC_INT16:
+		return "int16"
+	case DTC_UINT16:
+		return "uint16"
+	case DTC_INT32:
+		return "int32"
+	case DTC_UINT32:
+		return "uint32"
+	case DTC_INT64:
+		return "int64"
+	case DTC_UINT64:
+		return "uint64"
+	case DTC_INT128:
+		return "int128"
+	case DTC_UINT128:
+		return "uint128"
+	case DTC_AINT8:
+		return "aint8"
+	case DTC_AUINT8:
+		return "auint8"
+	case DTC_AINT16:
+		return "aint16"
+	case DTC_AUINT16:
+		return "auint16"
+	case DTC_AINT32:
+		return "aint32"
+	case DTC_AUINT32:
+		return "auint32"
+	case DTC_AINT64:
+		return "aint64"
+	case DTC_AUINT64:
+		return "auint64"
+	case DTC_AINT128:
+		return "aint128"
+	case DTC_AUINT128:
+		return "auint128"
+	case DTC_STR:
+		return "string"
+	default:
+		return ""
+	}
+}
