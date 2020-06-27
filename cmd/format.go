@@ -6,7 +6,6 @@ import (
 	"github.com/malc0mn/ptp-ip/ip"
 	ptpjson "github.com/malc0mn/ptp-ip/json"
 	"github.com/malc0mn/ptp-ip/ptp"
-	"log"
 )
 
 func formatDeviceInfo(vendor ptp.VendorExtension, data interface{}, f []string) string {
@@ -19,17 +18,15 @@ func formatDeviceInfo(vendor ptp.VendorExtension, data interface{}, f []string) 
 }
 
 func fujiFormatDeviceInfo(list []*ptp.DevicePropDesc, f []string) string {
-log.Printf("%v - %T", list, list)
-	switch f[0] {
-	case "json":
+	if len(f) >= 1 && f[0] == "json" {
 		var opt string
 		if len(f) > 1 {
 			opt = f[1]
 		}
 		return fujiFormatJson(list, opt)
-	default:
-		return fujiFormatTable(list)
 	}
+
+	return fujiFormatTable(list)
 }
 
 func fujiFormatJson(list []*ptp.DevicePropDesc, opt string) string {
