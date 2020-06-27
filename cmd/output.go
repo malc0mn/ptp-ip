@@ -7,16 +7,16 @@ import (
 	"log"
 )
 
-func PrintDeviceInfo(vendor ptp.VendorExtension, data interface{}) string {
+func printDeviceInfo(vendor ptp.VendorExtension, data interface{}) string {
 	switch vendor {
 	case ptp.VE_FujiPhotoFilmCoLtd:
-		return FujiPrintDeviceInfo(data.([]*ptp.DevicePropDesc))
+		return fujiPrintDeviceInfo(data.([]*ptp.DevicePropDesc))
 	}
 
 	return ""
 }
 
-func FujiPrintDeviceInfo(list []*ptp.DevicePropDesc) string {
+func fujiPrintDeviceInfo(list []*ptp.DevicePropDesc) string {
 	var s string
 log.Printf("%v - %T", list, list)
 	for _, dpd := range list {

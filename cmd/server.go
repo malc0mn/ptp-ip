@@ -2,8 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/hex"
-	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"log"
 	"net"
@@ -56,35 +54,5 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 	log.Printf("%s message received: '%s'", lmp, msg)
 
 	f := strings.Fields(msg)
-	switch f[0] {
-	case "info":
-		res, err := c.GetDeviceInfo()
-		log.Printf("%v - %T", res, res)
-
-		if err != nil {
-			res = err.Error()
-		}
-		conn.Write([]byte(PrintDeviceInfo(c.ResponderVendor(), res)))
-	case "state":
-		res, err := c.GetDeviceState()
-		log.Printf("%v - %T, %s", res, err, err)
-
-		if err != nil {
-			res = err.Error()
-		}
-		conn.Write([]byte(PrintDeviceInfo(c.ResponderVendor(), res)))
-	case "opreq":
-		var res string
-		d, err := c.OperationRequestRaw(f[1], f[2:])
-		if err != nil {
-			res = fmt.Sprintf("%s error: %s", lmp, err)
-		} else {
-			log.Printf("%s received %d packets.", lmp, len(d))
-			for _, raw := range d {
-				res += fmt.Sprintf("\nReceived %d bytes. HEX dump:\n%s", len(raw), hex.Dump(raw))
-			}
-		}
-
-		conn.Write([]byte(res))
-	}
+	conn.Write([]byte(newCommandByName(f[0], c, f[1:]).execute()))
 }
