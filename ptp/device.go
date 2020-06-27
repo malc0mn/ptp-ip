@@ -1,7 +1,5 @@
 package ptp
 
-import "encoding/binary"
-
 type DataTypeCode uint16
 
 // The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
@@ -327,14 +325,7 @@ func (dpd *DevicePropDesc) SizeOfValueInBytes() int {
 }
 
 func (dpd *DevicePropDesc) CurrentValueAsInt64() int64 {
-	v := dpd.CurrentValue
-	if dpd.SizeOfValueInBytes() < 8 {
-		pad := make([]byte, 8-dpd.SizeOfValueInBytes())
-		v = append(v, pad...)
-	}
-
-	// Converting between uint64 and int64 does not change the sign bit, only the way it is interpreted.
-	return int64(binary.LittleEndian.Uint64(v))
+	return byteArrayToInt64(dpd.CurrentValue, dpd.SizeOfValueInBytes())
 }
 
 type RangeForm struct {
@@ -348,11 +339,33 @@ type RangeForm struct {
 	StepSize []byte
 }
 
+func (rf *RangeForm) MinimumValueAsInt64() int64 {
+	return byteArrayToInt64(rf.MinimumValue, 0)
+}
+
+func (rf *RangeForm) MaximumValueAsInt64() int64 {
+	return byteArrayToInt64(rf.MaximumValue, 0)
+}
+
+func (rf *RangeForm) StepSizeAsInt64() int64 {
+	return byteArrayToInt64(rf.StepSize, 0)
+}
+
 type EnumerationForm struct {
 	// NumberOfValues indicates the number of values of size DTS of the particular property supported by the device.
 	NumberOfValues int
 	// SupportedValues holds the list of supported values.
 	SupportedValues [][]byte
+}
+
+func (ef *EnumerationForm) SupportedValuesAsInt64Array() []int64 {
+	a := make([]int64, ef.NumberOfValues)
+
+	for i := 0; i < ef.NumberOfValues; i++ {
+		a[i] = byteArrayToInt64(ef.SupportedValues[i], 0)
+	}
+
+	return a
 }
 
 // DeviceInfo is used to hold the description information for a device. The Initiator can obtain this dataset from the
