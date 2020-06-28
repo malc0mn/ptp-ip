@@ -11,6 +11,8 @@ import (
 type FujiBatteryLevel uint16
 type FujiCommandDialMode uint16
 type FujiDeviceError uint16
+type FujiExposureBiasCompensation uint16
+type FujiExposureIndex uint32
 type FujiFilmSimulation uint16
 type FujiFocusLock uint16
 type FujiImageSize uint16
@@ -34,6 +36,53 @@ const (
 	CMD_Fuji_Aperture     FujiCommandDialMode = 0x0001
 	CMD_Fuji_ShutterSpeed FujiCommandDialMode = 0x0002
 	CMD_Fuji_None         FujiCommandDialMode = 0x0003
+
+	EBC_Fuji_Minus30 FujiExposureBiasCompensation = 0xF448
+	EBC_Fuji_Minus27 FujiExposureBiasCompensation = 0xF595
+	EBC_Fuji_Minus23 FujiExposureBiasCompensation = 0xF6E3
+	EBC_Fuji_Minus20 FujiExposureBiasCompensation = 0xF830
+	EBC_Fuji_Minus17 FujiExposureBiasCompensation = 0xF97D
+	EBC_Fuji_Minus13 FujiExposureBiasCompensation = 0xFACB
+	EBC_Fuji_Minus10 FujiExposureBiasCompensation = 0xFC18
+	EBC_Fuji_Minus07 FujiExposureBiasCompensation = 0xFD65
+	EBC_Fuji_Minus03 FujiExposureBiasCompensation = 0xFEB3
+	EBC_Fuji_Off     FujiExposureBiasCompensation = 0x0000
+	EBC_Fuji_Plus03  FujiExposureBiasCompensation = 0x014D
+	EBC_Fuji_Plus07  FujiExposureBiasCompensation = 0x029B
+	EBC_Fuji_Plus10  FujiExposureBiasCompensation = 0x03E8
+	EBC_Fuji_Plus13  FujiExposureBiasCompensation = 0x0535
+	EBC_Fuji_Plus17  FujiExposureBiasCompensation = 0x0683
+	EBC_Fuji_Plus20  FujiExposureBiasCompensation = 0x07D0
+	EBC_Fuji_Plus23  FujiExposureBiasCompensation = 0x091D
+	EBC_Fuji_Plus27  FujiExposureBiasCompensation = 0x0A6D
+	EBC_Fuji_Plus30  FujiExposureBiasCompensation = 0x0BB8
+
+	EDX_Fuji_200           FujiExposureIndex = 0x000000C8
+	EDX_Fuji_250           FujiExposureIndex = 0x000000FA
+	EDX_Fuji_320           FujiExposureIndex = 0x00000140
+	EDX_Fuji_400           FujiExposureIndex = 0x00000190
+	EDX_Fuji_500           FujiExposureIndex = 0x000001F4
+	EDX_Fuji_640           FujiExposureIndex = 0x00000280
+	EDX_Fuji_800           FujiExposureIndex = 0x00000320
+	EDX_Fuji_1000          FujiExposureIndex = 0x000003E8
+	EDX_Fuji_1250          FujiExposureIndex = 0x000004E2
+	EDX_Fuji_1600          FujiExposureIndex = 0x00000640
+	EDX_Fuji_2000          FujiExposureIndex = 0x000007D0
+	EDX_Fuji_2500          FujiExposureIndex = 0x000009C4
+	EDX_Fuji_3200          FujiExposureIndex = 0x00000C80
+	EDX_Fuji_4000          FujiExposureIndex = 0x00000FA0
+	EDX_Fuji_5000          FujiExposureIndex = 0x00001388
+	EDX_Fuji_6400          FujiExposureIndex = 0x00001900
+	EDX_Fuji_Extended100   FujiExposureIndex = 0x40000064
+	EDX_Fuji_Extended12800 FujiExposureIndex = 0x40003200
+	EDX_Fuji_Extended25600 FujiExposureIndex = 0x40006400
+	EDX_Fuji_Extended51200 FujiExposureIndex = 0x4000C800
+	EDX_Fuji_Standard400   FujiExposureIndex = 0x80000190
+	EDX_Fuji_Standard800   FujiExposureIndex = 0x80000320
+	EDX_Fuji_Standard1600  FujiExposureIndex = 0x80000640
+	EDX_Fuji_Standard3200  FujiExposureIndex = 0x80000C80
+	EDX_Fuji_Standard6400  FujiExposureIndex = 0x80001900
+	EDX_Fuji_Auto          FujiExposureIndex = 0xFFFFFFFF
 
 	FCM_Fuji_Single_Auto     ptp.FocusMode = 0x8001
 	FCM_Fuji_Continuous_Auto ptp.FocusMode = 0x8002
@@ -238,6 +287,10 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 		return FujiCommandDialModeAsString(FujiCommandDialMode(v))
 	case DPC_Fuji_DeviceError:
 		return FujiDeviceErrorAsString(FujiDeviceError(v))
+	case ptp.DPC_ExposureBiasCompensation:
+		return FujiExposureBiasCompensationAsString(FujiExposureBiasCompensation(v))
+	case DPC_Fuji_ExposureIndex:
+		return FujiExposureIndexAsString(FujiExposureIndex(v))
 	case DPC_Fuji_FilmSimulation:
 		return FujiFilmSimulationAsString(FujiFilmSimulation(v))
 	case ptp.DPC_FlashMode:
@@ -305,6 +358,84 @@ func FujiDeviceErrorAsString(de FujiDeviceError) string {
 	switch de {
 	case DE_Fuji_None:
 		return "none"
+	default:
+		return ""
+	}
+}
+
+func FujiExposureBiasCompensationAsString(ebv FujiExposureBiasCompensation) string {
+	switch ebv {
+	case EBC_Fuji_Minus30:
+		return "-3"
+	case EBC_Fuji_Minus27:
+		return "-2 2/3"
+	case EBC_Fuji_Minus23:
+		return "-2 1/3"
+	case EBC_Fuji_Minus20:
+		return "-2"
+	case EBC_Fuji_Minus17:
+		return "-1 2/3"
+	case EBC_Fuji_Minus13:
+		return "-1 1/3"
+	case EBC_Fuji_Minus10:
+		return "-1"
+	case EBC_Fuji_Minus07:
+		return "-2/3"
+	case EBC_Fuji_Minus03:
+		return "-1/3"
+	case EBC_Fuji_Off:
+		return "off"
+	case EBC_Fuji_Plus03:
+		return "+1/3"
+	case EBC_Fuji_Plus07:
+		return "+2/3"
+	case EBC_Fuji_Plus10:
+		return "+1"
+	case EBC_Fuji_Plus13:
+		return "+1 1/3"
+	case EBC_Fuji_Plus17:
+		return "+1 2/3"
+	case EBC_Fuji_Plus20:
+		return "+2"
+	case EBC_Fuji_Plus23:
+		return "+2 1/3"
+	case EBC_Fuji_Plus27:
+		return "+2 2/3"
+	case EBC_Fuji_Plus30:
+		return "+3"
+	default:
+		return ""
+	}
+}
+
+func FujiExposureIndexAsString(edx FujiExposureIndex) string {
+	// TODO: would it not be better to have the byte array here so we can drop the switch and simply convert using the
+	//  the first 4 MSB for the "group" and the rest as the value...?
+	switch edx {
+	case EDX_Fuji_200, EDX_Fuji_250, EDX_Fuji_320, EDX_Fuji_400, EDX_Fuji_500, EDX_Fuji_640, EDX_Fuji_800,
+		EDX_Fuji_1000, EDX_Fuji_1250, EDX_Fuji_1600, EDX_Fuji_2000, EDX_Fuji_2500, EDX_Fuji_3200, EDX_Fuji_4000,
+		EDX_Fuji_5000, EDX_Fuji_6400:
+		return string(edx)
+	case EDX_Fuji_Extended100:
+		return "L 100"
+	case EDX_Fuji_Extended12800:
+		return "H 12800"
+	case EDX_Fuji_Extended25600:
+		return "H 25600"
+	case EDX_Fuji_Extended51200:
+		return "H 51200"
+	case EDX_Fuji_Standard400:
+		return "S 400"
+	case EDX_Fuji_Standard800:
+		return "S 800"
+	case EDX_Fuji_Standard1600:
+		return "S 1600"
+	case EDX_Fuji_Standard3200:
+		return "S 3200"
+	case EDX_Fuji_Standard6400:
+		return "S 6400"
+	case EDX_Fuji_Auto:
+		return "auto"
 	default:
 		return ""
 	}
