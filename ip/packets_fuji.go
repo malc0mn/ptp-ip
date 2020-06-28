@@ -55,7 +55,7 @@ const (
 	EBC_Fuji_Plus17  FujiExposureBiasCompensation = 0x0683
 	EBC_Fuji_Plus20  FujiExposureBiasCompensation = 0x07D0
 	EBC_Fuji_Plus23  FujiExposureBiasCompensation = 0x091D
-	EBC_Fuji_Plus27  FujiExposureBiasCompensation = 0x0A6D
+	EBC_Fuji_Plus27  FujiExposureBiasCompensation = 0x0A6B
 	EBC_Fuji_Plus30  FujiExposureBiasCompensation = 0x0BB8
 
 	EDX_Fuji_200           FujiExposureIndex = 0x000000C8
