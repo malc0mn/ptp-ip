@@ -82,7 +82,7 @@ const (
 	WB_Flash WhiteBalance = 0x0007
 )
 
-func DevicePropValueAsString(code DevicePropCode, v uint16) string {
+func DevicePropValueAsString(code DevicePropCode, v int64) string {
 	switch code {
 	case DPC_EffectMode:
 		return EffectModeAsString(EffectMode(v))

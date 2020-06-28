@@ -226,7 +226,7 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 	}
 }
 
-func FujiDevicePropValueAsString(code ptp.DevicePropCode, v uint16) string {
+func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 	if msg := ptp.DevicePropValueAsString(code, v); msg != "" {
 		return msg
 	}

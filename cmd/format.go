@@ -58,7 +58,7 @@ func fujiFormatTable(list []*ptp.DevicePropDesc) string {
 	for _, dpd := range list {
 		s += fmt.Sprintf("%s: %s || %d - %v - %#x - %#x",
 			ip.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
-			ip.FujiDevicePropValueAsString(dpd.DevicePropertyCode, uint16(dpd.CurrentValueAsInt64())),
+			ip.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
 			uint16(dpd.CurrentValueAsInt64()),
 			dpd.CurrentValue,
 			dpd.CurrentValue,
