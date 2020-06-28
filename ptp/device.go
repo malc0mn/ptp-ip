@@ -333,6 +333,7 @@ func (dpd *DevicePropDesc) CurrentValueAsInt64() int64 {
 }
 
 type RangeForm struct {
+	DevicePropDesc *DevicePropDesc
 	// MinimumValue is the minimum value of the property supported by the device.
 	MinimumValue []byte
 	// MaximumValue is the maximum value of the property supported by the device.
@@ -356,6 +357,7 @@ func (rf *RangeForm) StepSizeAsInt64() int64 {
 }
 
 type EnumerationForm struct {
+	DevicePropDesc *DevicePropDesc
 	// NumberOfValues indicates the number of values of size DTS of the particular property supported by the device.
 	NumberOfValues int
 	// SupportedValues holds the list of supported values.
