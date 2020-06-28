@@ -11,6 +11,16 @@ type DevicePropDescJSON struct {
 	*ptp.DevicePropDesc
 }
 
+type ValueLabel struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
+type CodeLabel struct {
+	Code string  `json:"code"`
+	Label string `json:"label"`
+}
+
 func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
 	var form interface{}
 	switch dpdj.FormFlag {
@@ -25,23 +35,30 @@ func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(&struct {
-		DevicePropertyCode  string      `json:"devicePropertyCode"`
-		DevicePropertyName  string      `json:"deviceProprtyName"`
-		DataType            string      `json:"dataType"`
-		GetSet              bool        `json:"readOnly"`
-		FactoryDefaultValue string      `json:"factoryDefaultValue"`
-		CurrentValue        string      `json:"currentValue"`
-		FormFlag            string      `json:"formType"`
-		Form                interface{} `json:"form"`
+		DevicePropertyCode       CodeLabel
+		DataType                 string      `json:"dataType"`
+		GetSet                   bool        `json:"readOnly"`
+		FactoryDefaultValue      ValueLabel
+		CurrentValue             ValueLabel
+		FormFlag                 string      `json:"formType"`
+		Form                     interface{} `json:"form"`
 	}{
-		DevicePropertyCode:  ConvertToHexString(dpdj.DevicePropertyCode),
-		DevicePropertyName:  DevicePropertyName(dpdj.DevicePropertyCode),
-		DataType:            ptp.DataTypeCodeAsString(dpdj.DataType),
-		GetSet:              dpdj.GetSet != ptp.DPD_GetSet,
-		FactoryDefaultValue: ConvertToHexString(dpdj.FactoryDefaultValueAsInt64()),
-		CurrentValue:        ConvertToHexString(dpdj.CurrentValueAsInt64()),
-		FormFlag:            ptp.FormFlagAsString(dpdj.FormFlag),
-		Form:                form,
+		DevicePropertyCode: CodeLabel{
+			Code:  ConvertToHexString(dpdj.DevicePropertyCode),
+			Label: DevicePropertyName(dpdj.DevicePropertyCode),
+		},
+		DataType:                 ptp.DataTypeCodeAsString(dpdj.DataType),
+		GetSet:                   dpdj.GetSet != ptp.DPD_GetSet,
+		FactoryDefaultValue: ValueLabel{
+			Value: ConvertToHexString(dpdj.FactoryDefaultValueAsInt64()),
+			Label: ip.FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.FactoryDefaultValueAsInt64()),
+		},
+		CurrentValue: ValueLabel{
+			Value: ConvertToHexString(dpdj.CurrentValueAsInt64()),
+			Label: ip.FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.CurrentValueAsInt64()),
+		},
+		FormFlag:                 ptp.FormFlagAsString(dpdj.FormFlag),
+		Form:                     form,
 	})
 }
 
@@ -67,13 +84,16 @@ type EnumerationFormJSON struct {
 
 func (ef *EnumerationFormJSON) MarshalJSON() ([]byte, error) {
 	values := ef.SupportedValuesAsInt64Array()
-	hex := make([]string, len(values))
+	hex := make([]ValueLabel, len(values))
 	for i := 0; i < len(values); i++ {
-		hex[i] = ConvertToHexString(values[i])
+		hex[i] = ValueLabel{
+			Value: ConvertToHexString(values[i]),
+			Label: ip.FujiDevicePropValueAsString(ef.DevicePropDesc.DevicePropertyCode, values[i]),
+		}
 	}
 
 	return json.Marshal(&struct {
-		SupportedValues []string `json:"values"`
+		SupportedValues []ValueLabel `json:"values"`
 	}{
 		SupportedValues: hex,
 	})
