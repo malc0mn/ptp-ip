@@ -38,8 +38,8 @@ func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
 		DevicePropertyName:  DevicePropertyName(dpdj.DevicePropertyCode),
 		DataType:            ptp.DataTypeCodeAsString(dpdj.DataType),
 		GetSet:              dpdj.GetSet != ptp.DPD_GetSet,
-		FactoryDefaultValue: ConvertToHexString(dpdj.FactoryDefaultValue),
-		CurrentValue:        ConvertToHexString(dpdj.CurrentValue),
+		FactoryDefaultValue: ConvertToHexString(dpdj.FactoryDefaultValueAsInt64()),
+		CurrentValue:        ConvertToHexString(dpdj.CurrentValueAsInt64()),
 		FormFlag:            ptp.FormFlagAsString(dpdj.FormFlag),
 		Form:                form,
 	})
