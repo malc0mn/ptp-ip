@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"strconv"
 )
 
 type FujiBatteryLevel uint16
@@ -415,7 +416,7 @@ func FujiExposureIndexAsString(edx FujiExposureIndex) string {
 	case EDX_Fuji_200, EDX_Fuji_250, EDX_Fuji_320, EDX_Fuji_400, EDX_Fuji_500, EDX_Fuji_640, EDX_Fuji_800,
 		EDX_Fuji_1000, EDX_Fuji_1250, EDX_Fuji_1600, EDX_Fuji_2000, EDX_Fuji_2500, EDX_Fuji_3200, EDX_Fuji_4000,
 		EDX_Fuji_5000, EDX_Fuji_6400:
-		return string(edx)
+		return strconv.FormatInt(int64(edx), 10)
 	case EDX_Fuji_Extended100:
 		return "L 100"
 	case EDX_Fuji_Extended12800:
