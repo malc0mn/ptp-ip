@@ -324,6 +324,10 @@ func (dpd *DevicePropDesc) SizeOfValueInBytes() int {
 	}
 }
 
+func (dpd *DevicePropDesc) FactoryDefaultValueAsInt64() int64 {
+	return byteArrayToInt64(dpd.FactoryDefaultValue, dpd.SizeOfValueInBytes())
+}
+
 func (dpd *DevicePropDesc) CurrentValueAsInt64() int64 {
 	return byteArrayToInt64(dpd.CurrentValue, dpd.SizeOfValueInBytes())
 }
