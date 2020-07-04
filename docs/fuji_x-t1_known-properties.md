@@ -280,6 +280,18 @@ Received 16 bytes. HEX dump:
 Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  22 d4 00 00              |....... "...|
 ```
+Description
+```text
+opreq 0x1014 0xd222
+
+Received 38 bytes. HEX dump:
+00000000  26 00 00 00 02 00 14 10  09 00 00 00 22 d2 06 00  |&..........."...|
+00000010  01 00 00 00 00 00 00 00  00 01 00 00 00 00 30 75  |..............0u|
+00000020  00 00 00 00 00 00                                 |......|
+
+Received 12 bytes. HEX dump:
+00000000  0c 00 00 00 03 00 01 20  09 00 00 00              |....... ....|
+```
 
 #### Property Code 0xd226 - [still unknown]
 ```text
