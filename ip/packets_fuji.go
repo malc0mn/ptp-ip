@@ -368,6 +368,7 @@ func FujiDeviceErrorAsString(de FujiDeviceError) string {
 }
 
 func FujiExposureBiasCompensationAsString(ebv FujiExposureBiasCompensation) string {
+	// TODO: get rid of the constants and parse them properly! Divide by 1000 to get the proper value.
 	switch ebv {
 	case EBC_Fuji_Minus30:
 		return "-3"
