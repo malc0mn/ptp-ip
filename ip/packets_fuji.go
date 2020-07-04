@@ -160,6 +160,9 @@ const (
 	DPC_Fuji_CommandDialMode ptp.DevicePropCode = 0xD028
 	DPC_Fuji_ExposureIndex   ptp.DevicePropCode = 0xD02A
 	DPC_Fuji_MovieISO        ptp.DevicePropCode = 0xD02B
+	// DPC_Fuji_ImageSize is the Fuji equivalent of ptp.DPC_ImageSize. However ptp.DPC_ImageSize is directly supported
+	// as well.
+	DPC_Fuji_ImageSize       ptp.DevicePropCode = 0xD174
 	DPC_Fuji_FocusPoint      ptp.DevicePropCode = 0xD17C
 	DPC_Fuji_FocusLock       ptp.DevicePropCode = 0xD209
 	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
@@ -168,7 +171,7 @@ const (
 	DPC_Fuji_ImageSpaceSD       ptp.DevicePropCode = 0xD229
 	DPC_Fuji_MovieRemainingTime ptp.DevicePropCode = 0xD22A
 	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
-	DPC_Fuji_ImageSize          ptp.DevicePropCode = 0xD241
+	DPC_Fuji_ImageAspectRatio   ptp.DevicePropCode = 0xD241
 	DPC_Fuji_BatteryLevel       ptp.DevicePropCode = 0xD242
 	// DPC_Fuji_InitSequence indicates the initialisation sequence being used. It MUST be set by the Initiator during
 	// the initialisation sequence and depending on it's value, will require a different init sequence to be used.
@@ -263,7 +266,7 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 		return "movie remaining time"
 	case DPC_Fuji_ShutterSpeed:
 		return "shutter speed"
-	case DPC_Fuji_ImageSize:
+	case DPC_Fuji_ImageAspectRatio:
 		return "image size"
 	case DPC_Fuji_BatteryLevel:
 		return "battery level"
@@ -300,8 +303,8 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 		return FujiFocusLockAsString(FujiFocusLock(v))
 	case ptp.DPC_FocusMode:
 		return FujiFocusModeAsString(ptp.FocusMode(v))
-	case DPC_Fuji_ImageSize:
-		return FujiImageSizeAsString(FujiImageSize(v))
+	case DPC_Fuji_ImageAspectRatio:
+		return FujiImageAspectRatioAsString(FujiImageSize(v))
 	case DPC_Fuji_ImageQuality:
 		return FujiImageQualityAsString(FujiImageQuality(v))
 	case ptp.DPC_WhiteBalance:
@@ -530,7 +533,7 @@ func FujiFocusModeAsString(fm ptp.FocusMode) string {
 	}
 }
 
-func FujiImageSizeAsString(is FujiImageSize) string {
+func FujiImageAspectRatioAsString(is FujiImageSize) string {
 	switch is {
 	case IS_Fuji_Small_3x2:
 		return "S 3:2"
