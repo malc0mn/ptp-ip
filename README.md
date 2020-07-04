@@ -180,8 +180,7 @@ standard!
 As you can see the `opreq` command requires at least one parameter: the
 operation code to perform which must be in hexadecimal notation.
 
-It also
-supports an additional parameter, again in hex, to pass along with the
+It also supports an additional parameter, again in hex, to pass along with the
 operation request. An example of executing `GetDevicePropValue` from the PTP
 specification would be:
 ```text
