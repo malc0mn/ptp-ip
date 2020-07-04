@@ -71,6 +71,10 @@ function parseOptions(): void
 
 function printUsage(): void
 {
+    global $argv;
+
+    printf('Usage for %s:%s', basename($argv[0]), PHP_EOL);
+
     $opts = explode('::', OPTIONS);
     foreach ($opts as $opt) {
         if (empty($opt)) {
@@ -80,10 +84,10 @@ function printUsage(): void
         $message = '';
         switch ($opt) {
             case 'h':
-                $message = sprintf('The host to connect to; defaults to %s.', DEFAULT_HOST);
+                $message = sprintf('The host to connect to (defaults to %s).', DEFAULT_HOST);
                 break;
             case 'p':
-                $message = sprintf('The port to connect to; defaults to %d.', DEFAULT_PORT);
+                $message = sprintf('The port to connect to (defaults to %d).', DEFAULT_PORT);
                 break;
             case 's':
                 $message = sprintf('The decimal value to start eumeration from (defaults to %d).', MIN_VALUE);
@@ -92,7 +96,7 @@ function printUsage(): void
                 $message = sprintf('The decimal value to enumerate to (defaults to %d).', MAX_VALUE);
                 break;
         }
-        echo "-${opt}\n\t$message" . PHP_EOL;
+        printHelpLine($opt, $message);
     }
 
     foreach (LONG_OPTS as $opt) {
@@ -105,8 +109,14 @@ function printUsage(): void
                 $message = 'Print this message.';
                 break;
         }
-        echo "--${opt}\n\t$message" . PHP_EOL;
+        printHelpLine($opt, $message, true);
     }
+}
+
+function printHelpLine(string $option, string $message, bool $long = false): void
+{
+    $prefix = $long ? '--' : '-';
+    printf("%s%s%s\t%s%s", $prefix, $option, PHP_EOL, $message, PHP_EOL);
 }
 
 /**
