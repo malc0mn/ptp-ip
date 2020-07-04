@@ -32,7 +32,7 @@ const (
 	// height = 600, ImageSize string = "800x600" with a null-terminator on the end. This property may be expressed as
 	// an enumerated list of allowed combinations, or if the individual width and height are linearly settable and
 	// orthogonal to each other, they may be expressed as a range. For example, for a device that could set width from 1
-	// to 640 and height from 1 to 480, the minimum in the range field would be "1x1" (nul lterminated), for a one-pixel
+	// to 640 and height from 1 to 480, the minimum in the range field would be "1x1" (null terminated), for a one-pixel
 	// image, and the maximum would be "640x480" (null terminated), for the largest possible image. In this example, the
 	// step would be "1x1" (null-terminated), indicating that the width and height are each incrementable to the
 	// integer.
