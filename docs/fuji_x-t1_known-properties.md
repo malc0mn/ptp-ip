@@ -1,5 +1,7 @@
 ## Fujifilm X-T1 Device Proprty Codes list
+
 ### Supported from the PTP/IP standard
+
 #### Property Code 0x5001 - Battery Level
 ```text
 opreq 0x1015 0x5001
@@ -200,8 +202,10 @@ Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  70 d3 00 00              |....... p...|
 ```
 
-#### Property Code 0xd174 - Looks like the Fuji version of the PTP/IP Image Size
-property.
+#### Property Code 0xd174 - [still unknown]
+
+Looks like the Fuji version of the PTP/IP Image Size property.
+
 ```text
 opreq 0x1015 0xd174
 
@@ -315,8 +319,16 @@ Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  27 d4 00 00              |....... '...|
 ```
 
-#### Property Code 0xd228 - Clearly shows device model and firmware version but
-what else...?
+#### Property Code 0xd228 - [still unknown]
+
+Clearly shows device model and firmware version but what else...?
+
+'8f 06 00 00' could be movie remaining time.
+'02 07 02 03' is the current focus point setting.
+'0a 00' looks like image aspect ratio.
+'ff ff ff ff' will be shutter speed or exposure index.
+'02 00' one of those is likely to be 'flash mode'.
+
 ```text
 opreq 0x1015 0xd228
 
@@ -397,8 +409,10 @@ Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  01 d6 00 00              |....... ....|
 ```
 
-#### Property Code 0xd500 - Some form of GEO coordinates? But 'K' and 'M' are
-odd though...
+#### Property Code 0xd500 - [still unknown]
+
+Some form of GEO coordinates? But 'K' and 'M' are odd though...
+
 ```text
 opreq 0x1015 0xd500
 
@@ -437,8 +451,7 @@ Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  00 e1 00 00              |....... ....|
 ```
 
-#### Property Code 0xdf01 - The init sequence to use during connection
-establishment.
+#### Property Code 0xdf01 - The init sequence to use during connection establishment.
 ```text
 opreq 0x1015 0xdf01
 
