@@ -156,7 +156,7 @@ const (
 
 	DPC_Fuji_FilmSimulation  ptp.DevicePropCode = 0xD001
 	DPC_Fuji_ImageQuality    ptp.DevicePropCode = 0xD018
-	DPC_Fuji_Recmode         ptp.DevicePropCode = 0xD019
+	DPC_Fuji_RecMode         ptp.DevicePropCode = 0xD019
 	DPC_Fuji_CommandDialMode ptp.DevicePropCode = 0xD028
 	DPC_Fuji_ExposureIndex   ptp.DevicePropCode = 0xD02A
 	DPC_Fuji_MovieISO        ptp.DevicePropCode = 0xD02B
@@ -243,7 +243,7 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 		return "film simulation"
 	case DPC_Fuji_ImageQuality:
 		return "image quality"
-	case DPC_Fuji_Recmode:
+	case DPC_Fuji_RecMode:
 		return "rec mode"
 	case DPC_Fuji_CommandDialMode:
 		return "command dial mode"
