@@ -148,7 +148,7 @@ func ExposureBiasCompensationAsString(ebv int16) string {
 		if f < 0 {
 			sign = "-"
 		}
-		return fmt.Sprintf("%s%s", sign, frac)
+		return sign + frac
 	}
 
 	return fmt.Sprintf("%d %s", int(i), frac)
