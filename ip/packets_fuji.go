@@ -7,13 +7,13 @@ import (
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"math"
 	"strconv"
 )
 
 type FujiBatteryLevel uint16
 type FujiCommandDialMode uint16
 type FujiDeviceError uint16
-type FujiExposureBiasCompensation uint16
 type FujiExposureIndex uint32
 type FujiFilmSimulation uint16
 type FujiFocusLock uint16
@@ -38,26 +38,6 @@ const (
 	CMD_Fuji_Aperture     FujiCommandDialMode = 0x0001
 	CMD_Fuji_ShutterSpeed FujiCommandDialMode = 0x0002
 	CMD_Fuji_None         FujiCommandDialMode = 0x0003
-
-	EBC_Fuji_Minus30 FujiExposureBiasCompensation = 0xF448
-	EBC_Fuji_Minus27 FujiExposureBiasCompensation = 0xF595
-	EBC_Fuji_Minus23 FujiExposureBiasCompensation = 0xF6E3
-	EBC_Fuji_Minus20 FujiExposureBiasCompensation = 0xF830
-	EBC_Fuji_Minus17 FujiExposureBiasCompensation = 0xF97D
-	EBC_Fuji_Minus13 FujiExposureBiasCompensation = 0xFACB
-	EBC_Fuji_Minus10 FujiExposureBiasCompensation = 0xFC18
-	EBC_Fuji_Minus07 FujiExposureBiasCompensation = 0xFD65
-	EBC_Fuji_Minus03 FujiExposureBiasCompensation = 0xFEB3
-	EBC_Fuji_Off     FujiExposureBiasCompensation = 0x0000
-	EBC_Fuji_Plus03  FujiExposureBiasCompensation = 0x014D
-	EBC_Fuji_Plus07  FujiExposureBiasCompensation = 0x029B
-	EBC_Fuji_Plus10  FujiExposureBiasCompensation = 0x03E8
-	EBC_Fuji_Plus13  FujiExposureBiasCompensation = 0x0535
-	EBC_Fuji_Plus17  FujiExposureBiasCompensation = 0x0683
-	EBC_Fuji_Plus20  FujiExposureBiasCompensation = 0x07D0
-	EBC_Fuji_Plus23  FujiExposureBiasCompensation = 0x091D
-	EBC_Fuji_Plus27  FujiExposureBiasCompensation = 0x0A6B
-	EBC_Fuji_Plus30  FujiExposureBiasCompensation = 0x0BB8
 
 	EDX_Fuji_Extended      uint16 = 0x4000
 	EDX_Fuji_Standard      uint16 = 0x8000
@@ -270,7 +250,7 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 	case DPC_Fuji_DeviceError:
 		return FujiDeviceErrorAsString(FujiDeviceError(v))
 	case ptp.DPC_ExposureBiasCompensation:
-		return FujiExposureBiasCompensationAsString(FujiExposureBiasCompensation(v))
+		return FujiExposureBiasCompensationAsString(int16(v))
 	case DPC_Fuji_ExposureIndex:
 		return FujiExposureIndexAsString(FujiExposureIndex(v))
 	case DPC_Fuji_FilmSimulation:
@@ -345,50 +325,28 @@ func FujiDeviceErrorAsString(de FujiDeviceError) string {
 	}
 }
 
-func FujiExposureBiasCompensationAsString(ebv FujiExposureBiasCompensation) string {
-	// TODO: get rid of the constants and parse them properly! Divide by 1000 to get the proper value.
-	switch ebv {
-	case EBC_Fuji_Minus30:
-		return "-3"
-	case EBC_Fuji_Minus27:
-		return "-2 2/3"
-	case EBC_Fuji_Minus23:
-		return "-2 1/3"
-	case EBC_Fuji_Minus20:
-		return "-2"
-	case EBC_Fuji_Minus17:
-		return "-1 2/3"
-	case EBC_Fuji_Minus13:
-		return "-1 1/3"
-	case EBC_Fuji_Minus10:
-		return "-1"
-	case EBC_Fuji_Minus07:
-		return "-2/3"
-	case EBC_Fuji_Minus03:
-		return "-1/3"
-	case EBC_Fuji_Off:
-		return "off"
-	case EBC_Fuji_Plus03:
-		return "+1/3"
-	case EBC_Fuji_Plus07:
-		return "+2/3"
-	case EBC_Fuji_Plus10:
-		return "+1"
-	case EBC_Fuji_Plus13:
-		return "+1 1/3"
-	case EBC_Fuji_Plus17:
-		return "+1 2/3"
-	case EBC_Fuji_Plus20:
-		return "+2"
-	case EBC_Fuji_Plus23:
-		return "+2 1/3"
-	case EBC_Fuji_Plus27:
-		return "+2 2/3"
-	case EBC_Fuji_Plus30:
-		return "+3"
-	default:
-		return ""
+func FujiExposureBiasCompensationAsString(ebv int16) string {
+	i, f := math.Modf(float64(ebv) / float64(1000))
+
+	if f == 0 {
+		return strconv.FormatInt(int64(i), 10)
 	}
+
+	// Tried to use big.Rat to do the conversion, but it's trying to be "too precise" :/
+	frac := "1/3"
+	if math.Abs(f) > 0.4 {
+		frac = "2/3"
+	}
+
+	if i == 0 {
+		sign := ""
+		if f < 0 {
+			sign = "-"
+		}
+		return fmt.Sprintf("%s%s", sign, frac)
+	}
+
+	return fmt.Sprintf("%d %s", int(i), frac)
 }
 
 func FujiExposureIndexAsString(edx FujiExposureIndex) string {
