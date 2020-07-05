@@ -1,5 +1,11 @@
 package ptp
 
+import (
+	"fmt"
+	"math"
+	"strconv"
+)
+
 type EffectMode uint16
 type ExposureMeteringMode uint16
 type ExposureProgramMode uint16
@@ -86,6 +92,8 @@ func DevicePropValueAsString(code DevicePropCode, v int64) string {
 	switch code {
 	case DPC_EffectMode:
 		return EffectModeAsString(EffectMode(v))
+	case DPC_ExposureBiasCompensation:
+		return ExposureBiasCompensationAsString(int16(v))
 	case DPC_ExposureMeteringMode:
 		return ExposureMeteringModeAsString(ExposureMeteringMode(v))
 	case DPC_ExposureProgramMode:
@@ -120,6 +128,30 @@ func EffectModeAsString(fxm EffectMode) string {
 	default:
 		return ""
 	}
+}
+
+func ExposureBiasCompensationAsString(ebv int16) string {
+	i, f := math.Modf(float64(ebv) / float64(1000))
+
+	if f == 0 {
+		return strconv.FormatInt(int64(i), 10)
+	}
+
+	// Tried to use big.Rat to do the conversion, but it's trying to be "too precise" :/
+	frac := "1/3"
+	if math.Abs(f) > 0.4 {
+		frac = "2/3"
+	}
+
+	if i == 0 {
+		sign := ""
+		if f < 0 {
+			sign = "-"
+		}
+		return fmt.Sprintf("%s%s", sign, frac)
+	}
+
+	return fmt.Sprintf("%d %s", int(i), frac)
 }
 
 func ExposureMeteringModeAsString(emm ExposureMeteringMode) string {

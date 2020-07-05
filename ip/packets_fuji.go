@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
-	"math"
 	"strconv"
 )
 
@@ -249,8 +248,6 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 		return FujiCommandDialModeAsString(FujiCommandDialMode(v))
 	case DPC_Fuji_DeviceError:
 		return FujiDeviceErrorAsString(FujiDeviceError(v))
-	case ptp.DPC_ExposureBiasCompensation:
-		return FujiExposureBiasCompensationAsString(int16(v))
 	case DPC_Fuji_ExposureIndex:
 		return FujiExposureIndexAsString(FujiExposureIndex(v))
 	case DPC_Fuji_FilmSimulation:
@@ -323,30 +320,6 @@ func FujiDeviceErrorAsString(de FujiDeviceError) string {
 	default:
 		return ""
 	}
-}
-
-func FujiExposureBiasCompensationAsString(ebv int16) string {
-	i, f := math.Modf(float64(ebv) / float64(1000))
-
-	if f == 0 {
-		return strconv.FormatInt(int64(i), 10)
-	}
-
-	// Tried to use big.Rat to do the conversion, but it's trying to be "too precise" :/
-	frac := "1/3"
-	if math.Abs(f) > 0.4 {
-		frac = "2/3"
-	}
-
-	if i == 0 {
-		sign := ""
-		if f < 0 {
-			sign = "-"
-		}
-		return fmt.Sprintf("%s%s", sign, frac)
-	}
-
-	return fmt.Sprintf("%d %s", int(i), frac)
 }
 
 func FujiExposureIndexAsString(edx FujiExposureIndex) string {
