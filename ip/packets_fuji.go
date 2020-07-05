@@ -3,6 +3,7 @@ package ip
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
@@ -58,31 +59,8 @@ const (
 	EBC_Fuji_Plus27  FujiExposureBiasCompensation = 0x0A6B
 	EBC_Fuji_Plus30  FujiExposureBiasCompensation = 0x0BB8
 
-	EDX_Fuji_200           FujiExposureIndex = 0x000000C8
-	EDX_Fuji_250           FujiExposureIndex = 0x000000FA
-	EDX_Fuji_320           FujiExposureIndex = 0x00000140
-	EDX_Fuji_400           FujiExposureIndex = 0x00000190
-	EDX_Fuji_500           FujiExposureIndex = 0x000001F4
-	EDX_Fuji_640           FujiExposureIndex = 0x00000280
-	EDX_Fuji_800           FujiExposureIndex = 0x00000320
-	EDX_Fuji_1000          FujiExposureIndex = 0x000003E8
-	EDX_Fuji_1250          FujiExposureIndex = 0x000004E2
-	EDX_Fuji_1600          FujiExposureIndex = 0x00000640
-	EDX_Fuji_2000          FujiExposureIndex = 0x000007D0
-	EDX_Fuji_2500          FujiExposureIndex = 0x000009C4
-	EDX_Fuji_3200          FujiExposureIndex = 0x00000C80
-	EDX_Fuji_4000          FujiExposureIndex = 0x00000FA0
-	EDX_Fuji_5000          FujiExposureIndex = 0x00001388
-	EDX_Fuji_6400          FujiExposureIndex = 0x00001900
-	EDX_Fuji_Extended100   FujiExposureIndex = 0x40000064
-	EDX_Fuji_Extended12800 FujiExposureIndex = 0x40003200
-	EDX_Fuji_Extended25600 FujiExposureIndex = 0x40006400
-	EDX_Fuji_Extended51200 FujiExposureIndex = 0x4000C800
-	EDX_Fuji_Standard400   FujiExposureIndex = 0x80000190
-	EDX_Fuji_Standard800   FujiExposureIndex = 0x80000320
-	EDX_Fuji_Standard1600  FujiExposureIndex = 0x80000640
-	EDX_Fuji_Standard3200  FujiExposureIndex = 0x80000C80
-	EDX_Fuji_Standard6400  FujiExposureIndex = 0x80001900
+	EDX_Fuji_Extended      uint16 = 0x4000
+	EDX_Fuji_Standard      uint16 = 0x8000
 	EDX_Fuji_Auto          FujiExposureIndex = 0xFFFFFFFF
 
 	FCM_Fuji_Single_Auto     ptp.FocusMode = 0x8001
@@ -414,36 +392,28 @@ func FujiExposureBiasCompensationAsString(ebv FujiExposureBiasCompensation) stri
 }
 
 func FujiExposureIndexAsString(edx FujiExposureIndex) string {
-	// TODO: would it not be better to have the byte array here so we can drop the switch and simply convert using the
-	//  the first 4 MSB for the "group" and the rest as the value...?
-	switch edx {
-	case EDX_Fuji_200, EDX_Fuji_250, EDX_Fuji_320, EDX_Fuji_400, EDX_Fuji_500, EDX_Fuji_640, EDX_Fuji_800,
-		EDX_Fuji_1000, EDX_Fuji_1250, EDX_Fuji_1600, EDX_Fuji_2000, EDX_Fuji_2500, EDX_Fuji_3200, EDX_Fuji_4000,
-		EDX_Fuji_5000, EDX_Fuji_6400:
-		return strconv.FormatInt(int64(edx), 10)
-	case EDX_Fuji_Extended100:
-		return "L 100"
-	case EDX_Fuji_Extended12800:
-		return "H 12800"
-	case EDX_Fuji_Extended25600:
-		return "H 25600"
-	case EDX_Fuji_Extended51200:
-		return "H 51200"
-	case EDX_Fuji_Standard400:
-		return "S 400"
-	case EDX_Fuji_Standard800:
-		return "S 800"
-	case EDX_Fuji_Standard1600:
-		return "S 1600"
-	case EDX_Fuji_Standard3200:
-		return "S 3200"
-	case EDX_Fuji_Standard6400:
-		return "S 6400"
-	case EDX_Fuji_Auto:
+	if edx == EDX_Fuji_Auto {
 		return "auto"
-	default:
-		return ""
 	}
+
+	prefix := ""
+	val := int64(edx & 0x0000FFFF)
+
+	switch uint16(edx >> 16) {
+	case EDX_Fuji_Extended:
+		prefix = "H"
+		if val < 200 {
+			prefix = "L"
+		}
+	case EDX_Fuji_Standard:
+		prefix = "S"
+	}
+
+	if prefix == "" {
+		return strconv.FormatInt(val, 10)
+	}
+
+	return fmt.Sprintf("%s %d", prefix, val)
 }
 
 func FujiFilmSimulationAsString(fs FujiFilmSimulation) string {
