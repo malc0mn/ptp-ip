@@ -22,7 +22,7 @@ func commandByName(n string) command {
 	}
 }
 
-func unknown(c *ip.Client, f []string) string {
+func unknown(_ *ip.Client, _ []string) string {
 	return "unknown command"
 }
 
