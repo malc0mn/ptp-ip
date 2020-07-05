@@ -119,9 +119,9 @@ const (
 	DPC_Fuji_MovieISO        ptp.DevicePropCode = 0xD02B
 	// DPC_Fuji_ImageSize is the Fuji equivalent of ptp.DPC_ImageSize. However ptp.DPC_ImageSize is directly supported
 	// as well.
-	DPC_Fuji_ImageSize       ptp.DevicePropCode = 0xD174
-	DPC_Fuji_FocusPoint      ptp.DevicePropCode = 0xD17C
-	DPC_Fuji_FocusLock       ptp.DevicePropCode = 0xD209
+	DPC_Fuji_ImageSize         ptp.DevicePropCode = 0xD174
+	DPC_Fuji_FocusMeteringMode ptp.DevicePropCode = 0xD17C
+	DPC_Fuji_FocusLock         ptp.DevicePropCode = 0xD209
 	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
 	DPC_Fuji_CurrentState       ptp.DevicePropCode = 0xD212
 	DPC_Fuji_DeviceError        ptp.DevicePropCode = 0xD21B
@@ -211,7 +211,7 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 		return "ISO"
 	case DPC_Fuji_MovieISO:
 		return "movie ISO"
-	case DPC_Fuji_FocusPoint:
+	case DPC_Fuji_FocusMeteringMode:
 		return "focus point"
 	case DPC_Fuji_FocusLock:
 		return "focus lock"
@@ -256,6 +256,8 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 		return FujiFlashModeAsString(ptp.FlashMode(v))
 	case DPC_Fuji_FocusLock:
 		return FujiFocusLockAsString(FujiFocusLock(v))
+	case DPC_Fuji_FocusMeteringMode:
+		return FujiFocusMeteringModeAsString(uint32(v))
 	case ptp.DPC_FocusMode:
 		return FujiFocusModeAsString(ptp.FocusMode(v))
 	case DPC_Fuji_ImageAspectRatio:
@@ -422,6 +424,15 @@ func FujiFocusLockAsString(fl FujiFocusLock) string {
 	default:
 		return ""
 	}
+}
+
+func FujiFocusMeteringModeAsString(fmm uint32) string {
+	// TODO: what are the 4 msb?
+	mask := uint32(0x000000FF)
+	x := fmm >> 8 & mask
+	y := fmm & mask
+
+	return fmt.Sprintf("%dx%d", x, y)
 }
 
 func FujiFocusModeAsString(fm ptp.FocusMode) string {

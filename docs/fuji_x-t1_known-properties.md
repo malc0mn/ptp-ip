@@ -492,7 +492,7 @@ Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  25 00 00 00              |....... %...|
 ```
 
-#### Property Code 0xd17c - Focus Point
+#### Property Code 0xd17c - Focus Metering Mode
 ```text
 opreq 0x1015 0xd17c
 
