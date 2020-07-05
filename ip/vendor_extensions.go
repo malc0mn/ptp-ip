@@ -10,9 +10,9 @@ import (
 
 // TODO: This solution is not OK, vendors can differ massively so it seems. Should this become an interface that all
 //  vendors need to implement...? It would turn out to be a huge interface, so there will no doubt be a better solution?
-//  Embedding ip.Client in a stuct ip.FujiClient wasn't that good either. Take the Dial() method for example, this calls
-//  the initCommandDataConn() and initEventConn() methods but when using embedding the methods on ip.Client get called
-//  and not the ones on ip.FujiClient so you would also have to "override" the Dial() as well.
+//  Embedding ip.Client in a struct ip.FujiClient wasn't that good either. Take the Dial() method for example, this
+//  calls the initCommandDataConn() and initEventConn() methods but when using embedding the methods on ip.Client get
+//  called and not the ones on ip.FujiClient so you would also have to "override" the Dial() as well.
 type VendorExtensions struct {
 	cmdDataInit          func(c *Client) error
 	eventInit            func(c *Client) error
