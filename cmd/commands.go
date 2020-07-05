@@ -7,79 +7,51 @@ import (
 	"log"
 )
 
-type command interface {
-	execute() string
-}
+type command func(*ip.Client, []string) string
 
-func newCommandByName(n string, c *ip.Client, f []string) command {
+func commandByName(n string) command {
 	switch n {
 	case "info":
-		return &info{
-			c: c,
-			f: f,
-		}
+		return info
 	case "state":
-		return &state{
-			c: c,
-			f: f,
-		}
+		return state
 	case "opreq":
-		return &opreq{
-			c: c,
-			f: f,
-		}
+		return opreq
 	default:
-		return &unknown{}
+		return unknown
 	}
 }
 
-type unknown struct{}
-
-func (u unknown) execute() string {
+func unknown(c *ip.Client, f []string) string {
 	return "unknown command"
 }
 
-type info struct {
-	c *ip.Client
-	f []string
-}
-
-func (i info) execute() string {
-	res, err := i.c.GetDeviceInfo()
+func info(c *ip.Client, f []string) string {
+	res, err := c.GetDeviceInfo()
 log.Printf("%v - %T", res, res)
 
 	if err != nil {
 		res = err.Error()
 	}
 
-	return formatDeviceInfo(i.c.ResponderVendor(), res, i.f)
+	return formatDeviceInfo(c.ResponderVendor(), res, f)
 }
 
-type state struct {
-	c *ip.Client
-	f []string
-}
-
-func (s state) execute() string {
-	res, err := s.c.GetDeviceState()
+func state(c *ip.Client, f []string) string {
+	res, err := c.GetDeviceState()
 log.Printf("%v - %T, %s", res, err, err)
 
 	if err != nil {
 		res = err.Error()
 	}
 
-	return formatDeviceInfo(s.c.ResponderVendor(), res, s.f)
+	return formatDeviceInfo(c.ResponderVendor(), res, f)
 }
 
-type opreq struct {
-	c *ip.Client
-	f []string
-}
-
-func (o opreq) execute() string {
+func opreq(c *ip.Client, f []string) string {
 	var res string
 
-	d, err := o.c.OperationRequestRaw(o.f[0], o.f[1:])
+	d, err := c.OperationRequestRaw(f[0], f[1:])
 	if err != nil {
 		res = fmt.Sprintf("opreq error: %s", err)
 	} else {

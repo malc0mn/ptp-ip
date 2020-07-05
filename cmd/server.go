@@ -54,5 +54,5 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 	log.Printf("%s message received: '%s'", lmp, msg)
 
 	f := strings.Fields(msg)
-	conn.Write([]byte(newCommandByName(f[0], c, f[1:]).execute()))
+	conn.Write([]byte(commandByName(f[0])(c, f[1:])))
 }
