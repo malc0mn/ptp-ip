@@ -352,19 +352,19 @@ func FujiExposureIndexAsString(edx FujiExposureIndex) string {
 func FujiFilmSimulationAsString(fs FujiFilmSimulation) string {
 	switch fs {
 	case FS_Fuji_Provia:
-		return "Provia"
+		return "PROVIA"
 	case FS_Fuji_Velvia:
 		return "Velvia"
 	case FS_Fuji_Astia:
-		return "Astia"
+		return "ASTIA"
 	case FS_Fuji_Monochrome:
 		return "Monochrome"
 	case FS_Fuji_Sepia:
 		return "Sepia"
 	case FS_Fuji_ProNegHigh:
-		return "Pro. Neg. Hi"
+		return "PRO Neg. Hi"
 	case FS_Fuji_ProNegStandard:
-		return "Pro Neg. Std."
+		return "PRO Neg. Std"
 	case FS_Fuji_MonochromeYeFilter:
 		return "Monochrome + Ye Filter"
 	case FS_Fuji_MonochromeRFilter:
