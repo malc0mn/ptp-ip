@@ -189,7 +189,7 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 		or.Parameter4 = params[3]
 	}
 	if len(params) == 5 {
-		or.Parameter5 = params[5]
+		or.Parameter5 = params[4]
 	}
 
 	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
