@@ -8,6 +8,15 @@ import (
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
+func formatDevicePropVal(vendor ptp.VendorExtension, code ptp.DevicePropCode, v int64) string {
+	switch vendor {
+	case ptp.VE_FujiPhotoFilmCoLtd:
+		return ip.FujiDevicePropValueAsString(code, v)
+	default:
+		return ptp.DevicePropValueAsString(code, v)
+	}
+}
+
 func formatDeviceInfo(vendor ptp.VendorExtension, data interface{}, f []string) string {
 	switch vendor {
 	case ptp.VE_FujiPhotoFilmCoLtd:

@@ -14,26 +14,28 @@ import (
 //  calls the initCommandDataConn() and initEventConn() methods but when using embedding the methods on ip.Client get
 //  called and not the ones on ip.FujiClient so you would also have to "override" the Dial() as well.
 type VendorExtensions struct {
-	cmdDataInit          func(c *Client) error
-	eventInit            func(c *Client) error
-	streamerInit         func(c *Client) error
-	newCmdDataInitPacket func(guid uuid.UUID, friendlyName string) InitCommandRequestPacket
-	newEventInitPacket   func(connNum uint32) InitEventRequestPacket
-	getDeviceInfo        func(c *Client) (interface{}, error)
-	getDeviceState       func(c *Client) (interface{}, error)
-	operationRequestRaw  func(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error)
+	cmdDataInit            func(*Client) error
+	eventInit              func(*Client) error
+	streamerInit           func(*Client) error
+	newCmdDataInitPacket   func(uuid.UUID, string) InitCommandRequestPacket
+	newEventInitPacket     func(uint32) InitEventRequestPacket
+	getDeviceInfo          func(*Client) (interface{}, error)
+	getDeviceState         func(*Client) (interface{}, error)
+	getDevicePropertyValue func(*Client, ptp.DevicePropCode) (uint32, error)
+	operationRequestRaw    func(*Client, ptp.OperationCode, []uint32) ([][]byte, error)
 }
 
 func (c *Client) loadVendorExtensions() {
 	c.vendorExtensions = &VendorExtensions{
-		cmdDataInit:          GenericInitCommandDataConn,
-		eventInit:            GenericInitEventConn,
-		streamerInit:         GenericInitStreamerConn,
-		newCmdDataInitPacket: NewInitCommandRequestPacket,
-		newEventInitPacket:   NewInitEventRequestPacket,
-		getDeviceInfo:        GenericGetDeviceInfo,
-		getDeviceState:       GenericGetDeviceState,
-		operationRequestRaw:  GenericOperationRequestRaw,
+		cmdDataInit:            GenericInitCommandDataConn,
+		eventInit:              GenericInitEventConn,
+		streamerInit:           GenericInitStreamerConn,
+		newCmdDataInitPacket:   NewInitCommandRequestPacket,
+		newEventInitPacket:     NewInitEventRequestPacket,
+		getDeviceInfo:          GenericGetDeviceInfo,
+		getDeviceState:         GenericGetDeviceState,
+		getDevicePropertyValue: GenericGetDevicePropertyValue,
+		operationRequestRaw:    GenericOperationRequestRaw,
 	}
 
 	switch c.ResponderVendor() {
@@ -43,6 +45,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
+		c.vendorExtensions.getDevicePropertyValue = FujiGetDevicePropertyValue
 		c.vendorExtensions.operationRequestRaw = FujiOperationRequestRaw
 	}
 }
@@ -165,8 +168,13 @@ func GenericGetDeviceInfo(c *Client) (interface{}, error) {
 }
 
 // Request the Responder's device status.
-func GenericGetDeviceState(c *Client) (interface{}, error) {
+func GenericGetDeviceState(_ *Client) (interface{}, error) {
 	return nil, errors.New("Command not supported!")
+}
+
+// Request the Responder's device status.
+func GenericGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
+	return 0, errors.New("Command not YET supported!")
 }
 
 func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {

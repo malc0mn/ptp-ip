@@ -11,8 +11,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -579,27 +577,13 @@ func (c *Client) GetDeviceState() (interface{}, error) {
 	return c.vendorExtensions.getDeviceState(c)
 }
 
+// GetDevicePropertyValue gets the value of the given device property.
+func (c *Client) GetDevicePropertyValue(code ptp.DevicePropCode) (uint32, error) {
+	return c.vendorExtensions.getDevicePropertyValue(c, code)
+}
+
 // OperationRequestRaw allows to perform any operation request and returns the raw result intended for reverse
 // engineering purposes.
-func (c *Client) OperationRequestRaw(code string, params []string) ([][]byte, error) {
-	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, 16)
-	if err != nil {
-		c.Errorf("Error converting: %s", err)
-		return nil, err
-	}
-	c.Debugf("Converted uint16: %#x", cod)
-
-	p := make([]uint32, len(params))
-	for i, param := range params {
-		conv, err := strconv.ParseUint(strings.Replace(param, "0x", "", -1), 16, 64)
-		if err != nil {
-			c.Errorf("Error converting: %s", err)
-			return nil, err
-		}
-		p[i] = uint32(conv)
-	}
-
-	c.Debugf("Converted params: %#x", p)
-
-	return c.vendorExtensions.operationRequestRaw(c, ptp.OperationCode(cod), p)
+func (c *Client) OperationRequestRaw(code ptp.OperationCode, params []uint32) ([][]byte, error) {
+	return c.vendorExtensions.operationRequestRaw(c, code, params)
 }
