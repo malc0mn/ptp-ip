@@ -4,7 +4,7 @@ BINARY=ptpip
 VERSION := $(shell git describe --tags)
 BUILD_TIME := $(shell date +%FT%T%z)
 
-LDFLAGS=-ldflags "-s -w -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME}"
+LDFLAGS=-ldflags "-s -w -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}"
 
 .DEFAULT_GOAL: all
 

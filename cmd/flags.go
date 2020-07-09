@@ -21,7 +21,7 @@ var (
 	server bool
 
 	help    bool
-	version bool
+	ver bool
 
 	verbosity ip.LogLevel
 )
@@ -61,7 +61,7 @@ func initFlags() {
 	flag.Var(&conf.srvPort, "sp", "To be used in combination with '-s': this defines the server port to listen on.")
 
 	flag.BoolVar(&help, "?", false, "Display usage information.")
-	flag.BoolVar(&version, "version", false, "Display version info.")
+	flag.BoolVar(&ver, "version", false, "Display version info.")
 
 	flag.Var(&verbosity, "v", "PTP/IP log level verbosity: ranges from v to vvv.")
 

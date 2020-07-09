@@ -18,8 +18,8 @@ const (
 )
 
 var (
-	Version   = "0.0.0"
-	BuildTime = "unknown"
+	version   = "0.0.0"
+	buildTime = "unknown"
 	exe       string
 )
 
@@ -37,8 +37,8 @@ func main() {
 		os.Exit(exit)
 	}
 
-	if version == true {
-		fmt.Printf("%s version %s built on %s\n", exe, Version, BuildTime)
+	if ver == true {
+		fmt.Printf("%s version %s built on %s\n", exe, version, buildTime)
 		os.Exit(ok)
 	}
 
