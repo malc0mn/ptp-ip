@@ -331,8 +331,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
 	if p.PacketType() == PKT_Invalid {
 		// Send length only. The length must include the size of the length field, so we add 4 bytes for that!
-		_, err := w.Write(ipInternal.MarshalLittleEndian(uint32(pll + 4)))
-		if err != nil {
+		if _, err := w.Write(ipInternal.MarshalLittleEndian(uint32(pll + 4))); err != nil {
 			return err
 		}
 	} else {

@@ -149,8 +149,7 @@ func handleGenericMessages(conn net.Conn, lmp string) {
 func alwaysFailMessage(conn net.Conn, lmp string) {
 	// TCP connections are closed by the Responder on failure!
 	defer conn.Close()
-	_, pkt, _ := readMessage(conn, lmp)
-	if pkt == nil {
+	if _, pkt, _ := readMessage(conn, lmp); pkt == nil {
 		return
 	}
 
@@ -168,8 +167,7 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
 	if p.PacketType() == PKT_Invalid {
 		// Send length only. The length must include the size of the length field, so we add 4 bytes for that!
-		_, err := w.Write(internal.MarshalLittleEndian(uint32(pll + 4)))
-		if err != nil {
+		if _, err := w.Write(internal.MarshalLittleEndian(uint32(pll + 4))); err != nil {
 			return err
 		}
 	} else {
