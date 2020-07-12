@@ -96,79 +96,76 @@ const (
 )
 
 func OperationResponseCodeAsString(code OperationResponseCode) string {
-	var msg string
 	switch code {
 	case RC_Undefined:
-		msg = "undefined response code"
+		return "undefined response code"
 	case RC_OK:
-		msg = "ok"
+		return "ok"
 	case RC_GeneralError:
-		msg = "general error occured"
+		return "general error occured"
 	case RC_SessionNotOpen:
-		msg = "session not open: open a session first"
+		return "session not open: open a session first"
 	case RC_InvalidTransactionID:
-		msg = "invalid transaction id"
+		return "invalid transaction id"
 	case RC_OperationNotSupported:
-		msg = "operation not supported"
+		return "operation not supported"
 	case RC_ParameterNotSupported:
-		msg = "paramter not supported"
+		return "paramter not supported"
 	case RC_IncompleteTransfer:
-		msg = "incomplete transfer"
+		return "incomplete transfer"
 	case RC_InvalidStorageID:
-		msg = "invalid storage id"
+		return "invalid storage id"
 	case RC_InvalidObjectHandle:
-		msg = "invalid object handle"
+		return "invalid object handle"
 	case RC_DevicePropNotSupported:
-		msg = "device property not supported"
+		return "device property not supported"
 	case RC_InvalidObjectFormatCode:
-		msg = "invalid object format code"
+		return "invalid object format code"
 	case RC_StoreFull:
-		msg = "store full"
+		return "store full"
 	case RC_ObjectWriteProtected:
-		msg = "object write protected"
+		return "object write protected"
 	case RC_StoreReadOnly:
-		msg = "store read only"
+		return "store read only"
 	case RC_AccessDenied:
-		msg = "access denied"
+		return "access denied"
 	case RC_NoThumbnailPresent:
-		msg = "no thumbnail present"
+		return "no thumbnail present"
 	case RC_SelfTestFailed:
-		msg = "self test failed"
+		return "self test failed"
 	case RC_PartialDeletion:
-		msg = "partial deletion"
+		return "partial deletion"
 	case RC_StoreNotAvailable:
-		msg = "store not available"
+		return "store not available"
 	case RC_SpecificationByFormatUnsupported:
-		msg = "specification by format unsupported"
+		return "specification by format unsupported"
 	case RC_NoValidObjectInfo:
-		msg = "no valid object info"
+		return "no valid object info"
 	case RC_InvalidCodeFormat:
-		msg = "invalid code format"
+		return "invalid code format"
 	case RC_UnknownVendorCode:
-		msg = "unknown vendor code"
+		return "unknown vendor code"
 	case RC_CaptureAlreadyTerminated:
-		msg = "capture already terminated"
+		return "capture already terminated"
 	case RC_DeviceBusy:
-		msg = "device busy"
+		return "device busy"
 	case RC_InvalidParentObject:
-		msg = "invalid parent object"
+		return "invalid parent object"
 	case RC_InvalidDevicePropFormat:
-		msg = "invalid device property format"
+		return "invalid device property format"
 	case RC_InvalidDevicePropValue:
-		msg = "invalid device property value"
+		return "invalid device property value"
 	case RC_InvalidParameter:
-		msg = "invalid parameter"
+		return "invalid parameter"
 	case RC_SessionAlreadyOpen:
-		msg = "session already open"
+		return "session already open"
 	case RC_TransactionCancelled:
-		msg = "transaction cancelled"
+		return "transaction cancelled"
 	case RC_SpecificationofDestinationUnsupported:
-		msg = "specification of destination unsupported"
+		return "specification of destination unsupported"
 	default:
-		msg = fmt.Sprintf("unknown operation response code: %#x", code)
+		return fmt.Sprintf("unknown operation response code: %#x", code)
 	}
-
-	return msg
 }
 
 // The operation request phase consists of the ip-specific transmission of a 30-byte operation dataset from the
