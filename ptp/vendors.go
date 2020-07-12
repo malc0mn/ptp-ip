@@ -61,7 +61,7 @@ func VendorStringToType(vendor string) VendorExtension {
 		return VE_ParrotDronesSAS
 	case "panasonic":
 		return VE_PanasonicCorporation
+	default:
+		return 0
 	}
-
-	return 0
 }
