@@ -38,6 +38,8 @@ func runResponder(vendor ptp.VendorExtension, address string, port uint16, handl
 func newLocalOkResponder(vendor string, address string, port uint16) {
 	var handler msgHandler
 	switch vendor {
+	case "fuji":
+		handler = handleFujiMessages
 	default:
 		handler = handleGenericMessages
 	}
@@ -99,6 +101,30 @@ func readMessage(r io.Reader, lmp string) (Header, PacketOut, error) {
 	return h, pkt, nil
 }
 
+func readMessageRaw(r io.Reader, lmp string) (uint32, []byte, error) {
+	var err error
+
+	var l uint32
+	log.Printf("%s awaiting packet length...", lmp)
+	err = binary.Read(r, binary.LittleEndian, &l)
+	if err != nil {
+		if err == io.EOF {
+			log.Printf("%s client disconnected", lmp)
+		} else {
+			log.Printf("%s error reading header: %s", lmp, err)
+		}
+		return l, nil, err
+	}
+
+	b := make([]byte, int(l)-4)
+	if err := binary.Read(r, binary.LittleEndian, &b); err != nil {
+		log.Printf("%s error reading payload: %s", lmp, err)
+		return l, nil, err
+	}
+
+	return l, b, nil
+}
+
 func writeMessage(w io.Writer, pkt Packet, lmp string) {
 	err := sendPacket(w, pkt, lmp)
 	if err != nil {
@@ -142,6 +168,84 @@ func handleGenericMessages(conn net.Conn, lmp string) {
 		}
 		if res != nil {
 			writeMessage(conn, res, lmp)
+		}
+	}
+}
+
+func handleFujiMessages(conn net.Conn, lmp string) {
+	// NO defer conn.Close() here since we need to mock a real fuji responder and thus need to keep the connections open
+	// when established and continuously listen for messages in a loop.
+	for {
+		l, raw, err := readMessageRaw(conn, lmp)
+		if err == io.EOF {
+			conn.Close()
+			break
+		}
+		if raw == nil {
+			continue
+		}
+
+		log.Printf("%s read %d raw bytes", lmp, l)
+
+		var res PacketIn
+		var eodp PacketIn
+		var par []byte
+
+		// This construction is thanks to the Fuji decision of not properly using packet types.
+		switch binary.LittleEndian.Uint32(raw[0:4]) {
+		case uint32(PKT_InitCommandRequest):
+			log.Printf("%s responding to InitCommandRequest", lmp)
+			uuid, _ := uuid.Parse(MockedResponderGUID)
+			res = &InitCommandAckPacket{
+				ConnectionNumber:         1,
+				ResponderGUID:            uuid,
+				ResponderFriendlyName:    lmp,
+				ResponderProtocolVersion: uint32(0),
+			}
+		case uint32(DP_NoDataOrDataIn) << 16 | uint32(ptp.OC_GetDevicePropDesc):
+			res = &FujiOperationResponsePacket{
+				DataPhase: uint16(DP_DataOut),
+				OperationResponseCode: ptp.OperationResponseCode(ptp.OC_GetDevicePropDesc),
+				TransactionID: ptp.TransactionID(binary.LittleEndian.Uint32(raw[4:8])),
+			}
+			eodp = &FujiOperationResponsePacket{
+				DataPhase: uint16(DP_Unknown),
+				OperationResponseCode: ptp.RC_OK,
+				TransactionID: ptp.TransactionID(binary.LittleEndian.Uint32(raw[4:8])),
+			}
+		case uint32(DP_NoDataOrDataIn) << 16 | uint32(ptp.OC_GetDevicePropValue):
+			res = &FujiOperationResponsePacket{
+				DataPhase: uint16(DP_DataOut),
+				OperationResponseCode: ptp.OperationResponseCode(ptp.OC_GetDevicePropValue),
+				TransactionID: ptp.TransactionID(binary.LittleEndian.Uint32(raw[4:8])),
+			}
+			binary.LittleEndian.PutUint32(par, 330)
+			eodp = &FujiOperationResponsePacket{
+				DataPhase: uint16(DP_Unknown),
+				OperationResponseCode: ptp.RC_OK,
+				TransactionID: ptp.TransactionID(binary.LittleEndian.Uint32(raw[4:8])),
+			}
+		case uint32(DP_DataOut) << 16 | uint32(ptp.OC_SetDevicePropValue):
+			res = &FujiOperationResponsePacket{
+				DataPhase: uint16(DP_DataOut),
+				OperationResponseCode: ptp.OperationResponseCode(ptp.OC_SetDevicePropValue),
+				TransactionID: ptp.TransactionID(binary.LittleEndian.Uint32(raw[4:8])),
+			}
+			eodp = &FujiOperationResponsePacket{
+				DataPhase: uint16(DP_Unknown),
+				OperationResponseCode: ptp.RC_OK,
+				TransactionID: ptp.TransactionID(binary.LittleEndian.Uint32(raw[4:8])),
+			}
+		}
+
+		if res != nil {
+			writeMessage(conn, res, lmp)
+			if par != nil {
+				conn.Write(par)
+			}
+			if eodp != nil {
+				writeMessage(conn, eodp, lmp)
+			}
 		}
 	}
 }
