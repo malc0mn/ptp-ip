@@ -51,6 +51,35 @@ func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 	}
 }
 
+func TestNewInitEventRequestPacket(t *testing.T) {
+	got := NewInitEventRequestPacket(5)
+	want := uint32(5)
+	if got.GetConnectionNumber() != want {
+		t.Errorf("NewInitEventRequestPacket() ConnectionNumber = %#x; want %#x", got.GetConnectionNumber(), want)
+	}
+}
+
+func TestInitFailPacket_ReasonAsError(t *testing.T) {
+	errs := map[FailReason]string{
+		FR_FailBusy:              "busy: too many active connections",
+		FR_FailRejectedInitiator: "rejected: device not allowed",
+		FR_FailUnspecified:       "reason unspecified",
+		FR_Fuji_DeviceBusy:       "fuji: invalid friendly name or camera state: allow to 'change' client or 'reset' connection",
+		FR_Fuji_InvalidParameter: "fuji: unknown protocol version",
+		FailReason(0x5032000):    "unknown failure reason returned 0x5032000",
+	}
+
+	for reason, want := range errs {
+		ifp := InitFailPacket{
+			Reason: reason,
+		}
+		got := ifp.ReasonAsError().Error()
+		if got != want {
+			t.Errorf("ReasonAsError() Reason = '%s'; want '%s'", got, want)
+		}
+	}
+}
+
 func TestNewPacketOutFromPacketType(t *testing.T) {
 	types := map[PacketType]string{
 		PKT_InitCommandRequest: "GenericInitCommandRequest",
