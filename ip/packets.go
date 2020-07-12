@@ -424,7 +424,7 @@ func (prsp *ProbeResponsePacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(prsp)
 }
 
-// Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
+// Creates an new packet struct based on the given packet type. All fields, save for the packetType field, will be left
 // uninitialised.
 func NewPacketOutFromPacketType(pt PacketType) (PacketOut, error) {
 	var p PacketOut
@@ -457,7 +457,7 @@ func NewPacketOutFromPacketType(pt PacketType) (PacketOut, error) {
 	return nil, fmt.Errorf(UnknownPacketType.Error(), pt)
 }
 
-// Creates an new packet struct based on the given packet type. All fields, safe for the packetType field, will be left
+// Creates an new packet struct based on the given packet type. All fields, save for the packetType field, will be left
 // uninitialised.
 func NewPacketInFromPacketType(pt PacketType) (PacketIn, error) {
 	var p PacketIn
