@@ -168,23 +168,23 @@ func OperationResponseCodeAsString(code OperationResponseCode) string {
 	}
 }
 
-// The operation request phase consists of the ip-specific transmission of a 30-byte operation dataset from the
-// Initiator to the Responder.
+// OperationRequest consists of the ip-specific transmission of a 30-byte operation dataset from the Initiator to the
+// Responder.
 type OperationRequest struct {
-	// The code indicating which operation is being initiated.
+	// OperationCode is the code indicating which operation is being initiated.
 	OperationCode OperationCode
 
-	// The identifier for the session within which this operation is being initiated. This value is assigned by the
-	// Initiator using the OpenSession operation. This field should be set to 0x00000000 for operations that do not
-	// occur within a session, and for the OpenSession OperationRequest dataset.
+	// SessionID is the identifier for the session within which this operation is being initiated. This value is
+	// assigned by the Initiator using the OpenSession operation. This field should be set to 0x00000000 for operations
+	// that do not occur within a session, and for the OpenSession OperationRequest dataset.
 	SessionID SessionID
 
-	// The identifier of this particular transaction. This value shall be a value that is unique within a particular
-	// session, and shall increment by one for each subsequent transaction. This field should be set to 0x00000000 for
-	// the OpenSession operation.
+	// TestGetObjectHandles is the identifier of this particular transaction. This value shall be a value that is unique
+	// within a particular session, and shall increment by one for each subsequent transaction. This field should be set
+	// to 0x00000000 for the OpenSession operation.
 	TransactionID TransactionID
 
-	// These fields hold the operation-specific nth parameter. Operations may have at most five parameters. The
+	// ParameterN hold the operation-specific nth parameter. Operations may have at most five parameters. The
 	// interpretation of any parameter is dependent upon the OperationCode. Any unused parameter fields should be set to
 	// 0x00000000. If a parameter holds a value that is less than 32 bits, the lowest significant bits shall be used to
 	// store the value, with the most significant bits being set to zeros.
@@ -199,7 +199,7 @@ func (oreq *OperationRequest) Session() SessionID {
 	return oreq.SessionID
 }
 
-// The response phase consists of the ip-specific transmission of a 30-byte response dataset from the Responder
+// OperationResponse consists of the ip-specific transmission of a 30-byte response dataset from the Responder
 // to the Initiator.
 type OperationResponse struct {
 	// Indicates the interpretation of the response.
@@ -230,17 +230,16 @@ func (ores *OperationResponse) Session() SessionID {
 	return ores.SessionID
 }
 
-// This operation returns information and capabilities about the Responder device by returning a DeviceInfo dataset.
-// This operation is the only operation that may be issued inside or
-// outside of a session. When used outside a session, both the SessionID and the TransactionID in the
-// OperationRequest dataset shall be set to 0x00000000.
+// GetDeviceInfo returns information and capabilities about the Responder device by returning a DeviceInfo dataset. This
+// operation is the only operation that may be issued inside or outside of a session. When used outside a session, both
+// the SessionID and the TransactionID in the OperationRequest dataset shall be set to 0x00000000.
 func GetDeviceInfo() OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetDeviceInfo,
 	}
 }
 
-// Causes device to allocate resources, assigns handles to data objects if necessary, and performs any
+// OpenSession causes the device to allocate resources, assigns handles to data objects if necessary, and performs any
 // connection-specific initialization. The SessionID will then be used by all other operations during the session.
 // Unless otherwise specified, an open session is required to invoke an operation. If the first parameter is
 // 0x00000000, the operation should fail with a response of Invalid_Parameter. If a session is already open, and the
@@ -257,14 +256,14 @@ func OpenSession(sid SessionID) OperationRequest {
 	}
 }
 
-// Closes the session. Causes device to perform any session-specific cleanup.
+// CloseSession closes the session. Causes device to perform any session-specific cleanup.
 func CloseSession() OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_CloseSession,
 	}
 }
 
-// This operation returns a list of the currently valid StorageIDs. This array shall contain one StorageID for each
+// GetStorageIDs returns a list of the currently valid StorageIDs. This array shall contain one StorageID for each
 // valid logical store. One StorageID should also be present for each removable media that is not inserted, which
 // would contain a non-zero PhysicalStorageID and a LogicalStorageID with the value 0x0000.
 func GetStorageIDs() OperationRequest {
@@ -273,7 +272,7 @@ func GetStorageIDs() OperationRequest {
 	}
 }
 
-// Returns a StorageInfo dataset for the particular storage area indicated in the first parameter.
+// GetStorageInfo returns a StorageInfo dataset for the particular storage area indicated in the first parameter.
 func GetStorageInfo(sid StorageID) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetStorageInfo,
@@ -281,11 +280,11 @@ func GetStorageInfo(sid StorageID) OperationRequest {
 	}
 }
 
-// Returns the total number of objects present in the store indicated by the first parameter. If the number of objects
-// aggregated across all stores is desired, a StorageID of 0xFFFFFFFF may be used. If a single store is specified, and
-// the store is unavailable because of media removal, this operation should return Store_Not_Available.
-// By default, this operation returns the total number of objects, which includes both image and non-image objects of
-// all types.
+// GetNumObjects returns the total number of objects present in the store indicated by the first parameter. If the
+// number of objects aggregated across all stores is desired, a StorageID of 0xFFFFFFFF may be used. If a single store
+// is specified, and the store is unavailable because of media removal, this operation should return
+// Store_Not_Available. By default, this operation returns the total number of objects, which includes both image and
+// non-image objects of all types.
 // The second parameter, ObjectFormatCode, is optional, and may not be supported. This parameter is used to identify a
 // particular ObjectFormatCode, so that only objects of the particular type will be counted towards NumObjects. If the
 // number of objects of all formats that are images is desired, the value 0xFFFFFFFF may be used. If this parameter is
@@ -311,8 +310,8 @@ func GetNumObjects(sid StorageID, code ObjectFormatCode, handle ObjectHandle) Op
 	}
 }
 
-// Returns an array of ObjectHandles present in the store indicated by the StorageID in the first parameter. If an
-// aggregated list across all stores is desired, this value shall be set to 0xFFFFFFFF.
+// GetObjectHandles returns an array of ObjectHandles present in the store indicated by the StorageID in the first
+// parameter. If an aggregated list across all stores is desired, this value shall be set to 0xFFFFFFFF.
 // The second parameter is optional, and may or may not be supported. This parameter allows the Initiator to ask for
 // only the handles that represent data objects that possess a format specified by the ObjectFormatCode. If a list of
 // handles that represent only image objects is desired, this second parameter may be set to 0xFFFFFFFF. If it is not
@@ -339,11 +338,11 @@ func GetObjectHandles(sid StorageID, code ObjectFormatCode, handle ObjectHandle)
 	}
 }
 
-// Returns the ObjectInfo dataset. The primary purpose of this operation is to obtain information about a data object
-// present on the device before deciding whether to retrieve that object or its thumbnail with a succeeding GetThumb or
-// GetObject operation. This information may also be used by the caller to allocate memory before receiving the object.
-// Objects that possess an ObjectFormatCode of type Association do not require a GetObject operation, as these objects are
-// fully qualified by their ObjectInfo dataset.
+// GetObjectInfo returns the ObjectInfo dataset. The primary purpose of this operation is to obtain information about a
+// data object present on the device before deciding whether to retrieve that object or its thumbnail with a succeeding
+// GetThumb or GetObject operation. This information may also be used by the caller to allocate memory before receiving
+// the object. Objects that possess an ObjectFormatCode of type Association do not require a GetObject operation, as
+// these objects are fully qualified by their ObjectInfo dataset.
 func GetObjectInfo(handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetObjectInfo,
@@ -351,12 +350,12 @@ func GetObjectInfo(handle ObjectHandle) OperationRequest {
 	}
 }
 
-// Retrieves one object from the device. This operation is used for all types of data objects present on the device,
-// including both images and non-image data objects, and should be preceded (although not necessarily immediately) by a
-// GetObjectInfo operation that uses the same ObjectHandle. This operation is not necessary for objects of type
-// Association, as these objects are fully qualified by their ObjectInfo dataset. If the store that contains the object
-// being sent is removed during the object transfer, the Incomplete_Transfer response should be used, along with the
-// Store_Removed event.
+// GetObject retrieves one object from the device. This operation is used for all types of data objects present on the
+// device, including both images and non-image data objects, and should be preceded (although not necessarily
+// immediately) by a GetObjectInfo operation that uses the same ObjectHandle. This operation is not necessary for
+// objects of type Association, as these objects are fully qualified by their ObjectInfo dataset. If the store that
+// contains the object being sent is removed during the object transfer, the Incomplete_Transfer response should be
+// used, along with the Store_Removed event.
 func GetObject(handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetObject,
@@ -364,8 +363,8 @@ func GetObject(handle ObjectHandle) OperationRequest {
 	}
 }
 
-// Retrieves the thumbnail from the device that is associated with the ObjectHandle that is indicated in the first
-// parameter.
+// GetThumb retrieves the thumbnail from the device that is associated with the ObjectHandle that is indicated in the
+// first parameter.
 func GetThumb(handle ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetThumb,
@@ -373,12 +372,12 @@ func GetThumb(handle ObjectHandle) OperationRequest {
 	}
 }
 
-// Deletes the data object specified by the ObjectHandle from the device if it is not protected. If the ObjectHandle
-// passed has the value of 0xFFFFFFFF, then all objects on the device shall be deleted. Any write-protected objects
-// shall also not be deleted by this operation. If one object is indicated for deletion and it is write-protected, the
-// response code Object_WriteProtected shall be returned. If all objects are indicated for deletion and a subset of the
-// objects are write-protected, only the objects that are not protected shall be deleted, and the response code of
-// Partial_Deletion shall be returned. If the store is read-only without object deletion, the response
+// DeleteObject deletes the data object specified by the ObjectHandle from the device if it is not protected. If the
+// ObjectHandle passed has the value of 0xFFFFFFFF, then all objects on the device shall be deleted. Any write-protected
+// objects shall also not be deleted by this operation. If one object is indicated for deletion and it is
+// write-protected, the response code Object_WriteProtected shall be returned. If all objects are indicated for deletion
+// and a subset of the objects are write-protected, only the objects that are not protected shall be deleted, and the
+// response code of Partial_Deletion shall be returned. If the store is read-only without object deletion, the response
 // Store_Read_Only should be returned. If the store is read-only with object deletion, this operation should succeed
 // unless other factors prevent it from succeeding.
 // The second parameter is optional, and may not be supported. This parameter may only be used if the first parameter is
@@ -399,7 +398,7 @@ func DeleteObject(handle ObjectHandle, code ObjectFormatCode) OperationRequest {
 	}
 }
 
-// This operation is used as the first operation when the Initiator wishes to send an object to the Responder. This
+// SendObjectInfo is used as the first operation when the Initiator wishes to send an object to the Responder. This
 // operation sends an ObjectInfo dataset from the Initiator to the Responder. All the fields in this ObjectInfo dataset
 // are from the perspective of the Initiator, meaning that the StorageID, for example, would be interpreted as the
 // StorageID of the store in which the object resides on the Initiator before being sent to the Responder. This
@@ -457,11 +456,11 @@ func SendObjectInfo(dest StorageID, parent ObjectHandle) OperationRequest {
 	}
 }
 
-// This operation is used as the second operation when the Initiator wishes to send an object to the Responder,
-// following the SendObjectInfo operation. This operation sends a data object to the device to be written to the
-// Responder's store, according to the information in the ObjectInfo dataset as transmitted during the most recent
-// SendObjectInfo operation in the same session, and the information indicated by the responder in the response
-// parameters of the SendObjectInfo.
+// SendObject is used as the second operation when the Initiator wishes to send an object to the Responder, following
+// the SendObjectInfo operation. This operation sends a data object to the device to be written to the Responder's
+// store, according to the information in the ObjectInfo dataset as transmitted during the most recent SendObjectInfo
+// operation in the same session, and the information indicated by the responder in the response parameters of the
+// SendObjectInfo.
 // Upon successful completion of this operation, the Responder should discard and/or invalidate the Initiator's
 // ObjectInfo that the Responder held while waiting for that object. If there is no valid ObjectInfo held by the
 // Responder, the response No_Valid_ObjectInfo should be returned. Any response other than OK indicates that the
@@ -475,10 +474,11 @@ func SendObject() OperationRequest {
 	}
 }
 
-// Causes the device to initiate the capture of one or more new data objects according to its current device properties,
-// storing the data into the store indicated by the first parameter. If the StorageID is 0x00000000, the object(s) will
-// be stored in a store that is determined by the capturing device. If the particular store specified is not available,
-// or no store is specified and there are no stores available, this operation should return Store_Not_Available.
+// InitiateCapture causes the device to initiate the capture of one or more new data objects according to its current
+// device properties, storing the data into the store indicated by the first parameter. If the StorageID is 0x00000000,
+// the object(s) will be stored in a store that is determined by the capturing device. If the particular store specified
+// is not available, or no store is specified and there are no stores available, this operation should return
+// Store_Not_Available.
 // The capturing of new data objects is an asynchronous operation. This operation may be used to capture images or any
 // type of data that can be fully captured using a single operation trigger. For these types of captures, the length of
 // the capture and the number of objects to capture is known apriori by the Responder, as opposed to being dynamically
@@ -537,10 +537,10 @@ func InitiateCapture(dest StorageID, code ObjectFormatCode) OperationRequest {
 	}
 }
 
-// Formats the media specified by the StorageID. The second parameter is optional and may be used to indicate the format
-// that the store should be formatted in, according to the FilesystemFormat codes. If a given format is not supported,
-// the response Invalid_Parameter should be returned. If the device is currently capturing objects to the store, or is
-// otherwise unable to format due to concurrent access, the Device_Busy operation should be returned.
+// FormatStore formats the media specified by the StorageID. The second parameter is optional and may be used to
+// indicate the format that the store should be formatted in, according to the FilesystemFormat codes. If a given format
+// is not supported, the response Invalid_Parameter should be returned. If the device is currently capturing objects to
+// the store, or is otherwise unable to format due to concurrent access, the Device_Busy operation should be returned.
 func FormatStore(dest StorageID, fst FilesystemType) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_FormatStore,
@@ -549,19 +549,19 @@ func FormatStore(dest StorageID, fst FilesystemType) OperationRequest {
 	}
 }
 
-// Resets the device to its device-dependent default state. This does not include resetting any device properties, which
-// is performed using ResetDeviceProp. This does include closing the current session, and any other open sessions. If
-// this operation is supported and the device supports multiple concurrent sessions, the device is responsible for
-// supporting the DeviceReset event, which should be sent to all open sessions excluding the one within which the
-// ResetDevice operation was initiated prior to closing the sessions.
+// ResetDevice resets the device to its device-dependent default state. This does not include resetting any device
+// properties, which is performed using ResetDeviceProp. This does include closing the current session, and any other
+// open sessions. If this operation is supported and the device supports multiple concurrent sessions, the device is
+// responsible for supporting the DeviceReset event, which should be sent to all open sessions excluding the one within
+// which the ResetDevice operation was initiated prior to closing the sessions.
 func ResetDevice() OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_ResetDevice,
 	}
 }
 
-// Causes the device to initiate a device-dependent self-test. The first parameter is used to indicate the type of
-// self-test that should be performed.
+// SelfTest causes the device to initiate a device-dependent self-test. The first parameter is used to indicate the type
+// of self-test that should be performed.
 func SelfTest(testType SelfTestType) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_SelfTest,
@@ -569,9 +569,9 @@ func SelfTest(testType SelfTestType) OperationRequest {
 	}
 }
 
-// Sets the write-protection status for the data object referred to in the first parameter to the value indicated in the
-// second parameter. If the ProtectionStatus field does not hold a legal value, the ResponseCode should be
-// Invalid_Parameter.
+// SetObjectProtection sets the write-protection status for the data object referred to in the first parameter to the
+// value indicated in the second parameter. If the ProtectionStatus field does not hold a legal value, the ResponseCode
+// should be Invalid_Parameter.
 func SetObjectProtection(handle ObjectHandle, status ProtectionStatus) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_SetObjectProtection,
@@ -580,14 +580,14 @@ func SetObjectProtection(handle ObjectHandle, status ProtectionStatus) Operation
 	}
 }
 
-// Causes the device to power down. This will cause all currently open sessions to close.
+// PowerDown causes the device to power down. This will cause all currently open sessions to close.
 func PowerDown() OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_PowerDown,
 	}
 }
 
-// Returns the appropriate Property Describing Dataset as indicated by the first parameter.
+// GetDevicePropDesc returns the appropriate Property Describing Dataset as indicated by the first parameter.
 func GetDevicePropDesc(code DevicePropCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetDevicePropDesc,
@@ -595,10 +595,10 @@ func GetDevicePropDesc(code DevicePropCode) OperationRequest {
 	}
 }
 
-// Returns the current value of a property. The size and format of the data returned from this operation should be
-// determined from the corresponding DevicePropDesc dataset returned from the GetDevicePropDesc operation. The current
-// value of a property can also be retrieved directly from the DevicePropDesc, so this operation is not typically
-// required unless a DevicePropChanged event occurs.
+// GetDevicePropValue returns the current value of a property. The size and format of the data returned from this
+// operation should be determined from the corresponding DevicePropDesc dataset returned from the GetDevicePropDesc
+// operation. The current value of a property can also be retrieved directly from the DevicePropDesc, so this operation
+// is not typically required unless a DevicePropChanged event occurs.
 func GetDevicePropValue(code DevicePropCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetDevicePropValue,
@@ -606,20 +606,21 @@ func GetDevicePropValue(code DevicePropCode) OperationRequest {
 	}
 }
 
-// Sets the current value of the device property indicated by parameter 1 to the value indicated in the data phase of
-// this operation. The format of the property value object sent in the data phase can be determined from the
-// DatatypeCode field of the property's DevicePropDesc dataset. If the property is not settable, the response
+// SetDevicePropValue Sets the current value of the device property indicated by parameter 1 to the value indicated in
+// the data phase of this operation. The format of the property value object sent in the data phase can be determined
+// from the DatatypeCode field of the property's DevicePropDesc dataset. If the property is not settable, the response
 // Access_Denied should be returned. If the value is not allowed by the device, Invalid_DeviceProp_Value should be
 // returned. If the format or size of the property value is incorrect, Invalid_DeviceProp_Format should be returned.
 func SetDevicePropValue(code DevicePropCode, value interface{}) OperationRequest {
+	// TODO: handle the data phase here. The value should be set in the data phase.
 	return OperationRequest{
 		OperationCode: OC_SetDevicePropValue,
 		Parameter1:    uint32(code),
 	}
 }
 
-// Sets the value of the indicated device property to the factory default setting. The first parameter may be set to
-// 0xFFFFFFFF to indicate that all properties should be reset to their factory default settings.
+// ResetDevicePropValue sets the value of the indicated device property to the factory default setting. The first
+// parameter may be set to 0xFFFFFFFF to indicate that all properties should be reset to their factory default settings.
 func ResetDevicePropValue(code DevicePropCode) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_ResetDevicePropValue,
@@ -627,10 +628,10 @@ func ResetDevicePropValue(code DevicePropCode) OperationRequest {
 	}
 }
 
-// This operation is used after an InitiateOpenCapture operation for situations where the capture operation length is
-// open-ended, and determined by the Initiator. This operation is not used for trigger captures, which are invoked using
-// a separate operation, InitiateCapture. This operation allows the termination of one capture operation that is being
-// used to capture many objects over some period of time, such as a burst, or for long single objects such as
+// TerminateOpenCapture is used after an InitiateOpenCapture operation for situations where the capture operation length
+// is open-ended, and determined by the Initiator. This operation is not used for trigger captures, which are invoked
+// using a separate operation, InitiateCapture. This operation allows the termination of one capture operation that is
+// being used to capture many objects over some period of time, such as a burst, or for long single objects such as
 // manually-controlled image exposures, audio captures, or video clips. The first parameter of this operation indicates
 // the TransactionID of the InitiateOpenCapture operation that is being terminated. If the capture has already
 // terminated for some other reason, this operation should return Capture_Already_Terminated. If the TransactionID
@@ -643,11 +644,11 @@ func TerminateOpenCapture(tid TransactionID) OperationRequest {
 	}
 }
 
-// This operation causes the object to be moved from its location within the hierarchy to a new location indicated by
-// the second and third parameters. If the root of the store is desired, the third parameter may be set to 0x00000000.
-// If the third parameter does not refer to a valid object of type Association, the response Invalid_ParentObject
-// should be returned. If a store is read-only (with or without deletion) the response Store_Read_Only should be
-// returned. This operation does not cause the ObjectHandle of the object that is being moved to change.
+// MoveObject causes the object to be moved from its location within the hierarchy to a new location indicated by the
+// second and third parameters. If the root of the store is desired, the third parameter may be set to 0x00000000. If
+// the third parameter does not refer to a valid object of type Association, the response Invalid_ParentObject should be
+// returned. If a store is read-only (with or without deletion) the response Store_Read_Only should be returned. This
+// operation does not cause the ObjectHandle of the object that is being moved to change.
 func MoveObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_MoveObject,
@@ -657,10 +658,10 @@ func MoveObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) Ope
 	}
 }
 
-// This operation causes the object to be replicated within the Responder. The first parameter refers to the
-// ObjectHandle of the object that is to be copied. The second parameter refers to the StorageID into which the newly
-// copied object should be placed. The third parameter refers to the ParentObject of where the newly replicated copy
-// should be placed. If the object is to be copied into the root of the store, this value should be set to 0x00000000.
+// CopyObject causes the object to be replicated within the Responder. The first parameter refers to the ObjectHandle of
+// the object that is to be copied. The second parameter refers to the StorageID into which the newly copied object
+// should be placed. The third parameter refers to the ParentObject of where the newly replicated copy should be placed.
+// If the object is to be copied into the root of the store, this value should be set to 0x00000000.
 func CopyObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_CopyObject,
@@ -670,13 +671,13 @@ func CopyObject(handle ObjectHandle, dest StorageID, newParent ObjectHandle) Ope
 	}
 }
 
-// Retrieves a partial object from the device. This operation is optional, and may be used in place of the GetObject
-// operation for devices that support this alternative. If supported, this operation should be generic, and therefore
-// useable with all types of data objects present on the device, including both images and non-image data objects, and
-// should be preceded (although not necessarily immediately) by a GetObjectInfo operation that uses the same
-// ObjectHandle. For this operation, the size fields in the ObjectInfo represent maximum size as opposed to actual size.
-// This operation is not necessary for objects of type Association, as objects of this type are fully qualified by their
-// ObjectInfo dataset.
+// GetPartialObject retrieves a partial object from the device. This operation is optional, and may be used in place of
+// the GetObject operation for devices that support this alternative. If supported, this operation should be generic,
+// and therefore useable with all types of data objects present on the device, including both images and non-image data
+// objects, and should be preceded (although not necessarily immediately) by a GetObjectInfo operation that uses the
+// same ObjectHandle. For this operation, the size fields in the ObjectInfo represent maximum size as opposed to actual
+// size. This operation is not necessary for objects of type Association, as objects of this type are fully qualified by
+// their ObjectInfo dataset.
 // The operation behaves exactly like GetObject, except that the second and third parameters hold the offset in bytes
 // and the number of bytes to obtain starting from the offset, respectively. If the portion of the object that is
 // desired is from the offset to the end, the third parameter may be set to 0xFFFFFFFF. The first response parameter
@@ -690,15 +691,15 @@ func GetPartialObject(handle ObjectHandle, offset uint32, maxBytes uint32) Opera
 	}
 }
 
-// Causes the device to initiate the capture of one or more new data objects according to its current device properties,
-// storing the data into the store indicated by the StorageID. If the StorageID is 0x00000000, the object(s) will be
-// stored in a store that is determined by the capturing device. If the particular store specified is not available, or
-// no store is specified and there are no stores available, this operation should return Store_Not_Available.
-// The capturing of new data objects is an asynchronous operation. This operation may be used to implement an
-// Initiate/Terminate mechanism to capture one or more objects over an Initiator-controlled time period, such as a
-// single long still exposure, a series of stills, audio capture, etc. Whether the time period controls the time of
-// capture for a single object or the number of fixed-time objects that are captured is determined by the Responder, and
-// may be a function of the ObjectFormatCode as well as any appropriate DeviceProperties.
+// InitiateOpenCapture causes the device to initiate the capture of one or more new data objects according to its
+// current device properties, storing the data into the store indicated by the StorageID. If the StorageID is
+// 0x00000000, the object(s) will be stored in a store that is determined by the capturing device. If the particular
+// store specified is not available, or no store is specified and there are no stores available, this operation should
+// return Store_Not_Available. The capturing of new data objects is an asynchronous operation. This operation may be
+// used to implement an Initiate/Terminate mechanism to capture one or more objects over an Initiator-controlled time
+// period, such as a single long still exposure, a series of stills, audio capture, etc. Whether the time period
+// controls the time of capture for a single object or the number of fixed-time objects that are captured is determined
+// by the Responder, and may be a function of the ObjectFormatCode as well as any appropriate DeviceProperties.
 // A separate operation, InitiateCapture, can be used to support captures that do not require the Initiator to indicate
 // when the capture should terminate.
 // If the ObjectFormatCode in the second operation parameter is 0x00000000, the device shall capture an image in the
