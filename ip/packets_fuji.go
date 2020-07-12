@@ -624,7 +624,7 @@ func (forp *FujiOperationRequestPacket) Payload() []byte {
 
 // FujiOperationResponsePacket deviates from the PTP/IP standard similarly to FujiOperationRequestPacket:
 //   - the packet type should be PKT_OperationResponse, but there is NO packet type sent out in the packet header which
-//     is, as one can imagine, extremely annoying when parsing the TCP/IP data coming in.
+//     is, as one can imagine, extremely annoying when parsing the TCP/IP data coming in
 //   - the DataPhase should be uint32 but Fuji uses uint16
 //   - the parameters returned vary in size but the PTP/IP spec defines them as UINT32, extremely annoying
 // To solve the varying parameter length, no parameters have been added to the struct but are handled separately.
