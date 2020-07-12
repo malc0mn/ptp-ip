@@ -301,7 +301,7 @@ func TestClient_readResponse(t *testing.T) {
 	gotType := rp.PacketType()
 	wantType := PKT_InitCommandAck
 	if gotType != wantType {
-		t.Errorf("readResponse() PaketType = %x; want %x", gotType, wantType)
+		t.Errorf("readResponse() PaketType = %X; want %X", gotType, wantType)
 	}
 
 	gotNum := rp.(*InitCommandAckPacket).ConnectionNumber
