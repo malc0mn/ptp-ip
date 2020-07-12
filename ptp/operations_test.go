@@ -48,6 +48,30 @@ func TestOperationResponseCodeAsString(t *testing.T) {
 	}
 }
 
+func TestOperationRequest_Session(t *testing.T) {
+	oreq := &OperationRequest{
+		SessionID: 9,
+	}
+
+	got := oreq.Session()
+	want := SessionID(9)
+	if got != want {
+		t.Errorf("Session() return = %d, want %d", got, want)
+	}
+}
+
+func TestOperationResponse_Session(t *testing.T) {
+	ores := &OperationResponse{
+		SessionID: 55,
+	}
+
+	got := ores.Session()
+	want := SessionID(55)
+	if got != want {
+		t.Errorf("Session() return = %d, want %d", got, want)
+	}
+}
+
 func TestGetDeviceInfo(t *testing.T) {
 	got := GetDeviceInfo()
 	want := OC_GetDeviceInfo
