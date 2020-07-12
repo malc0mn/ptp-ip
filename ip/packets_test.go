@@ -23,7 +23,7 @@ func TestNewInitCommandRequestPacket(t *testing.T) {
 func TestNewInitCommandRequestPacketForClient(t *testing.T) {
 	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "test", "", LevelDebug)
 	if err != nil {
-		t.Errorf("NewInitCommandRequestPacketForClient() err = %s; want <nil>", err)
+		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
 
 	got := NewInitCommandRequestPacketForClient(c)
@@ -44,10 +44,10 @@ func TestNewInitCommandRequestPacketWithVersion(t *testing.T) {
 	wantVersion := ProtocolVersion(0x00020005)
 
 	if got.GetFriendlyName() != wantName {
-		t.Errorf("NewInitCommandRequestPacket() FriendlyName = %s; want %s", got.GetFriendlyName(), wantName)
+		t.Errorf("NewInitCommandRequestPacketWithVersion() FriendlyName = %s; want %s", got.GetFriendlyName(), wantName)
 	}
 	if got.GetProtocolVersion() != wantVersion {
-		t.Errorf("NewInitCommandRequestPacket() ProtocolVersion = %#x; want %#x", got.GetProtocolVersion(), wantVersion)
+		t.Errorf("NewInitCommandRequestPacketWithVersion() ProtocolVersion = %#x; want %#x", got.GetProtocolVersion(), wantVersion)
 	}
 }
 
