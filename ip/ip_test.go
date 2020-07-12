@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/google/uuid"
-	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
-	"log"
 	"os"
 	"testing"
 )
@@ -26,35 +24,7 @@ func TestMain(m *testing.M) {
 }
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
-	c.Debugf("[ip_test] sendAnyPacket() sending %T", p)
-
-	pl := ipInternal.MarshalLittleEndian(p)
-	pll := len(pl)
-
-	// The packet length MUST include the header, so we add 8 bytes for that!
-	h := ipInternal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
-
-	// Send header.
-	n, err := w.Write(h)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if n != HeaderSize {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
-	}
-	c.Debugf("[ip_test] sendAnyPacket() header bytes written %d", n)
-
-	// Send payload.
-	n, err = w.Write(pl)
-	if n != pll {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	c.Debugf("[ip_test] sendAnyPacket() payload bytes written %d", n)
-
-	return nil
+	return sendPacket(w, p, "[ip_test]")
 }
 
 func TestNewDefaultInitiator(t *testing.T) {

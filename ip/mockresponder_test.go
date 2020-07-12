@@ -165,19 +165,28 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 	pl := internal.MarshalLittleEndian(p)
 	pll := len(pl)
 
-	// The packet length MUST include the header, so we add 8 bytes for that!
-	h := internal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
+	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
+	if p.PacketType() == PKT_Invalid {
+		// Send length only. The length must include the size of the length field, so we add 4 bytes for that!
+		_, err := w.Write(internal.MarshalLittleEndian(uint32(pll + 4)))
+		if err != nil {
+			return err
+		}
+	} else {
+		// The packet length MUST include the header, so we add 8 bytes for that!
+		h := internal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
 
-	// Send header.
-	n, err := w.Write(h)
-	if err != nil {
-		return err
-	}
+		// Send header.
+		n, err := w.Write(h)
+		if err != nil {
+			return err
+		}
 
-	if n != HeaderSize {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
+		if n != HeaderSize {
+			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
+		}
+		log.Printf("%s sendPacket header bytes written %d", lmp, n)
 	}
-	log.Printf("%s sendPacket header bytes written %d", lmp, n)
 
 	// Send payload.
 	if pll == 0 {
@@ -185,7 +194,7 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 		return nil
 	}
 
-	n, err = w.Write(pl)
+	n, err := w.Write(pl)
 	if err != nil {
 		return err
 	}
