@@ -582,6 +582,17 @@ func NewFujiInitCommandRequestPacket(guid uuid.UUID, friendlyName string) InitCo
 	}
 }
 
+func NewFujiInitCommandRequestPacketForClient(c *Client) InitCommandRequestPacket {
+	return NewFujiInitCommandRequestPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
+}
+
+func NewFujiInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName string, protocolVersion ProtocolVersion) InitCommandRequestPacket {
+	icrp := NewFujiInitCommandRequestPacket(guid, friendlyName)
+	icrp.SetProtocolVersion(protocolVersion)
+
+	return icrp
+}
+
 // NewFujiInitEventRequestPacket returns nil because Fuji does not require the Event channel to be initialised. This
 // will skip any further event channel initialisation.
 func NewFujiInitEventRequestPacket(connNum uint32) InitEventRequestPacket {
