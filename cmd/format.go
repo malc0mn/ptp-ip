@@ -17,6 +17,7 @@ func formatDevicePropVal(vendor ptp.VendorExtension, code ptp.DevicePropCode, v 
 	}
 }
 
+// TODO: add generic device info formatting.
 func formatDeviceInfo(vendor ptp.VendorExtension, data interface{}, f []string) string {
 	switch vendor {
 	case ptp.VE_FujiPhotoFilmCoLtd:

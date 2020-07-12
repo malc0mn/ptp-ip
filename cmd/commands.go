@@ -54,7 +54,6 @@ func getval(c *ip.Client, f []string) string {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	// TODO: add vendor check here or create a generic *AsString() function somehow...?
 	return formatDevicePropVal(c.ResponderVendor(), ptp.DevicePropCode(cod), int64(v)) + fmt.Sprintf(" (%#x)", v)
 }
 
