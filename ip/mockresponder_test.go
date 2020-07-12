@@ -5,20 +5,27 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
 	"net"
 )
 
+const MockedResponderGUID string = "3e8626cc-5059-4225-bdd6-d160b2e6a60f"
+
+type msgHandler func(net.Conn, string)
+
 type MockedResponder struct {
+	vendor  ptp.VendorExtension
 	address string
 	port    uint16
-	handler func(net.Conn, string)
+	handler msgHandler
 	lmp     string
 }
 
-func runResponder(address string, port uint16, handler func(net.Conn, string), lmp string) {
+func runResponder(vendor ptp.VendorExtension, address string, port uint16, handler msgHandler, lmp string) {
 	mr := &MockedResponder{
+		vendor: vendor,
 		address: address,
 		port:    port,
 		handler: handler,
@@ -28,12 +35,18 @@ func runResponder(address string, port uint16, handler func(net.Conn, string), l
 	mr.run()
 }
 
-func newLocalOkResponder(address string, port uint16) {
-	runResponder(address, port, handleMessages, "[Mocked OK responder]")
+func newLocalOkResponder(vendor string, address string, port uint16) {
+	var handler msgHandler
+	switch vendor {
+	default:
+		handler = handleGenericMessages
+	}
+
+	runResponder(ptp.VendorStringToType(vendor), address, port, handler, fmt.Sprintf("[Mocked %s OK responder]", vendor))
 }
 
 func newLocalFailResponder(address string, port uint16) {
-	runResponder(address, port, alwaysFailMessage, "[Mocked FAIL responder]")
+	runResponder(ptp.VendorExtension(0), address, port, alwaysFailMessage, "[Mocked FAIL responder]")
 }
 
 func (mr *MockedResponder) run() {
@@ -93,7 +106,7 @@ func writeMessage(w io.Writer, pkt Packet, lmp string) {
 	}
 }
 
-func handleMessages(conn net.Conn, lmp string) {
+func handleGenericMessages(conn net.Conn, lmp string) {
 	// NO defer conn.Close() here since we need to mock a real responder and thus need to keep the connections open when
 	// established and continuously listen for messages in a loop.
 	for {
@@ -110,7 +123,7 @@ func handleMessages(conn net.Conn, lmp string) {
 		switch h.PacketType {
 		case PKT_InitCommandRequest:
 			log.Printf("%s responding to InitCommandRequest", lmp)
-			uuid, _ := uuid.Parse("3e8626cc-5059-4225-bdd6-d160b2e6a60f")
+			uuid, _ := uuid.Parse(MockedResponderGUID)
 			res = &InitCommandAckPacket{
 				ConnectionNumber:         1,
 				ResponderGUID:            uuid,

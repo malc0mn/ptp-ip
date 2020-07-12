@@ -19,7 +19,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	go newLocalOkResponder(address, okPort)
+	go newLocalOkResponder(DefaultVendor, address, okPort)
 	go newLocalFailResponder(address, failPort)
 	code := m.Run()
 	os.Exit(code)
