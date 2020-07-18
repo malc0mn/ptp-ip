@@ -186,9 +186,9 @@ const (
 	// PV_Fuji is the Fuji Protocol Version required to construct a valid InitCommandRequestPacket.
 	PV_Fuji ProtocolVersion = 0x8F53E4F2
 
-	// RC_Fuji_DevicePropValue is the response code to a OC_GetDevicePropValue. The first parameter in the packet will
+	// RC_Fuji_GetDevicePropValue is the response code to a OC_GetDevicePropValue. The first parameter in the packet will
 	// hold the property value.
-	RC_Fuji_DevicePropValue = ptp.OperationResponseCode(ptp.OC_GetDevicePropValue)
+	RC_Fuji_GetDevicePropValue = ptp.OperationResponseCode(ptp.OC_GetDevicePropValue)
 	// RC_Fuji_DeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
 	RC_Fuji_DeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
 )
@@ -646,7 +646,7 @@ func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
 func (forp *FujiOperationResponsePacket) WasSuccessful() bool {
 	return forp.OperationResponseCode == ptp.RC_OK ||
 		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
-		forp.OperationResponseCode == RC_Fuji_DevicePropValue ||
+		forp.OperationResponseCode == RC_Fuji_GetDevicePropValue ||
 		forp.OperationResponseCode == RC_Fuji_DeviceInfo
 }
 
