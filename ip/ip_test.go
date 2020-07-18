@@ -254,10 +254,9 @@ func TestClient_readResponse(t *testing.T) {
 	}
 
 	guidR, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
-	p := &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)}
 
 	var b bytes.Buffer
-	c.sendAnyPacket(&b, p)
+	c.sendAnyPacket(&b, &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)})
 
 	rp, err := c.readResponse(&b, nil)
 	if err != nil {
@@ -307,10 +306,9 @@ func TestClient_readRawResponse(t *testing.T) {
 	}
 
 	guidR, _ := uuid.Parse("d2d4fce6-1181-42dd-a185-5cc40ca68321")
-	p := &InitCommandAckPacket{uint32(1), guidR, "rèmote", uint32(0x00020005)}
 
 	var b bytes.Buffer
-	c.sendAnyPacket(&b, p)
+	c.sendAnyPacket(&b, &InitCommandAckPacket{uint32(1), guidR, "rèmote", uint32(0x00020005)})
 
 	got, err := c.readRawResponse(&b)
 	if err != nil {
