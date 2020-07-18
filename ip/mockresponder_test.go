@@ -97,7 +97,7 @@ func readMessage(r io.Reader, lmp string) (Header, PacketOut, error) {
 		log.Printf("%s error reading packet %T data %s", lmp, pkt, err)
 		return h, nil, err
 	}
-	log.Printf("%v %T", pkt, pkt)
+
 	return h, pkt, nil
 }
 
