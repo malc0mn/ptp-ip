@@ -125,7 +125,7 @@ func readMessageRaw(r io.Reader, lmp string) (uint32, []byte, error) {
 	return l, b, nil
 }
 
-func writeMessage(w io.Writer, pkt Packet, lmp string) {
+func sendMessage(w io.Writer, pkt Packet, lmp string) {
 	err := sendPacket(w, pkt, lmp)
 	if err != nil {
 		log.Printf("%s error responding: %s", lmp, err)
@@ -167,7 +167,7 @@ func handleGenericMessages(conn net.Conn, lmp string) {
 			continue
 		}
 		if res != nil {
-			writeMessage(conn, res, lmp)
+			sendMessage(conn, res, lmp)
 		}
 	}
 }
@@ -239,12 +239,12 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		}
 
 		if res != nil {
-			writeMessage(conn, res, lmp)
+			sendMessage(conn, res, lmp)
 			if par != nil {
 				conn.Write(par)
 			}
 			if eodp != nil {
-				writeMessage(conn, eodp, lmp)
+				sendMessage(conn, eodp, lmp)
 			}
 		}
 	}
@@ -257,7 +257,7 @@ func alwaysFailMessage(conn net.Conn, lmp string) {
 		return
 	}
 
-	writeMessage(conn, &InitFailPacket{
+	sendMessage(conn, &InitFailPacket{
 		Reason: FR_FailRejectedInitiator,
 	}, lmp)
 }
