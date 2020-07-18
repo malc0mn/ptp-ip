@@ -19,8 +19,7 @@ var (
 func TestMain(m *testing.M) {
 	go newLocalOkResponder(DefaultVendor, address, okPort)
 	go newLocalFailResponder(address, failPort)
-	code := m.Run()
-	os.Exit(code)
+	os.Exit(m.Run())
 }
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
