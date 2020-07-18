@@ -189,6 +189,8 @@ const (
 	// RC_Fuji_GetDevicePropValue is the response code to a OC_GetDevicePropValue. The first parameter in the packet will
 	// hold the property value.
 	RC_Fuji_GetDevicePropValue = ptp.OperationResponseCode(ptp.OC_GetDevicePropValue)
+	// RC_Fuji_GetDevicePropDesc is the response code to OC_GetDevicePropDesc
+	RC_Fuji_GetDevicePropDesc = ptp.OperationResponseCode(ptp.OC_GetDevicePropDesc)
 	// RC_Fuji_DeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
 	RC_Fuji_DeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
 )

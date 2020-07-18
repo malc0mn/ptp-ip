@@ -350,3 +350,21 @@ func TestFujiOperationRequestPacket_Payload(t *testing.T) {
 		t.Errorf("payload() buffer = %s; want %s", got, want)
 	}
 }
+
+func TestFujiInitCommandDataConn(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = FujiInitCommandDataConn(c)
+	if err != nil {
+		t.Errorf("FujiInitCommandDataConn() error = %s; want <nil>", err)
+	}
+
+	got := c.TransactionId()
+	want := ptp.TransactionID(5)
+	if got != want {
+		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
+	}
+}

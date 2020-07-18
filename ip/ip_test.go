@@ -13,11 +13,13 @@ import (
 var (
 	address         = "127.0.0.1"
 	okPort          = DefaultPort
+	fujiPort uint16 = 55740
 	failPort uint16 = 25740
 )
 
 func TestMain(m *testing.M) {
 	go newLocalOkResponder(DefaultVendor, address, okPort)
+	go newLocalOkResponder("fuji", address, fujiPort)
 	go newLocalFailResponder(address, failPort)
 	os.Exit(m.Run())
 }
