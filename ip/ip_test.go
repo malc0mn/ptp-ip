@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 }
 
 func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
-	return sendPacket(w, p, "[ip_test]")
+	return sendPacket(w, p, nil, "[ip_test]")
 }
 
 func TestNewDefaultInitiator(t *testing.T) {

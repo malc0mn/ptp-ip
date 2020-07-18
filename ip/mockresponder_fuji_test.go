@@ -24,9 +24,9 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		log.Printf("%s read %d raw bytes", lmp, l)
 
 		var (
-			msg string
-			res PacketIn
-			par []byte
+			msg  string
+			resp PacketIn
+			data []byte
 		)
 		eodp := false
 
@@ -35,34 +35,30 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		// actually two uint16 numbers as if they were a single uint32!
 		switch binary.LittleEndian.Uint32(raw[0:4]) {
 		case uint32(PKT_InitCommandRequest):
-			msg, res = genericInitCommandRequestResponse(lmp, ProtocolVersion(0))
+			msg, resp = genericInitCommandRequestResponse(lmp, ProtocolVersion(0))
 		case constructPacketType(ptp.OC_GetDevicePropDesc):
-			msg, res = fujiGetDevicePropDescResponse(raw[4:8])
+			msg, resp, data = fujiGetDevicePropDescResponse(raw[4:8], raw[8:10])
 			eodp = true
 		case constructPacketType(ptp.OC_GetDevicePropValue):
-			msg, res, par = fujiGetDevicePropValueResponse(raw[4:8], raw[8:10])
+			msg, resp, data = fujiGetDevicePropValueResponse(raw[4:8], raw[8:10])
 			eodp = true
 		case constructPacketType(ptp.OC_InitiateOpenCapture):
-			msg, res = fujiInitiateOpenCaptureResponse(raw[4:8])
+			msg, resp = fujiInitiateOpenCaptureResponse(raw[4:8])
 		case constructPacketType(ptp.OC_OpenSession):
-			msg, res = fujiOpenSessionResponse(raw[4:8])
+			msg, resp = fujiOpenSessionResponse(raw[4:8])
 		case constructPacketTypeWithDataPhase(ptp.OC_SetDevicePropValue, DP_DataOut):
 			// SetDevicePropValue involves two messages, only the second one needs a response from us!
-			msg, res = fujiSetDevicePropValue(raw[4:8])
+			msg, resp = fujiSetDevicePropValue(raw[4:8])
 		}
 
-		if res != nil {
+		if resp != nil {
 			if msg != "" {
 				log.Printf("%s responding to %s", lmp, msg)
 			}
-			sendMessage(conn, res, lmp)
-			if par != nil {
-				log.Printf("%s sending parameter %#v", lmp, par)
-				conn.Write(par)
-			}
+			sendMessage(conn, resp, data, lmp)
 			if eodp {
 				log.Printf("%s sending end of data packet", lmp)
-				sendMessage(conn, fujiEndOfDataPacket(raw[4:8]), lmp)
+				sendMessage(conn, fujiEndOfDataPacket(raw[4:8]), nil, lmp)
 			}
 		}
 	}

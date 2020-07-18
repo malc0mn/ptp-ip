@@ -38,7 +38,7 @@ func handleGenericMessages(conn net.Conn, lmp string) {
 			if msg != "" {
 				log.Printf("%s responding to %s", lmp, msg)
 			}
-			sendMessage(conn, res, lmp)
+			sendMessage(conn, res, nil, lmp)
 		}
 	}
 }

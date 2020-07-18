@@ -124,8 +124,8 @@ func readMessageRaw(r io.Reader, lmp string) (uint32, []byte, error) {
 	return l, b, nil
 }
 
-func sendMessage(w io.Writer, pkt Packet, lmp string) {
-	err := sendPacket(w, pkt, lmp)
+func sendMessage(w io.Writer, pkt Packet, extra []byte, lmp string) {
+	err := sendPacket(w, pkt, extra, lmp)
 	if err != nil {
 		log.Printf("%s error responding: %s", lmp, err)
 	}
@@ -140,14 +140,17 @@ func alwaysFailMessage(conn net.Conn, lmp string) {
 
 	sendMessage(conn, &InitFailPacket{
 		Reason: FR_FailRejectedInitiator,
-	}, lmp)
+	}, nil, lmp)
 }
 
-func sendPacket(w io.Writer, p Packet, lmp string) error {
+func sendPacket(w io.Writer, p Packet, extra []byte, lmp string) error {
 	log.Printf("%s sendPacket %T", lmp, p)
 
 	pl := internal.MarshalLittleEndian(p)
 	pll := len(pl)
+	if extra != nil {
+		pll += len(extra)
+	}
 
 	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
 	if p.PacketType() == PKT_Invalid {
@@ -181,6 +184,15 @@ func sendPacket(w io.Writer, p Packet, lmp string) error {
 	if err != nil {
 		return err
 	}
+
+	if extra != nil {
+		nn, err := w.Write(extra)
+		if err != nil {
+			return err
+		}
+		n += nn
+	}
+
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
