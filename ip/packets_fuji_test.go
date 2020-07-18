@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ptp"
@@ -367,4 +368,186 @@ func TestFujiInitCommandDataConn(t *testing.T) {
 	if got != want {
 		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
 	}
+}
+
+func TestFujiSetDeviceProperty(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = FujiSetDeviceProperty(c, DPC_Fuji_FilmSimulation, uint32(FS_Fuji_Astia))
+	if err != nil {
+		t.Errorf("FujiSetDeviceProperty() error = %s; want <nil>", err)
+	}
+
+	got := c.TransactionId()
+	want := ptp.TransactionID(6)
+	if got != want {
+		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
+	}
+}
+
+func TestFujiSetDevicePropertyFail(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = FujiSetDeviceProperty(c, DPC_Fuji_FilmSimulation, uint32(FS_Fuji_Astia))
+	want := "not connected"
+	if err.Error() != want {
+		t.Errorf("FujiSetDeviceProperty() error = %s; want %s", err, want)
+	}
+}
+
+func TestFujiGetEndOfDataPacket(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := FujiGetEndOfDataPacket(c, &FujiOperationResponsePacket{
+		DataPhase:             uint16(DP_NoDataOrDataIn),
+		OperationResponseCode: RC_Fuji_DeviceInfo,
+		TransactionID:         10,
+	})
+	if err != nil {
+		t.Errorf("FujiGetEndOfDataPacket() error = %s; want <nil>", err)
+	}
+
+	var want *FujiOperationResponsePacket
+	if got != want {
+		t.Errorf("FujiGetEndOfDataPacket() got = %#v; want %#v", got, want)
+	}
+
+	got, err = FujiGetEndOfDataPacket(c, &FujiOperationResponsePacket{
+		DataPhase:             uint16(DP_Unknown),
+		OperationResponseCode: RC_Fuji_DeviceInfo,
+		TransactionID:         10,
+	})
+	if err != nil {
+		t.Errorf("FujiGetEndOfDataPacket() error = %s; want <nil>", err)
+	}
+
+	if got != want {
+		t.Errorf("FujiGetEndOfDataPacket() got = %#v; want %#v", got, want)
+	}
+
+	// TODO: how to actually test DP_DataOut here properly so we can drop the two tests above?
+}
+
+func TestFujiGetDevicePropertyValue(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := FujiGetDevicePropertyValue(c, DPC_Fuji_AppVersion)
+	if err != nil {
+		t.Errorf("FujiGetDevicePropertyValue() error = %s; want <nil>", err)
+	}
+
+	want := uint32(PM_Fuji_AppVersion)
+	if got != want {
+		t.Errorf("FujiGetDevicePropertyValue() got = %#x; want %#x", got, want)
+	}
+}
+
+func TestFujiSendOperationRequest(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// We use close session here because our fuji mock will not respond to it.
+	err = FujiSendOperationRequest(c, ptp.OC_CloseSession, PM_Fuji_NoParam)
+	if err != nil {
+		t.Errorf("FujiSendOperationRequest() error = %s; want <nil>", err)
+	}
+}
+
+func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gotPar, gotPkt, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_AppVersion), 4)
+	if err != nil {
+		t.Errorf("FujiSendOperationRequestAndGetResponse() error = %s; want <nil>", err)
+	}
+
+	wantPkt := "*ip.FujiOperationResponsePacket"
+	if fmt.Sprintf("%T", gotPkt) != wantPkt {
+		t.Errorf("FujiSendOperationRequestAndGetResponse() got = %T; want %s", gotPkt, wantPkt)
+	}
+
+	wantPar := uint32(PM_Fuji_AppVersion)
+	if gotPar != wantPar {
+		t.Errorf("FujiSendOperationRequestAndGetResponse() got = %#x; want %#x", gotPar, wantPar)
+	}
+}
+
+func TestFujiOperationRequestRaw(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := FujiOperationRequestRaw(c, ptp.OC_GetDevicePropDesc, []uint32{uint32(DPC_Fuji_FilmSimulation)})
+	if err != nil {
+		t.Errorf("FujiOperationRequestRaw() error = %s; want <nil>", err)
+	}
+
+	want := [][]byte{
+		// Raw response.
+		{0x2e, 0x00, 0x00, 0x00, 0x02, 0x00, 0x14, 0x10, 0x06, 0x00, 0x00, 0x00, 0x01, 0xd0, 0x04, 0x00, 0x01, 0x01, 0x00, 0x01, 0x00, 0x02, 0x0b, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0x0a, 0x00, 0x0b, 0x00},
+		// Raw end of data packet.
+		{0xc, 0x0, 0x0, 0x0, 0x3, 0x0, 0x1, 0x20, 0x6, 0x0, 0x0, 0x0},
+	}
+	for i, g := range got {
+		if bytes.Compare(g, want[i]) != 0 {
+			t.Errorf("FujiOperationRequestRaw() got = %#v; want %#v", got, want)
+		}
+	}
+}
+
+func TestFujiGetDeviceInfo(t *testing.T) {
+	// TODO
+}
+
+func TestFujiGetDeviceState(t *testing.T) {
+	// TODO
 }

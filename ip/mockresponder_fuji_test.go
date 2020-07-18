@@ -72,9 +72,17 @@ func constructPacketTypeWithDataPhase(code ptp.OperationCode, dp DataPhase) uint
 	return uint32(code)<<16 | uint32(dp)
 }
 
-func fujiGetDevicePropDescResponse(tid []byte) (string, *FujiOperationResponsePacket) {
+func fujiGetDevicePropDescResponse(tid []byte, prop []byte) (string, *FujiOperationResponsePacket, []byte) {
+	var p []byte
+
+	switch binary.LittleEndian.Uint16(prop) {
+	case uint16(DPC_Fuji_FilmSimulation):
+		p = []byte{0x01, 0xd0, 0x04, 0x00, 0x01, 0x01, 0x00, 0x01, 0x00, 0x02, 0x0b, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0x0a, 0x00, 0x0b, 0x00}
+	}
+
 	return "GetDevicePropDesc",
-		fujiOperationResponsePacket(DP_DataOut, RC_Fuji_GetDevicePropDesc, tid)
+		fujiOperationResponsePacket(DP_DataOut, RC_Fuji_GetDevicePropDesc, tid),
+		p
 }
 
 func fujiGetDevicePropValueResponse(tid []byte, prop []byte) (string, *FujiOperationResponsePacket, []byte) {
