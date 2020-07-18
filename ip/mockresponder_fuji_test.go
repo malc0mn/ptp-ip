@@ -57,7 +57,7 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 			}
 			sendMessage(conn, res, lmp)
 			if par != nil {
-				log.Printf("%s sending parameter %v", lmp, par)
+				log.Printf("%s sending parameter %#v", lmp, par)
 				conn.Write(par)
 			}
 			if eodp {
