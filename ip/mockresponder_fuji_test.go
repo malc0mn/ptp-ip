@@ -30,23 +30,23 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		)
 		eodp := false
 
-		// This construction is thanks to the Fuji decision of not properly using packet types. Watch out for the
-		// caveat here: we need to swap the order of the data phase and the operation request code because we're
-		// we're reading two uint16 numbers as a uint32!!!
+		// This construction is thanks to the Fuji decision of not properly using packet types. Watch out for the caveat
+		// here: we need to swap the order of the DataPhase and the OperationRequestCode because we are reading what are
+		// actually two uint16 numbers as if they were a single uint32!
 		switch binary.LittleEndian.Uint32(raw[0:4]) {
 		case uint32(PKT_InitCommandRequest):
 			msg, res = genericInitCommandRequestResponse(lmp, ProtocolVersion(0))
-		case uint32(ptp.OC_GetDevicePropDesc)<<16 | uint32(DP_NoDataOrDataIn):
+		case constructPacketType(ptp.OC_GetDevicePropDesc):
 			msg, res = fujiGetDevicePropDescResponse(raw[4:8])
 			eodp = true
-		case uint32(ptp.OC_GetDevicePropValue)<<16 | uint32(DP_NoDataOrDataIn):
+		case constructPacketType(ptp.OC_GetDevicePropValue):
 			msg, res, par = fujiGetDevicePropValueResponse(raw[4:8], raw[8:10])
 			eodp = true
-		case uint32(ptp.OC_InitiateOpenCapture)<<16 | uint32(DP_NoDataOrDataIn):
+		case constructPacketType(ptp.OC_InitiateOpenCapture):
 			msg, res = fujiInitiateOpenCaptureResponse(raw[4:8])
-		case uint32(ptp.OC_OpenSession)<<16 | uint32(DP_NoDataOrDataIn):
+		case constructPacketType(ptp.OC_OpenSession):
 			msg, res = fujiOpenSessionResponse(raw[4:8])
-		case uint32(ptp.OC_SetDevicePropValue)<<16 | uint32(DP_DataOut):
+		case constructPacketTypeWithDataPhase(ptp.OC_SetDevicePropValue, DP_DataOut):
 			// SetDevicePropValue involves two messages, only the second one needs a response from us!
 			msg, res = fujiSetDevicePropValue(raw[4:8])
 		}
@@ -66,6 +66,14 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 			}
 		}
 	}
+}
+
+func constructPacketType(code ptp.OperationCode) uint32 {
+	return constructPacketTypeWithDataPhase(code, DP_NoDataOrDataIn)
+}
+
+func constructPacketTypeWithDataPhase(code ptp.OperationCode, dp DataPhase) uint32 {
+	return uint32(code)<<16 | uint32(dp)
 }
 
 func fujiGetDevicePropDescResponse(tid []byte) (string, *FujiOperationResponsePacket) {
