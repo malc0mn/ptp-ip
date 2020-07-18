@@ -11,11 +11,11 @@ import (
 	"net"
 )
 
-const MockedResponderGUID string = "3e8626cc-5059-4225-bdd6-d160b2e6a60f"
+const MockResponderGUID string = "3e8626cc-5059-4225-bdd6-d160b2e6a60f"
 
 type msgHandler func(net.Conn, string)
 
-type MockedResponder struct {
+type MockResponder struct {
 	vendor  ptp.VendorExtension
 	address string
 	port    uint16
@@ -24,8 +24,8 @@ type MockedResponder struct {
 }
 
 func runResponder(vendor ptp.VendorExtension, address string, port uint16, handler msgHandler, lmp string) {
-	mr := &MockedResponder{
-		vendor: vendor,
+	mr := &MockResponder{
+		vendor:  vendor,
 		address: address,
 		port:    port,
 		handler: handler,
@@ -51,7 +51,7 @@ func newLocalFailResponder(address string, port uint16) {
 	runResponder(ptp.VendorExtension(0), address, port, alwaysFailMessage, "[Mocked FAIL responder]")
 }
 
-func (mr *MockedResponder) run() {
+func (mr *MockResponder) run() {
 	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", mr.address, mr.port))
 	defer ln.Close()
 	if err != nil {
@@ -149,7 +149,7 @@ func handleGenericMessages(conn net.Conn, lmp string) {
 		switch h.PacketType {
 		case PKT_InitCommandRequest:
 			log.Printf("%s responding to InitCommandRequest", lmp)
-			uuid, _ := uuid.Parse(MockedResponderGUID)
+			uuid, _ := uuid.Parse(MockResponderGUID)
 			res = &InitCommandAckPacket{
 				ConnectionNumber:         1,
 				ResponderGUID:            uuid,
@@ -195,7 +195,7 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		switch binary.LittleEndian.Uint32(raw[0:4]) {
 		case uint32(PKT_InitCommandRequest):
 			log.Printf("%s responding to InitCommandRequest", lmp)
-			uuid, _ := uuid.Parse(MockedResponderGUID)
+			uuid, _ := uuid.Parse(MockResponderGUID)
 			res = &InitCommandAckPacket{
 				ConnectionNumber:         1,
 				ResponderGUID:            uuid,
