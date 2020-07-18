@@ -111,7 +111,7 @@ func readMessageRaw(r io.Reader, lmp string) (uint32, []byte, error) {
 		if err == io.EOF {
 			log.Printf("%s client disconnected", lmp)
 		} else {
-			log.Printf("%s error reading header: %s", lmp, err)
+			log.Printf("%s error reading packet length: %s", lmp, err)
 		}
 		return l, nil, err
 	}
