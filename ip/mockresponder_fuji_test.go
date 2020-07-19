@@ -2,6 +2,7 @@ package ip
 
 import (
 	"encoding/binary"
+	"fmt"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
@@ -82,7 +83,7 @@ func fujiGetDevicePropDescResponse(tid []byte, prop []byte) (string, *FujiOperat
 		}
 	}
 
-	return "GetDevicePropDesc",
+	return fmt.Sprintf("GetDevicePropDesc %#x", binary.LittleEndian.Uint16(prop)),
 		fujiOperationResponsePacket(DP_DataOut, RC_Fuji_GetDevicePropDesc, tid),
 		p
 }
@@ -98,7 +99,7 @@ func fujiGetDevicePropValueResponse(tid []byte, prop []byte) (string, *FujiOpera
 	p := make([]byte, 4)
 	binary.LittleEndian.PutUint32(p, par)
 
-	return "GetDevicePropValue",
+	return fmt.Sprintf("GetDevicePropValue %#x", binary.LittleEndian.Uint16(prop)),
 		fujiOperationResponsePacket(DP_DataOut, RC_Fuji_GetDevicePropValue, tid),
 		p
 }
