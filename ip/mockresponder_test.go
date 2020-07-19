@@ -2,15 +2,42 @@ package ip
 
 import (
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
 	"net"
+	"os"
+	"testing"
 )
 
 const MockResponderGUID string = "3e8626cc-5059-4225-bdd6-d160b2e6a60f"
+
+var (
+	address         = "127.0.0.1"
+	okPort          = DefaultPort
+	fujiPort uint16 = 55740
+	failPort uint16 = 25740
+	logLevel        = LevelSilent
+	lgr      Logger
+)
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	if testing.Verbose() {
+		logLevel = LevelDebug
+	}
+
+	lgr = NewLogger(logLevel, os.Stderr, "", log.LstdFlags)
+
+	go newLocalOkResponder(DefaultVendor, address, okPort)
+	go newLocalOkResponder("fuji", address, fujiPort)
+	go newLocalFailResponder(address, failPort)
+	os.Exit(m.Run())
+}
 
 type msgHandler func(net.Conn, string)
 
@@ -54,18 +81,18 @@ func (mr *MockResponder) run() {
 	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", mr.address, mr.port))
 	defer ln.Close()
 	if err != nil {
-		log.Printf("%s error %s...", mr.lmp, err)
+		lgr.Errorf("%s error %s...", mr.lmp, err)
 		return
 	}
-	log.Printf("%s listening on %s...", mr.lmp, ln.Addr().String())
+	lgr.Infof("%s listening on %s...", mr.lmp, ln.Addr().String())
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Printf("%s accept error %s...", mr.lmp, err)
+			lgr.Errorf("%s accept error %s...", mr.lmp, err)
 			continue
 		}
-		log.Printf("%s new connection %v...", mr.lmp, conn)
+		lgr.Infof("%s new connection %v...", mr.lmp, conn)
 		go mr.handler(conn, mr.lmp)
 	}
 }
@@ -74,26 +101,26 @@ func readMessage(r io.Reader, lmp string) (Header, PacketOut, error) {
 	var err error
 
 	var h Header
-	log.Printf("%s awaiting packet header...", lmp)
+	lgr.Infof("%s awaiting packet header...", lmp)
 	err = binary.Read(r, binary.LittleEndian, &h)
 	if err != nil {
 		if err == io.EOF {
-			log.Printf("%s client disconnected", lmp)
+			lgr.Infof("%s client disconnected", lmp)
 		} else {
-			log.Printf("%s error reading header: %s", lmp, err)
+			lgr.Errorf("%s error reading header: %s", lmp, err)
 		}
 		return h, nil, err
 	}
 	pkt, err := NewPacketOutFromPacketType(h.PacketType)
 	if err != nil {
-		log.Printf("%s error creating packet: %s", lmp, err)
+		lgr.Errorf("%s error creating packet: %s", lmp, err)
 		return h, nil, err
 	}
 
 	vs := int(h.Length) - HeaderSize - internal.TotalSizeOfFixedFields(pkt)
 	err = internal.UnmarshalLittleEndian(r, pkt, int(h.Length), vs)
 	if err != nil {
-		log.Printf("%s error reading packet %T data %s", lmp, pkt, err)
+		lgr.Errorf("%s error reading packet %T data %s", lmp, pkt, err)
 		return h, nil, err
 	}
 
@@ -104,20 +131,20 @@ func readMessageRaw(r io.Reader, lmp string) (uint32, []byte, error) {
 	var err error
 
 	var l uint32
-	log.Printf("%s awaiting packet length...", lmp)
+	lgr.Infof("%s awaiting packet length...", lmp)
 	err = binary.Read(r, binary.LittleEndian, &l)
 	if err != nil {
 		if err == io.EOF {
-			log.Printf("%s client disconnected", lmp)
+			lgr.Infof("%s client disconnected", lmp)
 		} else {
-			log.Printf("%s error reading packet length: %s", lmp, err)
+			lgr.Errorf("%s error reading packet length: %s", lmp, err)
 		}
 		return l, nil, err
 	}
 
 	b := make([]byte, int(l)-4)
 	if err := binary.Read(r, binary.LittleEndian, &b); err != nil {
-		log.Printf("%s error reading payload: %s", lmp, err)
+		lgr.Errorf("%s error reading payload: %s", lmp, err)
 		return l, nil, err
 	}
 
@@ -127,7 +154,7 @@ func readMessageRaw(r io.Reader, lmp string) (uint32, []byte, error) {
 func sendMessage(w io.Writer, pkt Packet, extra []byte, lmp string) {
 	err := sendAnyPacket(w, pkt, extra, lmp)
 	if err != nil {
-		log.Printf("%s error responding: %s", lmp, err)
+		lgr.Errorf("%s error responding: %s", lmp, err)
 	}
 }
 
@@ -144,7 +171,7 @@ func alwaysFailMessage(conn net.Conn, lmp string) {
 }
 
 func sendAnyPacket(w io.Writer, p Packet, extra []byte, lmp string) error {
-	log.Printf("%s sendAnyPacket() %T", lmp, p)
+	lgr.Infof("%s sendAnyPacket() %T", lmp, p)
 
 	pl := internal.MarshalLittleEndian(p)
 	pll := len(pl)
@@ -171,12 +198,12 @@ func sendAnyPacket(w io.Writer, p Packet, extra []byte, lmp string) error {
 		if n != HeaderSize {
 			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
 		}
-		log.Printf("%s sendAnyPacket() header bytes written %d", lmp, n)
+		lgr.Infof("%s sendAnyPacket() header bytes written %d", lmp, n)
 	}
 
 	// Send payload.
 	if pll == 0 {
-		log.Printf("%s sendAnyPacket() packet has no payload", lmp)
+		lgr.Infof("%s sendAnyPacket() packet has no payload", lmp)
 		return nil
 	}
 
@@ -197,7 +224,7 @@ func sendAnyPacket(w io.Writer, p Packet, extra []byte, lmp string) error {
 		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
 	}
 
-	log.Printf("%s sendAnyPacket() payload bytes written %d", lmp, n)
+	lgr.Infof("%s sendAnyPacket() payload bytes written %d", lmp, n)
 
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
-	"log"
 	"net"
 )
 
@@ -22,7 +21,7 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 			continue
 		}
 
-		log.Printf("%s read %d raw bytes", lmp, l)
+		lgr.Infof("%s read %d raw bytes", lmp, l)
 
 		var (
 			msg  string
@@ -57,11 +56,11 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 
 		if resp != nil {
 			if msg != "" {
-				log.Printf("%s responding to %s", lmp, msg)
+				lgr.Infof("%s responding to %s", lmp, msg)
 			}
 			sendMessage(conn, resp, data, lmp)
 			if eodp {
-				log.Printf("%s sending end of data packet", lmp)
+				lgr.Infof("%s sending end of data packet", lmp)
 				sendMessage(conn, fujiEndOfDataPacket(raw[4:8]), nil, lmp)
 			}
 		}

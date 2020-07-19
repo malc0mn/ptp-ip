@@ -3,7 +3,6 @@ package ip
 import (
 	"github.com/google/uuid"
 	"io"
-	"log"
 	"net"
 )
 
@@ -30,13 +29,13 @@ func handleGenericMessages(conn net.Conn, lmp string) {
 		case PKT_OperationRequest:
 			msg, res = genericOperationRequestResponse()
 		default:
-			log.Printf("%s unknown packet type %#x", lmp, h.PacketType)
+			lgr.Errorf("%s unknown packet type %#x", lmp, h.PacketType)
 			continue
 		}
 
 		if res != nil {
 			if msg != "" {
-				log.Printf("%s responding to %s", lmp, msg)
+				lgr.Infof("%s responding to %s", lmp, msg)
 			}
 			sendMessage(conn, res, nil, lmp)
 		}

@@ -5,23 +5,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ptp"
-	"os"
 	"testing"
 )
-
-var (
-	address         = "127.0.0.1"
-	okPort          = DefaultPort
-	fujiPort uint16 = 55740
-	failPort uint16 = 25740
-)
-
-func TestMain(m *testing.M) {
-	go newLocalOkResponder(DefaultVendor, address, okPort)
-	go newLocalOkResponder("fuji", address, fujiPort)
-	go newLocalFailResponder(address, failPort)
-	os.Exit(m.Run())
-}
 
 func TestNewDefaultInitiator(t *testing.T) {
 	got, err := NewDefaultInitiator()
@@ -78,7 +63,7 @@ func TestNewResponder(t *testing.T) {
 
 func TestNewClient(t *testing.T) {
 	guid := "cf2407bc-4b4c-4525-9622-afb30db356df"
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", guid, LevelDebug)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", guid, logLevel)
 	if err != nil {
 		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
@@ -145,7 +130,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_SetCommandDataPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", LevelDebug)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +148,7 @@ func TestClient_SetCommandDataPort(t *testing.T) {
 }
 
 func TestClient_SetEventPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", LevelDebug)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +166,7 @@ func TestClient_SetEventPort(t *testing.T) {
 }
 
 func TestClient_SetStreamerPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", LevelDebug)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +209,7 @@ func TestClient_incrementTransactionId(t *testing.T) {
 }
 
 func TestClient_sendPacket(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd", LevelDebug)
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "e462b590-b516-474a-9db8-a465b370fabd", logLevel)
 	if err != nil {
 		t.Errorf("sendPacket() err = %s; want <nil>", err)
 	}
@@ -243,7 +228,7 @@ func TestClient_sendPacket(t *testing.T) {
 }
 
 func TestClient_readResponse(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6", LevelDebug)
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6", logLevel)
 	if err != nil {
 		t.Errorf("readResponse() err = %s; want <nil>", err)
 	}
@@ -300,7 +285,7 @@ func TestClient_readResponse(t *testing.T) {
 }
 
 func TestClient_readRawResponse(t *testing.T) {
-	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "wrîter", "617b38ef-b6e6-4ef6-b2ad-ea51cecdbbd3", LevelDebug)
+	c, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "wrîter", "617b38ef-b6e6-4ef6-b2ad-ea51cecdbbd3", logLevel)
 	if err != nil {
 		t.Errorf("readRawResponse() err = %s; want <nil>", err)
 	}
@@ -327,7 +312,7 @@ func TestClient_readRawResponse(t *testing.T) {
 }
 
 func TestClient_initCommandDataConn(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -344,7 +329,7 @@ func TestClient_initCommandDataConn(t *testing.T) {
 	}
 }
 func TestClient_initCommandDataConnFail(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6", LevelDebug)
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -362,7 +347,7 @@ func TestClient_initCommandDataConnFail(t *testing.T) {
 }
 
 func TestClient_initEventConn(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -380,7 +365,7 @@ func TestClient_initEventConn(t *testing.T) {
 }
 
 func TestClient_initEventConnFail(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278", LevelDebug)
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "733e8d71-0f05-4aba-9745-ea9294dd2278", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -398,7 +383,7 @@ func TestClient_initEventConnFail(t *testing.T) {
 }
 
 func TestClient_Dial(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0", LevelDebug)
+	c, err := NewClient(DefaultVendor, address, okPort, "testèr", "7e5ac7d3-46b7-4c50-b0d9-ba56c0e599f0", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -409,7 +394,7 @@ func TestClient_Dial(t *testing.T) {
 		t.Errorf("Dial() err = %s; want <nil>", err)
 	}
 
-	c, err = NewClient(DefaultVendor, address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024", LevelDebug)
+	c, err = NewClient(DefaultVendor, address, failPort, "testér", "f62b41f8-a094-4dab-b537-99afd04c6024", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -422,7 +407,7 @@ func TestClient_Dial(t *testing.T) {
 }
 
 func TestClient_GetDeviceInfo(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d", LevelDebug)
+	c, err := NewClient(DefaultVendor, address, okPort, "tèster", "558acd44-f794-4b26-9129-d460b2a29e8d", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)

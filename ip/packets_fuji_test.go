@@ -307,7 +307,7 @@ func TestNewFujiInitCommandRequestPacket(t *testing.T) {
 }
 
 func TestNewFujiInitCommandRequestPacketForClient(t *testing.T) {
-	c, err := NewClient("fuji", DefaultIpAddress, DefaultPort, "test", "", LevelDebug)
+	c, err := NewClient("fuji", DefaultIpAddress, DefaultPort, "test", "", logLevel)
 	if err != nil {
 		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
@@ -354,7 +354,7 @@ func TestFujiOperationRequestPacket_Payload(t *testing.T) {
 }
 
 func TestFujiInitCommandDataConn(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -372,7 +372,7 @@ func TestFujiInitCommandDataConn(t *testing.T) {
 }
 
 func TestFujiSetDeviceProperty(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -396,7 +396,7 @@ func TestFujiSetDeviceProperty(t *testing.T) {
 }
 
 func TestFujiSetDevicePropertyFail(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -409,7 +409,7 @@ func TestFujiSetDevicePropertyFail(t *testing.T) {
 }
 
 func TestFujiGetEndOfDataPacket(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -446,7 +446,7 @@ func TestFujiGetEndOfDataPacket(t *testing.T) {
 }
 
 func TestFujiGetDevicePropertyValue(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -469,7 +469,7 @@ func TestFujiGetDevicePropertyValue(t *testing.T) {
 }
 
 func TestFujiSendOperationRequest(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -488,7 +488,7 @@ func TestFujiSendOperationRequest(t *testing.T) {
 }
 
 func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -516,7 +516,7 @@ func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
 }
 
 func TestFujiOperationRequestRaw(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -547,7 +547,7 @@ func TestFujiOperationRequestRaw(t *testing.T) {
 }
 
 func TestFujiGetDeviceInfo(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -700,7 +700,7 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 }
 
 func TestFujiGetDeviceState(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
