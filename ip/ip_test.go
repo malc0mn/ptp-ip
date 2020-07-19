@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ptp"
-	"io"
 	"os"
 	"testing"
 )
@@ -22,10 +21,6 @@ func TestMain(m *testing.M) {
 	go newLocalOkResponder("fuji", address, fujiPort)
 	go newLocalFailResponder(address, failPort)
 	os.Exit(m.Run())
-}
-
-func (c *Client) sendAnyPacket(w io.Writer, p Packet) error {
-	return sendPacket(w, p, nil, "[ip_test]")
 }
 
 func TestNewDefaultInitiator(t *testing.T) {
@@ -256,7 +251,12 @@ func TestClient_readResponse(t *testing.T) {
 	guidR, _ := uuid.Parse("7c946ae4-6d6a-4589-90ed-d059f8cc426b")
 
 	var b bytes.Buffer
-	c.sendAnyPacket(&b, &InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)})
+	sendAnyPacket(
+		&b,
+		&InitCommandAckPacket{uint32(1), guidR, "remôte", uint32(0x00020005)},
+		nil,
+		"[ip_test]",
+	)
 
 	rp, err := c.readResponse(&b, nil)
 	if err != nil {
@@ -308,7 +308,12 @@ func TestClient_readRawResponse(t *testing.T) {
 	guidR, _ := uuid.Parse("d2d4fce6-1181-42dd-a185-5cc40ca68321")
 
 	var b bytes.Buffer
-	c.sendAnyPacket(&b, &InitCommandAckPacket{uint32(1), guidR, "rèmote", uint32(0x00020005)})
+	sendAnyPacket(
+		&b,
+		&InitCommandAckPacket{uint32(1), guidR, "rèmote", uint32(0x00020005)},
+		nil,
+		"[ip_test]",
+	)
 
 	got, err := c.readRawResponse(&b)
 	if err != nil {
