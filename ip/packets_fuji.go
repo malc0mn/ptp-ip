@@ -854,6 +854,8 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 		}
 	}
 
+	// TODO: check if there is data on the event connection and read that as well!
+
 	return raw, err
 }
 
