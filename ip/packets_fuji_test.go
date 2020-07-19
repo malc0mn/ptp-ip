@@ -540,6 +540,7 @@ func TestFujiOperationRequestRaw(t *testing.T) {
 	for i, g := range got {
 		if bytes.Compare(g, want[i]) != 0 {
 			t.Errorf("FujiOperationRequestRaw() got = %#v; want %#v", got, want)
+			break
 		}
 	}
 }
