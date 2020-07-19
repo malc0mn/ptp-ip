@@ -115,9 +115,9 @@ type Event struct {
 	// of any parameter is dependent upon the EventCode. Any unused parameter fields should be set to 0x00000000. If a
 	// parameter holds a value that is less than 32 bits, the lowest significant bits shall be used to store the value,
 	// with the most significant bits being set to zeros.
-	Parameter1 interface{}
-	Parameter2 interface{}
-	Parameter3 interface{}
+	Parameter1 []byte
+	Parameter2 []byte
+	Parameter3 []byte
 }
 
 func (e *Event) Session() SessionID {
