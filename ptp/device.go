@@ -306,7 +306,7 @@ type DevicePropDesc struct {
 	// FormFlag indicates the format of the next field.
 	FormFlag DevicePropFormFlag
 	// Form is the Enumeration-Form or the Range-Form, or is absent if FormFlag = 0.
-	Form interface{}
+	Form Form
 }
 
 func (dpd *DevicePropDesc) SizeOfValueInBytes() int {
@@ -332,6 +332,10 @@ func (dpd *DevicePropDesc) CurrentValueAsInt64() int64 {
 	return byteArrayToInt64(dpd.CurrentValue, dpd.SizeOfValueInBytes())
 }
 
+type Form interface {
+	SetDevicePropDesc(*DevicePropDesc)
+}
+
 type RangeForm struct {
 	DevicePropDesc *DevicePropDesc
 	// MinimumValue is the minimum value of the property supported by the device.
@@ -342,6 +346,10 @@ type RangeForm struct {
 	// A particular vendor's device shall support all values of a property defined by MinimumValue + N x StepSize which
 	// is less than or equal to MaximumValue where N=0 to a vendor defined maximum.
 	StepSize []byte
+}
+
+func (rf *RangeForm) SetDevicePropDesc(dpd *DevicePropDesc) {
+	rf.DevicePropDesc = dpd
 }
 
 func (rf *RangeForm) MinimumValueAsInt64() int64 {
@@ -362,6 +370,10 @@ type EnumerationForm struct {
 	NumberOfValues int
 	// SupportedValues holds the list of supported values.
 	SupportedValues [][]byte
+}
+
+func (ef *EnumerationForm) SetDevicePropDesc(dpd *DevicePropDesc) {
+	ef.DevicePropDesc = dpd
 }
 
 func (ef *EnumerationForm) SupportedValuesAsInt64Array() []int64 {

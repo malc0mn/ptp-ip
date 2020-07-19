@@ -915,7 +915,7 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 			form := new(ptp.RangeForm)
 			c.Debug("Property is a range type, filling range form...")
 
-			form.DevicePropDesc = dpd
+			form.SetDevicePropDesc(dpd)
 
 			// Minimum possible value.
 			form.MinimumValue = make([]byte, dpd.SizeOfValueInBytes())
@@ -940,7 +940,7 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 			form := new(ptp.EnumerationForm)
 			c.Debug("Property is an enum type, filling enum form...")
 
-			form.DevicePropDesc = dpd
+			form.SetDevicePropDesc(dpd)
 
 			// First read the number of values that will follow.
 			var num uint16
