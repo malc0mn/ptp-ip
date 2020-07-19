@@ -644,14 +644,26 @@ func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(forp)
 }
 
-// TODO: make this better, obviously...
-func (forp *FujiOperationResponsePacket) WasSuccessful() bool {
-	return forp.OperationResponseCode == ptp.RC_OK ||
-		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
-		forp.OperationResponseCode == RC_Fuji_GetDevicePropValue ||
-		forp.OperationResponseCode == RC_Fuji_GetDeviceInfo
+func operationCodeToOKResponseCode(oc ptp.OperationCode) ptp.OperationResponseCode {
+	switch oc {
+	case OC_Fuji_GetDeviceInfo:
+		return RC_Fuji_GetDeviceInfo
+	case ptp.OC_GetDevicePropValue:
+		return RC_Fuji_GetDevicePropValue
+	case ptp.OC_OpenSession:
+		return ptp.RC_SessionAlreadyOpen
+	default:
+		return 0
+	}
 }
 
+// WasSuccessful indicates if the operation request was successful by investigating the operation response code. By
+// default it will check for ptp.RC_OK. If you expect another valid response code, you can pass it in.
+func (forp *FujiOperationResponsePacket) WasSuccessful(rc ptp.OperationResponseCode) bool {
+	return forp.OperationResponseCode == ptp.RC_OK || (rc != 0 && forp.OperationResponseCode == rc)
+}
+
+// ReasonAsError returns an error based on the operation response code.
 func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 	return errors.New(ptp.OperationResponseCodeAsString(forp.OperationResponseCode))
 }
@@ -738,7 +750,7 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 		return err
 	}
 
-	if !p.WasSuccessful() {
+	if !p.WasSuccessful(0) {
 		return p.ReasonAsError()
 	}
 
@@ -753,6 +765,10 @@ func FujiGetEndOfDataPacket(c *Client, orp *FujiOperationResponsePacket) (*FujiO
 	eodp := new(FujiOperationResponsePacket)
 	if _, err := c.WaitForPacketFromCmdDataConn(eodp); err != nil {
 		return nil, err
+	}
+
+	if eodp != nil && !eodp.WasSuccessful(0) {
+		return nil, eodp.ReasonAsError()
 	}
 
 	return eodp, nil
@@ -770,13 +786,9 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 		return 0, err
 	}
 
-	eodp, err := FujiGetEndOfDataPacket(c, rp)
+	_, err = FujiGetEndOfDataPacket(c, rp)
 	if err != nil {
 		return 0, err
-	}
-
-	if eodp != nil && !eodp.WasSuccessful() {
-		return 0, eodp.ReasonAsError()
 	}
 
 	return val, nil
@@ -824,7 +836,7 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 		parameter = binary.LittleEndian.Uint32(b)
 	}
 
-	if !p.WasSuccessful() {
+	if !p.WasSuccessful(operationCodeToOKResponseCode(code)) {
 		return 0, nil, p.ReasonAsError()
 	}
 
@@ -963,13 +975,9 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 		list[i] = dpd
 	}
 
-	eodp, err := FujiGetEndOfDataPacket(c, rp)
+	_, err = FujiGetEndOfDataPacket(c, rp)
 	if err != nil {
 		return nil, err
-	}
-
-	if eodp != nil && !eodp.WasSuccessful() {
-		return nil, eodp.ReasonAsError()
 	}
 
 	return list, nil
@@ -1003,13 +1011,9 @@ func FujiGetDeviceState(c *Client) (interface{}, error) {
 		list[i] = dpd
 	}
 
-	eodp, err := FujiGetEndOfDataPacket(c, rp)
+	_, err = FujiGetEndOfDataPacket(c, rp)
 	if err != nil {
 		return nil, err
-	}
-
-	if eodp != nil && !eodp.WasSuccessful() {
-		return nil, eodp.ReasonAsError()
 	}
 
 	return list, nil
