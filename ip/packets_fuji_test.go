@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"reflect"
 	"testing"
 )
 
@@ -550,5 +551,46 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 }
 
 func TestFujiGetDeviceState(t *testing.T) {
-	// TODO
+	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", LevelDebug)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := FujiGetDeviceState(c)
+	if err != nil {
+		t.Errorf("FujiGetDeviceState() error = %s; want <nil>", err)
+	}
+
+	want := []*ptp.DevicePropDesc{
+		{DevicePropertyCode: ptp.DPC_BatteryLevel, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x02, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_ImageAspectRatio, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x0a, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: ptp.DPC_WhiteBalance, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x02, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: ptp.DPC_FocusMode, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x01, 0x80, 0x00, 0x00}},
+		{DevicePropertyCode: ptp.DPC_FlashMode, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x0a, 0x80, 0x00, 0x00}},
+		{DevicePropertyCode: ptp.DPC_ExposureProgramMode, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x02, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: ptp.DPC_ExposureBiasCompensation, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0xb3, 0xfe, 0x00, 0x00}},
+		{DevicePropertyCode: ptp.DPC_CaptureDelay, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_FilmSimulation, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x02, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_ImageQuality, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x04, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_CommandDialMode, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_ExposureIndex, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x19, 0x00, 0x80}},
+		{DevicePropertyCode: DPC_Fuji_FocusMeteringMode, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x02, 0x07, 0x02, 0x03}},
+		{DevicePropertyCode: DPC_Fuji_FocusLock, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_DeviceError, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x00, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_ImageSpaceSD, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0xd6, 0x05, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_MovieRemainingTime, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x8f, 0x06, 0x00, 0x00}},
+	}
+
+	for i, g := range got.([]*ptp.DevicePropDesc) {
+		if !reflect.DeepEqual(g, want[i]) {
+			t.Errorf("FujiGetDeviceState() got = %#v; want %#v", got, want)
+			break
+		}
+	}
 }
