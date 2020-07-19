@@ -417,7 +417,7 @@ func TestFujiGetEndOfDataPacket(t *testing.T) {
 
 	got, err := FujiGetEndOfDataPacket(c, &FujiOperationResponsePacket{
 		DataPhase:             uint16(DP_NoDataOrDataIn),
-		OperationResponseCode: RC_Fuji_DeviceInfo,
+		OperationResponseCode: RC_Fuji_GetDeviceInfo,
 		TransactionID:         10,
 	})
 	if err != nil {
@@ -431,7 +431,7 @@ func TestFujiGetEndOfDataPacket(t *testing.T) {
 
 	got, err = FujiGetEndOfDataPacket(c, &FujiOperationResponsePacket{
 		DataPhase:             uint16(DP_Unknown),
-		OperationResponseCode: RC_Fuji_DeviceInfo,
+		OperationResponseCode: RC_Fuji_GetDeviceInfo,
 		TransactionID:         10,
 	})
 	if err != nil {

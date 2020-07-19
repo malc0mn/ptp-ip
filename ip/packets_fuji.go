@@ -191,8 +191,8 @@ const (
 	RC_Fuji_GetDevicePropValue = ptp.OperationResponseCode(ptp.OC_GetDevicePropValue)
 	// RC_Fuji_GetDevicePropDesc is the response code to OC_GetDevicePropDesc
 	RC_Fuji_GetDevicePropDesc = ptp.OperationResponseCode(ptp.OC_GetDevicePropDesc)
-	// RC_Fuji_DeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
-	RC_Fuji_DeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
+	// RC_Fuji_GetDeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
+	RC_Fuji_GetDeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
 )
 
 func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
@@ -649,7 +649,7 @@ func (forp *FujiOperationResponsePacket) WasSuccessful() bool {
 	return forp.OperationResponseCode == ptp.RC_OK ||
 		forp.OperationResponseCode == ptp.RC_SessionAlreadyOpen ||
 		forp.OperationResponseCode == RC_Fuji_GetDevicePropValue ||
-		forp.OperationResponseCode == RC_Fuji_DeviceInfo
+		forp.OperationResponseCode == RC_Fuji_GetDeviceInfo
 }
 
 func (forp *FujiOperationResponsePacket) ReasonAsError() error {
