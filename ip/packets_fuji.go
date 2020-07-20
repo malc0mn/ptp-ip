@@ -597,7 +597,7 @@ func NewFujiInitCommandRequestPacketWithVersion(guid uuid.UUID, friendlyName str
 
 // NewFujiInitEventRequestPacket returns nil because Fuji does not require the Event channel to be initialised. This
 // will skip any further event channel initialisation.
-func NewFujiInitEventRequestPacket(connNum uint32) InitEventRequestPacket {
+func NewFujiInitEventRequestPacket(_ uint32) InitEventRequestPacket {
 	return nil
 }
 
