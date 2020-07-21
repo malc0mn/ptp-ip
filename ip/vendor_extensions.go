@@ -45,6 +45,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.cmdDataInit = FujiInitCommandDataConn
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
+		c.vendorExtensions.newEventPacket = NewFujiEventPacket
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
 		c.vendorExtensions.getDevicePropertyValue = FujiGetDevicePropertyValue

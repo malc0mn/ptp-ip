@@ -139,6 +139,9 @@ const (
 	// store the client's friendly name to allow future connections without the need for a confirmation.
 	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
 
+	EC_Fuji_CaptureComplete ptp.EventCode = 0xC001
+	EC_Fuji_ObjectAdded     ptp.EventCode = 0xC004
+
 	// FR_Fuji_DeviceBusy is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
 	//     so that it will accept a new FriendlyName
@@ -666,6 +669,63 @@ func (forp *FujiOperationResponsePacket) WasSuccessful(rc ptp.OperationResponseC
 // ReasonAsError returns an error based on the operation response code.
 func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 	return errors.New(ptp.OperationResponseCodeAsString(forp.OperationResponseCode))
+}
+
+// FujiEventPacket is the Fuji version of the PTP/IP EventPacket which again deviates from the standard. 'Over the wire'
+// we see these sequences, triggered by ptp.OC_InitiateCapute, in little endian format right after the the Length field
+// (4 bytes) (the PacketType field is missing):
+//   [24]byte{
+//       0x04, 0x00, 0x04, 0xc0,
+//       0x01, 0x00, 0x00, 0x00,
+//       0x06, 0x00, 0x00, 0x00,
+//       0x06, 0x00, 0x00, 0x00,
+//       0x00, 0x00, 0x00, 0x00,
+//       0x00, 0x00, 0x00, 0x00,
+//   }
+//   [24]byte{
+//       0x04, 0x00, 0x01, 0xc0,
+//       0x01, 0x00, 0x00, 0x00,
+//       0x06, 0x00, 0x00, 0x00,
+//       0x06, 0x00, 0x00, 0x00,
+//       0x29, 0xf1, 0x00, 0x00,
+//       0x00, 0x00, 0x00, 0x00,
+//   }
+// Referring to the PTP/IP standard which specifies the following:
+//    - EventCode (16 bytes)
+//    - TransactionID (32 bytes)
+//    - Parameter1-3 (4 bytes)
+// There is an additional unknown field before the EventCode it always seems to be set to 0x004 for events so it was
+// kept in line with the FujiOperationRequestPacket and hence dubbed DataPhase; although that makes no sense whatsoever.
+// EventCode seems to adhere to the PTP standard concerning vendor extensions in that it starts with 0xC making the MSN
+// 1100.
+// There is another additional unknown field right after EventCode. It could be a SessionID? But experimenting with the
+// OpenSession command and a different parameter did not seem to change the value of this field. So no clue what this
+// field really is, seems to be set to 0x00000001; named it Amount for now.
+// TransactionID is clear, but Parameter1 always seems to be set to the current TransactionID value as well!
+type FujiEventPacket struct {
+	DataPhase DataPhase
+	EventCode ptp.EventCode
+	Amount        uint32
+	TransactionID ptp.TransactionID
+	Parameter1    uint32
+	Parameter2    uint32
+	Parameter3    uint32
+}
+
+func (fep *FujiEventPacket) GetEventCode() ptp.EventCode {
+	return fep.EventCode
+}
+
+func (fep *FujiEventPacket) PacketType() PacketType {
+	return PKT_Invalid
+}
+
+func (fep *FujiEventPacket) TotalFixedFieldSize() int {
+	return ipInternal.TotalSizeOfFixedFields(fep)
+}
+
+func NewFujiEventPacket() EventPacket {
+	return &FujiEventPacket{}
 }
 
 // FujiInitCommandDataConn initialises the Fuji command/data connection.
