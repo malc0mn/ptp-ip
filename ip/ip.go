@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -144,6 +145,7 @@ type Client struct {
 	initiator        *Initiator
 	responder        *Responder
 	vendorExtensions *VendorExtensions
+	EventChan        chan EventPacket
 	Logger
 }
 
@@ -409,33 +411,34 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 }
 
 // ReadPacketFromEventConn reads a packet from the Event connection.
-func (c *Client) ReadPacketFromEventConn() (PacketIn, error) {
-	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
-	return c.readResponse(c.eventConn, nil)
+func (c *Client) ReadPacketFromEventConn(ctx context.Context, p PacketIn) (PacketIn, error) {
+	d, hasDl := ctx.Deadline()
+	if !hasDl {
+		return nil, ReadResponseError
+	}
+	c.eventConn.SetReadDeadline(d)
+	return c.readResponse(c.eventConn, p)
 }
 
-// WaitForPacketFromEventConn waits 30 seconds for a packet on the Event connection.
-func (c *Client) WaitForPacketFromEventConn() (PacketIn, error) {
+// WaitForPacketFromEventConn waits for a packet on the Event connection.
+func (c *Client) WaitForPacketFromEventConn(ctx context.Context, p EventPacket) (PacketIn, error) {
 	var (
 		res PacketIn
 		err error
 	)
 
-	for wait, timeout := true, time.After(DefaultReadTimeout); wait; {
+	for {
 		select {
-		case <-timeout:
-			wait = false
-			err = WaitForResponseError
+		case <-ctx.Done():
+			return nil, WaitForResponseError
 		default:
-			res, err = c.ReadPacketFromEventConn()
+			res, err = c.ReadPacketFromEventConn(ctx, p)
 			if err == nil {
-				wait = false
+				return res, nil
 			}
 			time.Sleep(20 * time.Millisecond)
 		}
 	}
-
-	return res, nil
 }
 
 func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
@@ -511,6 +514,24 @@ func (c *Client) initEventConn() error {
 	if err := c.vendorExtensions.eventInit(c); err != nil {
 		return errors.New(fmt.Sprintf("event connection error: %s", err))
 	}
+
+	c.EventChan = make(chan EventPacket, 10)
+	go func() {
+		c.Info("subscribing message listener to event connection...")
+		for {
+			p := c.vendorExtensions.newEventPacket()
+			_, err := c.WaitForPacketFromEventConn(context.Background(), p)
+			if err == nil {
+				c.EventChan <- p
+				continue
+			} else if err == WaitForResponseError {
+				continue
+			}
+			c.Errorf("message listener stopped: %s", err)
+			return
+		}
+	}()
+
 	return nil
 }
 
