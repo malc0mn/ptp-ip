@@ -281,18 +281,31 @@ func (orp *OperationResponsePacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(orp)
 }
 
+type EventPacket interface {
+	PacketIn
+	GetEventCode() ptp.EventCode
+}
+
 // This packet is used to send PTP Events on the Event TCP connection. The events are used to inform the Initiator
 // about the Responder state change.
-type EventPacket struct {
+type GenericEventPacket struct {
 	ptp.Event
 }
 
-func (ep *EventPacket) PacketType() PacketType {
+func (ep *GenericEventPacket) PacketType() PacketType {
 	return PKT_Event
 }
 
-func (ep *EventPacket) TotalFixedFieldSize() int {
+func (ep *GenericEventPacket) TotalFixedFieldSize() int {
 	return ipInternal.TotalSizeOfFixedFields(ep)
+}
+
+func (ep *GenericEventPacket) GetEventCode() ptp.EventCode {
+	return ep.EventCode
+}
+
+func NewEventPacket() EventPacket {
+	return &GenericEventPacket{}
 }
 
 // This type of packet is used to signal the beginning of a data transfer. It is a is bi-directional packet, so this
@@ -472,7 +485,7 @@ func NewPacketInFromPacketType(pt PacketType) (PacketIn, error) {
 	case PKT_OperationResponse:
 		p = new(OperationResponsePacket)
 	case PKT_Event:
-		p = new(EventPacket)
+		p = new(GenericEventPacket)
 	case PKT_StartData:
 		p = new(StartDataPacket)
 	case PKT_Data:

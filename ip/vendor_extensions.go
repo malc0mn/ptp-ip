@@ -19,6 +19,7 @@ type VendorExtensions struct {
 	streamerInit           func(*Client) error
 	newCmdDataInitPacket   func(uuid.UUID, string) InitCommandRequestPacket
 	newEventInitPacket     func(uint32) InitEventRequestPacket
+	newEventPacket         func() EventPacket
 	getDeviceInfo          func(*Client) (interface{}, error)
 	getDeviceState         func(*Client) (interface{}, error)
 	getDevicePropertyValue func(*Client, ptp.DevicePropCode) (uint32, error)
@@ -32,6 +33,7 @@ func (c *Client) loadVendorExtensions() {
 		streamerInit:           GenericInitStreamerConn,
 		newCmdDataInitPacket:   NewInitCommandRequestPacket,
 		newEventInitPacket:     NewInitEventRequestPacket,
+		newEventPacket:         NewEventPacket,
 		getDeviceInfo:          GenericGetDeviceInfo,
 		getDeviceState:         GenericGetDeviceState,
 		getDevicePropertyValue: GenericGetDevicePropertyValue,

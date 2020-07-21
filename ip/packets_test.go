@@ -136,7 +136,7 @@ func TestNewPacketInFromPacketType(t *testing.T) {
 		PKT_InitEventAck:      "InitEventAck",
 		PKT_InitFail:          "InitFail",
 		PKT_OperationResponse: "OperationResponse",
-		PKT_Event:             "Event",
+		PKT_Event:             "GenericEvent",
 		PKT_StartData:         "StartData",
 		PKT_Data:              "Data",
 		PKT_Cancel:            "Cancel",
