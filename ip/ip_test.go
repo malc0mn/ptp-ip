@@ -36,22 +36,25 @@ func TestNewInitiatorWithFriendlyName(t *testing.T) {
 }
 
 func TestNewResponder(t *testing.T) {
-	got := NewResponder(DefaultVendor, DefaultIpAddress, DefaultPort, DefaultPort, DefaultPort)
-	want := ptp.VendorExtension(0)
-	if got.Vendor != want {
-		t.Errorf("NewResponder() Vendor = %#x; want %#x", got.Vendor, want)
+	got := NewResponder(DefaultVendor, DefaultIpAddress, 25740, 25741, 25742)
+	wantV := ptp.VendorExtension(0)
+	if got.Vendor != wantV {
+		t.Errorf("NewResponder() Vendor = %#x; want %#x", got.Vendor, wantV)
 	}
 	if got.IpAddress != DefaultIpAddress {
 		t.Errorf("NewResponder() IpAddress = %s; want %s", got.IpAddress, DefaultIpAddress)
 	}
-	if got.CommandDataPort != DefaultPort {
-		t.Errorf("NewResponder() CommandDataPort = %d; want %d", got.CommandDataPort, DefaultPort)
+	wantP := uint16(25740)
+	if got.CommandDataPort != wantP {
+		t.Errorf("NewResponder() CommandDataPort = %d; want %d", got.CommandDataPort, wantP)
 	}
-	if got.EventPort != DefaultPort {
-		t.Errorf("NewResponder() EventPort = %d; want %d", got.EventPort, DefaultPort)
+	wantP = uint16(25741)
+	if got.EventPort != wantP {
+		t.Errorf("NewResponder() EventPort = %d; want %d", got.EventPort, wantP)
 	}
-	if got.StreamerPort != DefaultPort {
-		t.Errorf("NewResponder() StreamerPort = %d; want %d", got.StreamerPort, DefaultPort)
+	wantP = uint16(25742)
+	if got.StreamerPort != wantP {
+		t.Errorf("NewResponder() StreamerPort = %d; want %d", got.StreamerPort, wantP)
 	}
 	if got.GUID != uuid.Nil {
 		t.Errorf("NewResponder() FriendlyName = %s; want <nil>", got.GUID)
@@ -63,7 +66,7 @@ func TestNewResponder(t *testing.T) {
 
 func TestNewClient(t *testing.T) {
 	guid := "cf2407bc-4b4c-4525-9622-afb30db356df"
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", guid, logLevel)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, 26831, "", guid, logLevel)
 	if err != nil {
 		t.Errorf("NewClient() err = %s; want <nil>", err)
 	}
@@ -90,7 +93,7 @@ func TestNewClient(t *testing.T) {
 	if got.Network() != want {
 		t.Errorf("NewClient() Network() = %s; want %s", got.Network(), want)
 	}
-	want = "192.168.0.1:15740"
+	want = "192.168.0.1:26831"
 	if got.CommandDataAddress() != want {
 		t.Errorf("NewClient() CommandDataAddress() = %s; want %s", got.CommandDataAddress(), want)
 	}
@@ -130,12 +133,12 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_SetCommandDataPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, 55286, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := "192.168.0.1:15740"
+	want := "192.168.0.1:55286"
 	if got.CommandDataAddress() != want {
 		t.Errorf("NewClient() CommandDataAddress() = %s; want %s", got.CommandDataAddress(), want)
 	}
@@ -148,12 +151,12 @@ func TestClient_SetCommandDataPort(t *testing.T) {
 }
 
 func TestClient_SetEventPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, 55348, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := "192.168.0.1:15740"
+	want := "192.168.0.1:55348"
 	if got.EventAddress() != want {
 		t.Errorf("NewClient() EventAddress() = %s; want %s", got.EventAddress(), want)
 	}
@@ -166,12 +169,12 @@ func TestClient_SetEventPort(t *testing.T) {
 }
 
 func TestClient_SetStreamerPort(t *testing.T) {
-	got, err := NewClient(DefaultVendor, DefaultIpAddress, DefaultPort, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
+	got, err := NewClient(DefaultVendor, DefaultIpAddress, 51986, "", "5d5069bd-57a5-46e2-83cc-63c897ace234", logLevel)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := "192.168.0.1:15740"
+	want := "192.168.0.1:51986"
 	if got.StreamerAddress() != want {
 		t.Errorf("NewClient() StreamerAddress() = %s; want %s", got.StreamerAddress(), want)
 	}
