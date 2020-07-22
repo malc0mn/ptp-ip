@@ -1,7 +1,6 @@
 package ip
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -112,10 +111,7 @@ func GenericInitEventConn(c *Client) error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultReadTimeout)
-	defer cancel()
-
-	res, err := c.WaitForPacketFromEventConn(ctx, nil)
+	res, err := c.WaitForPacketFromEventConn(nil)
 	if err != nil {
 		return err
 	}

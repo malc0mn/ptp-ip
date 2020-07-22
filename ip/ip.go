@@ -1,7 +1,6 @@
 package ip
 
 import (
-	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -411,34 +410,36 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 }
 
 // ReadPacketFromEventConn reads a packet from the Event connection.
-func (c *Client) ReadPacketFromEventConn(ctx context.Context, p PacketIn) (PacketIn, error) {
-	d, hasDl := ctx.Deadline()
-	if !hasDl {
-		return nil, ReadResponseError
-	}
-	c.eventConn.SetReadDeadline(d)
+func (c *Client) ReadPacketFromEventConn(p PacketIn) (PacketIn, error) {
+	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.eventConn, p)
 }
 
 // WaitForPacketFromEventConn waits for a packet on the Event connection.
-func (c *Client) WaitForPacketFromEventConn(ctx context.Context, p EventPacket) (PacketIn, error) {
+func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, error) {
 	var (
 		res PacketIn
 		err error
 	)
 
-	for {
+	for wait, timeout := true, time.After(DefaultReadTimeout); wait; {
 		select {
-		case <-ctx.Done():
-			return nil, WaitForResponseError
+		case <-timeout:
+			wait = false
+			err = WaitForResponseError
 		default:
-			res, err = c.ReadPacketFromEventConn(ctx, p)
-			if err == nil {
-				return res, nil
+			res, err = c.ReadPacketFromEventConn(p)
+			if err != io.EOF || res != nil {
+				wait = false
 			}
 			time.Sleep(20 * time.Millisecond)
 		}
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
@@ -517,17 +518,18 @@ func (c *Client) initEventConn() error {
 
 	c.EventChan = make(chan EventPacket, 10)
 	go func() {
-		c.Info("subscribing message listener to event connection...")
+		c.Info("Subscribing message listener to event connection...")
 		for {
 			p := c.vendorExtensions.newEventPacket()
-			_, err := c.WaitForPacketFromEventConn(context.Background(), p)
+			_, err := c.WaitForPacketFromEventConn(p)
 			if err == nil {
+				c.Debugln("Publishing new message to event channel...")
 				c.EventChan <- p
 				continue
 			} else if err == WaitForResponseError {
 				continue
 			}
-			c.Errorf("message listener stopped: %s", err)
+			c.Errorf("Message listener stopped: %s", err)
 			return
 		}
 	}()

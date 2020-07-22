@@ -2,12 +2,10 @@ package ip
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"testing"
-	"time"
 )
 
 func TestNewDefaultInitiator(t *testing.T) {
@@ -229,32 +227,6 @@ func TestClient_sendPacket(t *testing.T) {
 
 	if got != want {
 		t.Errorf("sendPacket() buffer = %s; want %s", got, want)
-	}
-}
-
-func TestClient_WaitForPacketFromEventConnTimeout(t *testing.T) {
-	c, err := NewClient(DefaultVendor, address, okPort, "writèr", "d6555687-a599-44b8-a4af-279d599a92f6", logLevel)
-	defer c.Close()
-	if err != nil {
-		t.Errorf("WaitForPacketFromEventConn() err = %s; want <nil>", err)
-	}
-
-	err = c.Dial()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
-	defer cancel()
-	got, err := c.WaitForPacketFromEventConn(ctx, nil)
-	wantE := WaitForResponseError
-	if err != wantE {
-		t.Errorf("WaitForPacketFromEventConn() error = %s; want %s", err, wantE)
-	}
-
-	var wantP PacketIn
-	if got != wantP {
-		t.Errorf("WaitForPacketFromEventConn() return = %s; want %s", got, wantP)
 	}
 }
 
