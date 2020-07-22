@@ -29,7 +29,7 @@ func commandByName(n string) command {
 }
 
 func unknown(_ *ip.Client, _ []string) string {
-	return "unknown command"
+	return "unknown command\n"
 }
 
 func capture(c *ip.Client, f []string) string {
