@@ -24,6 +24,7 @@ type VendorExtensions struct {
 	getDeviceState         func(*Client) (interface{}, error)
 	getDevicePropertyValue func(*Client, ptp.DevicePropCode) (uint32, error)
 	operationRequestRaw    func(*Client, ptp.OperationCode, []uint32) ([][]byte, error)
+	initiateCapture        func(*Client) ([]byte, error)
 }
 
 func (c *Client) loadVendorExtensions() {
@@ -38,6 +39,7 @@ func (c *Client) loadVendorExtensions() {
 		getDeviceState:         GenericGetDeviceState,
 		getDevicePropertyValue: GenericGetDevicePropertyValue,
 		operationRequestRaw:    GenericOperationRequestRaw,
+		initiateCapture:        GenericInitiateCapture,
 	}
 
 	switch c.ResponderVendor() {
@@ -50,6 +52,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
 		c.vendorExtensions.getDevicePropertyValue = FujiGetDevicePropertyValue
 		c.vendorExtensions.operationRequestRaw = FujiSendOperationRequestAndGetRawResponse
+		c.vendorExtensions.initiateCapture = FujiInitiateCapture
 	}
 }
 
@@ -217,4 +220,8 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 	// TODO: handle possible followup packets depending on the data phase returned.
 
 	return raw, err
+}
+
+func GenericInitiateCapture(c *Client) ([]byte, error) {
+	return nil, errors.New("operation not yet supported")
 }

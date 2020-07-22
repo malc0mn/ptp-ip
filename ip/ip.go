@@ -643,3 +643,9 @@ func (c *Client) GetDevicePropertyValue(code ptp.DevicePropCode) (uint32, error)
 func (c *Client) OperationRequestRaw(code ptp.OperationCode, params []uint32) ([][]byte, error) {
 	return c.vendorExtensions.operationRequestRaw(c, code, params)
 }
+
+// InitiateCapture releases the shutter and captures an image. If the responder supports it, a preview of the captured
+// image is returned as a byte array.
+func (c *Client) InitiateCapture() ([]byte, error) {
+	return c.vendorExtensions.initiateCapture(c)
+}

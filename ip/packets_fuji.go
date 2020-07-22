@@ -1079,3 +1079,48 @@ func FujiGetDeviceState(c *Client) (interface{}, error) {
 
 	return list, nil
 }
+
+// FujiInitiateCapture releases the shutter and returns a byte array containing the raw JPEG data representing a preview
+// of the image taken.
+func FujiInitiateCapture(c *Client) ([]byte, error) {
+	c.Infof("Releasing %s shutter...", c.ResponderFriendlyName())
+	_, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateCapture, PM_Fuji_NoParam, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: properly handle the event channel to verify the capture has been complete before executing
+	//  OC_Fuji_GetLastImage!
+	msg := <- c.EventChan
+	c.Debugf("Received event %#v", msg)
+	msg = <- c.EventChan
+	c.Debugf("Received event %#v", msg)
+
+	// Immediately after the image has been taken, the operation OC_Fuji_GetLastImage MUST be executed. Failing to do so
+	// will not allow the shutter to be fired again!
+	// Looks as though the image buffer must be cleared before the camera will execute a new ptp.OC_InitiateCapture
+	// request.
+	raw, err := FujiSendOperationRequestAndGetRawResponse(c, OC_Fuji_GetLastImage, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: After the OC_Fuji_GetLastImage is complete, the ptp.EC_CaptureComplete event will be sent to the event
+	//  channel, handle that as well!
+	msg = <- c.EventChan
+	c.Debugf("Received event %#v", msg)
+
+	var img []byte
+	for _, pkt := range raw {
+		code := binary.LittleEndian.Uint16(pkt[6:8])
+		switch {
+		case code == uint16(ptp.RC_OK):
+			break
+		case code != uint16(OC_Fuji_GetLastImage):
+			return nil, errors.New("failed reading JPEG data")
+		}
+		img = append(img, pkt[12:]...)
+	}
+
+	return img, nil
+}
