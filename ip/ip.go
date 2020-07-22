@@ -526,11 +526,13 @@ func (c *Client) readRawResponse(r io.Reader) ([]byte, error) {
 	return append(l, b...), nil
 }
 
+// TODO: introduce context here so init can be aborted at any time.
 func (c *Client) initCommandDataConn() error {
 	err := c.vendorExtensions.cmdDataInit(c)
 	if err != nil {
 		return errors.New(fmt.Sprintf("command data connection: %s", err))
 	}
+
 	return nil
 }
 
@@ -538,6 +540,7 @@ func (c *Client) newCmdDataInitPacket() InitCommandRequestPacket {
 	return c.vendorExtensions.newCmdDataInitPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 }
 
+// TODO: introduce context here so init can be aborted at any time.
 func (c *Client) initEventConn() error {
 	if err := c.vendorExtensions.eventInit(c); err != nil {
 		return errors.New(fmt.Sprintf("event connection error: %s", err))
