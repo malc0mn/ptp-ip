@@ -375,6 +375,33 @@ func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 	return c.readResponse(c.commandDataConn, p)
 }
 
+// WaitForRawFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
+func (c *Client) WaitForRawFromCmdDataConn() ([]byte, error) {
+	var (
+		res []byte
+		err error
+	)
+
+	for wait, timeout := true, time.After(DefaultReadTimeout); wait; {
+		select {
+		case <-timeout:
+			wait = false
+			err = WaitForResponseError
+		default:
+			res, err = c.ReadRawFromCmdDataConn()
+			if err != io.EOF || res != nil {
+				wait = false
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 // ReadRawFromCmdDataConn reads raw data from the command/data connection with a read timout of 5 seconds. It is
 // intended primarily for debugging and/or reverse engineering purposes.
 func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {

@@ -515,7 +515,7 @@ func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
 	}
 }
 
-func TestFujiOperationRequestRaw(t *testing.T) {
+func TestFujiSendOperationRequestAndGetRawResponse(t *testing.T) {
 	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
@@ -527,9 +527,9 @@ func TestFujiOperationRequestRaw(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := FujiOperationRequestRaw(c, ptp.OC_GetDevicePropDesc, []uint32{uint32(DPC_Fuji_FilmSimulation)})
+	got, err := FujiSendOperationRequestAndGetRawResponse(c, ptp.OC_GetDevicePropDesc, []uint32{uint32(DPC_Fuji_FilmSimulation)})
 	if err != nil {
-		t.Errorf("FujiOperationRequestRaw() error = %s; want <nil>", err)
+		t.Errorf("FujiSendOperationRequestAndGetRawResponse() error = %s; want <nil>", err)
 	}
 
 	want := [][]byte{
@@ -540,7 +540,7 @@ func TestFujiOperationRequestRaw(t *testing.T) {
 	}
 	for i, g := range got {
 		if bytes.Compare(g, want[i]) != 0 {
-			t.Errorf("FujiOperationRequestRaw() got = %#v; want %#v", got, want)
+			t.Errorf("FujiSendOperationRequestAndGetRawResponse() got = %#v; want %#v", got, want)
 			break
 		}
 	}

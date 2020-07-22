@@ -903,8 +903,8 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 	return parameter, p, nil
 }
 
-// FujiOperationRequestRaw wraps FujiSendOperationRequest and returns the raw camera response data.
-func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
+// FujiSendOperationRequestAndGetRawResponse wraps FujiSendOperationRequest and returns the raw camera response data.
+func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
 	field := uint32(PM_Fuji_NoParam)
 	if len(params) != 0 {
 		field = params[0]
@@ -915,15 +915,16 @@ func FujiOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32)
 
 	var raw [][]byte
 	var err error
-	r, err := c.ReadRawFromCmdDataConn()
-	if err == nil {
-		raw = append(raw, r)
-		if len(raw[0]) > 7 && binary.LittleEndian.Uint16(raw[0][4:6]) == uint16(DP_DataOut) {
-			r, err := c.ReadRawFromCmdDataConn()
-			if err == nil {
-				raw = append(raw, r)
+	for {
+		r, err := c.WaitForRawFromCmdDataConn()
+		if err == nil {
+			raw = append(raw, r)
+			// Keep reading as long as the Responder tells us there is more data.
+			if len(r) > 7 && binary.LittleEndian.Uint16(r[4:6]) == uint16(DP_DataOut) {
+				continue
 			}
 		}
+		break
 	}
 
 	// TODO: check if there is data on the event connection and read that as well!

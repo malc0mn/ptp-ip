@@ -49,7 +49,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
 		c.vendorExtensions.getDevicePropertyValue = FujiGetDevicePropertyValue
-		c.vendorExtensions.operationRequestRaw = FujiOperationRequestRaw
+		c.vendorExtensions.operationRequestRaw = FujiSendOperationRequestAndGetRawResponse
 	}
 }
 
