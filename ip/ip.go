@@ -553,7 +553,7 @@ func (c *Client) initEventConn() error {
 			p := c.vendorExtensions.newEventPacket()
 			_, err := c.WaitForPacketFromEventConn(p)
 			if err == nil {
-				c.Debugln("Publishing new message to event channel...")
+				c.Debugf("Publishing new event '%#x' to event channel...", p.GetEventCode())
 				c.EventChan <- p
 				continue
 			} else if err == WaitForResponseError {
