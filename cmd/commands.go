@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"io/ioutil"
 	"log"
 )
 
@@ -12,6 +13,8 @@ type command func(*ip.Client, []string) string
 
 func commandByName(n string) command {
 	switch n {
+	case "capture", "shoot", "shutter", "snap":
+		return capture
 	case "info":
 		return info
 	case "getval":
@@ -27,6 +30,22 @@ func commandByName(n string) command {
 
 func unknown(_ *ip.Client, _ []string) string {
 	return "unknown command"
+}
+
+func capture(c *ip.Client, f []string) string {
+	res, err := c.InitiateCapture()
+	if err != nil {
+		return err.Error()
+	}
+	if len(f) == 1 {
+		if err := ioutil.WriteFile(f[0], res, 0644); err != nil {
+			return err.Error() + "\n"
+		}
+
+		return fmt.Sprintf("Image preview saved to %s\n", f[0])
+	}
+
+	return "Image captured, check the camera\n"
 }
 
 func info(c *ip.Client, f []string) string {
