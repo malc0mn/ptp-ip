@@ -703,8 +703,8 @@ func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 // field really is, seems to be set to 0x00000001; named it Amount for now.
 // TransactionID is clear, but Parameter1 always seems to be set to the current TransactionID value as well!
 type FujiEventPacket struct {
-	DataPhase DataPhase
-	EventCode ptp.EventCode
+	DataPhase     uint16
+	EventCode     ptp.EventCode
 	Amount        uint32
 	TransactionID ptp.TransactionID
 	Parameter1    uint32
