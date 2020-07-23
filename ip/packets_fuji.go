@@ -149,7 +149,7 @@ const (
 	// EC_Fuji_ObjectAdded is the first event sent during the ptp.OC_InitiateCapture operation informing the initiator
 	// of a new object having been added to the device. Sadly none of the parameters hold the object handle allowing
 	// the initiator to retrieve the full object.
-	EC_Fuji_ObjectAdded      ptp.EventCode = 0xC004
+	EC_Fuji_ObjectAdded ptp.EventCode = 0xC004
 
 	// FR_Fuji_DeviceBusy is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
