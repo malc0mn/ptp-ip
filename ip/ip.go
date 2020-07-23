@@ -134,6 +134,7 @@ func NewResponder(vendor string, ip string, cport uint16, eport uint16, sport ui
 //   - the initiator info, i.e. us
 //   - the responder info, i.e. camera
 //   - the loaded vendor extensions
+//   - an async event channel receiving events from the Responder's event connection
 //   - a logger
 type Client struct {
 	connectionNumber uint32
