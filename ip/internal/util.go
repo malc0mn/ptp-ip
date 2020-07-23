@@ -143,7 +143,7 @@ func RetryDialer(network, address string, timeout time.Duration) (net.Conn, erro
 
 	for {
 		conn, err = net.DialTimeout(network, address, timeout)
-		// Insane isn't it? No "typed errors" from net.Dial()!
+		// Insane isn't it? No sentinel errors from net.Dial()!
 		if err != nil && strings.Contains(err.Error(), "connection refused") && retries > 0 {
 			retries--
 			time.Sleep(wait)
