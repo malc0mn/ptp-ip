@@ -209,6 +209,8 @@ const (
 	RC_Fuji_GetDevicePropDesc = ptp.OperationResponseCode(ptp.OC_GetDevicePropDesc)
 	// RC_Fuji_GetDeviceInfo is the response code to OC_Fuji_GetDeviceInfo.
 	RC_Fuji_GetDeviceInfo = ptp.OperationResponseCode(OC_Fuji_GetDeviceInfo)
+	// RC_Fuji_GetCapturePreview is the response code to OC_Fuji_GetCapturePreview
+	RC_Fuji_GetCapturePreview = ptp.OperationResponseCode(OC_Fuji_GetCapturePreview)
 )
 
 func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
