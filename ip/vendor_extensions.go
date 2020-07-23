@@ -175,12 +175,12 @@ func GenericGetDeviceInfo(c *Client) (interface{}, error) {
 
 // Request the Responder's device status.
 func GenericGetDeviceState(_ *Client) (interface{}, error) {
-	return nil, errors.New("Command not supported!")
+	return nil, errors.New("command not supported")
 }
 
 // Request the Responder's device status.
 func GenericGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
-	return 0, errors.New("Command not YET supported!")
+	return 0, errors.New("command not YET supported")
 }
 
 func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
@@ -223,5 +223,5 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 }
 
 func GenericInitiateCapture(c *Client) ([]byte, error) {
-	return nil, errors.New("operation not yet supported")
+	return nil, errors.New("command not YET supported")
 }
