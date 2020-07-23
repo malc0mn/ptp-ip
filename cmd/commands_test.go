@@ -8,10 +8,10 @@ import (
 
 func TestCommandByName(t *testing.T) {
 	cmds := map[string]command{
-		"info": info,
+		"info":   info,
 		"getval": getval,
-		"opreq": opreq,
-		"state": state,
+		"opreq":  opreq,
+		"state":  state,
 	}
 	for name, want := range cmds {
 		got := commandByName(name)

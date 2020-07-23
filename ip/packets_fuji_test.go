@@ -565,12 +565,12 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 
 	want := []*ptp.DevicePropDesc{
 		{
-			DevicePropertyCode: ptp.DPC_CaptureDelay,
-			DataType: ptp.DTC_UINT16,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  ptp.DPC_CaptureDelay,
+			DataType:            ptp.DTC_UINT16,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x0, 0x0},
-			CurrentValue: []uint8{0x0, 0x0},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x0, 0x0},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
 				NumberOfValues: 3,
 				SupportedValues: [][]uint8{
@@ -579,12 +579,12 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 			},
 		},
 		{
-			DevicePropertyCode: ptp.DPC_FlashMode,
-			DataType: ptp.DTC_UINT16,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  ptp.DPC_FlashMode,
+			DataType:            ptp.DTC_UINT16,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x2, 0x0},
-			CurrentValue: []uint8{0x9, 0x80},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x9, 0x80},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
 				NumberOfValues: 2,
 				SupportedValues: [][]uint8{
@@ -593,12 +593,12 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 			},
 		},
 		{
-			DevicePropertyCode: ptp.DPC_WhiteBalance,
-			DataType: ptp.DTC_UINT16,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  ptp.DPC_WhiteBalance,
+			DataType:            ptp.DTC_UINT16,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x2, 0x0},
-			CurrentValue: []uint8{0x2, 0x0},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x2, 0x0},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
 				NumberOfValues: 10,
 				SupportedValues: [][]uint8{
@@ -608,12 +608,12 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 			},
 		},
 		{
-			DevicePropertyCode: ptp.DPC_ExposureBiasCompensation,
-			DataType: ptp.DTC_INT16,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  ptp.DPC_ExposureBiasCompensation,
+			DataType:            ptp.DTC_INT16,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x0, 0x0},
-			CurrentValue: []uint8{0x0, 0x0},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x0, 0x0},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
 				NumberOfValues: 19,
 				SupportedValues: [][]uint8{
@@ -624,14 +624,14 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 			},
 		},
 		{
-			DevicePropertyCode: DPC_Fuji_FilmSimulation,
-			DataType: ptp.DTC_UINT16,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  DPC_Fuji_FilmSimulation,
+			DataType:            ptp.DTC_UINT16,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x1, 0x0},
-			CurrentValue: []uint8{0x2, 0x0},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x2, 0x0},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
-				NumberOfValues:11,
+				NumberOfValues: 11,
 				SupportedValues: [][]uint8{
 					{0x01, 0x00}, {0x02, 0x00}, {0x03, 0x00}, {0x04, 0x00}, {0x05, 0x00}, {0x06, 0x00}, {0x07, 0x00}, {0x08, 0x00},
 					{0x09, 0x00}, {0x0a, 0x00}, {0x0b, 0x00},
@@ -639,15 +639,15 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 			},
 		},
 		{
-			DevicePropertyCode: DPC_Fuji_ExposureIndex,
-			DataType: ptp.DTC_UINT32,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  DPC_Fuji_ExposureIndex,
+			DataType:            ptp.DTC_UINT32,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0xff, 0xff, 0xff, 0xff},
-			CurrentValue: []uint8{0x0, 0x19, 0x0, 0x80},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x0, 0x19, 0x0, 0x80},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
-				NumberOfValues:25,
-				SupportedValues:[][]uint8{
+				NumberOfValues: 25,
+				SupportedValues: [][]uint8{
 					{0x90, 0x01, 0x00, 0x80}, {0x20, 0x03, 0x00, 0x80}, {0x40, 0x06, 0x00, 0x80}, {0x80, 0x0c, 0x00, 0x80},
 					{0x00, 0x19, 0x00, 0x80}, {0x64, 0x00, 0x00, 0x40}, {0xc8, 0x00, 0x00, 0x00}, {0xfa, 0x00, 0x00, 0x00},
 					{0x40, 0x01, 0x00, 0x00}, {0x90, 0x01, 0x00, 0x00}, {0xf4, 0x01, 0x00, 0x00}, {0x80, 0x02, 0x00, 0x00},
@@ -659,30 +659,30 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 			},
 		},
 		{
-			DevicePropertyCode: DPC_Fuji_RecMode,
-			DataType: ptp.DTC_UINT16,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  DPC_Fuji_RecMode,
+			DataType:            ptp.DTC_UINT16,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x1, 0x0},
-			CurrentValue: []uint8{0x1, 0x0},
-			FormFlag: ptp.DPF_FormFlag_Enum,
+			CurrentValue:        []uint8{0x1, 0x0},
+			FormFlag:            ptp.DPF_FormFlag_Enum,
 			Form: &ptp.EnumerationForm{
-				NumberOfValues:2,
-				SupportedValues:[][]uint8{
+				NumberOfValues: 2,
+				SupportedValues: [][]uint8{
 					{0x0, 0x0}, {0x1, 0x0},
 				},
 			},
 		},
 		{
-			DevicePropertyCode: DPC_Fuji_FocusMeteringMode,
-			DataType: ptp.DTC_UINT32,
-			GetSet: ptp.DPD_GetSet,
+			DevicePropertyCode:  DPC_Fuji_FocusMeteringMode,
+			DataType:            ptp.DTC_UINT32,
+			GetSet:              ptp.DPD_GetSet,
 			FactoryDefaultValue: []uint8{0x0, 0x0, 0x0, 0x0},
-			CurrentValue: []uint8{0x2, 0x7, 0x2, 0x3},
-			FormFlag: ptp.DPF_FormFlag_Range,
+			CurrentValue:        []uint8{0x2, 0x7, 0x2, 0x3},
+			FormFlag:            ptp.DPF_FormFlag_Range,
 			Form: &ptp.RangeForm{
 				MinimumValue: []uint8{0x00, 0x00, 0x00, 0x00},
 				MaximumValue: []uint8{0x07, 0x07, 0x09, 0x10},
-				StepSize: []uint8{0x01, 0x00, 0x00, 0x00},
+				StepSize:     []uint8{0x01, 0x00, 0x00, 0x00},
 			},
 		},
 	}

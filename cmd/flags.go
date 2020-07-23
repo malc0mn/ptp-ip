@@ -20,8 +20,8 @@ var (
 
 	server bool
 
-	help    bool
-	ver bool
+	help bool
+	ver  bool
 
 	verbosity ip.LogLevel
 )

@@ -17,7 +17,7 @@ type ValueLabel struct {
 }
 
 type CodeLabel struct {
-	Code string  `json:"code"`
+	Code  string `json:"code"`
 	Label string `json:"label"`
 }
 
@@ -35,20 +35,20 @@ func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(&struct {
-		DevicePropertyCode       CodeLabel
-		DataType                 string      `json:"dataType"`
-		GetSet                   bool        `json:"readOnly"`
-		FactoryDefaultValue      ValueLabel
-		CurrentValue             ValueLabel
-		FormFlag                 string      `json:"formType"`
-		Form                     interface{} `json:"form"`
+		DevicePropertyCode  CodeLabel
+		DataType            string `json:"dataType"`
+		GetSet              bool   `json:"readOnly"`
+		FactoryDefaultValue ValueLabel
+		CurrentValue        ValueLabel
+		FormFlag            string      `json:"formType"`
+		Form                interface{} `json:"form"`
 	}{
 		DevicePropertyCode: CodeLabel{
 			Code:  ConvertToHexString(dpdj.DevicePropertyCode),
 			Label: DevicePropertyName(dpdj.DevicePropertyCode),
 		},
-		DataType:                 ptp.DataTypeCodeAsString(dpdj.DataType),
-		GetSet:                   dpdj.GetSet != ptp.DPD_GetSet,
+		DataType: ptp.DataTypeCodeAsString(dpdj.DataType),
+		GetSet:   dpdj.GetSet != ptp.DPD_GetSet,
 		FactoryDefaultValue: ValueLabel{
 			Value: ConvertToHexString(dpdj.FactoryDefaultValueAsInt64()),
 			Label: ip.FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.FactoryDefaultValueAsInt64()),
@@ -57,8 +57,8 @@ func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
 			Value: ConvertToHexString(dpdj.CurrentValueAsInt64()),
 			Label: ip.FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.CurrentValueAsInt64()),
 		},
-		FormFlag:                 ptp.FormFlagAsString(dpdj.FormFlag),
-		Form:                     form,
+		FormFlag: ptp.FormFlagAsString(dpdj.FormFlag),
+		Form:     form,
 	})
 }
 
