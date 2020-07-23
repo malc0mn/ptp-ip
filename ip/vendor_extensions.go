@@ -188,8 +188,8 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 		OperationCode: code,
 	}
 
-	// TODO: how to eliminate this crazyness? Rework the OperationRequest struct perhaps with a [5]interface{} instead
-	//  of 5 separate fields...?
+	// TODO: how to eliminate this crazyness WITHOUT reflection? Rework the OperationRequest struct perhaps with a
+	//  [5]interface{} instead of 5 separate fields...?
 	if len(params) >= 1 {
 		or.Parameter1 = params[0]
 	}
