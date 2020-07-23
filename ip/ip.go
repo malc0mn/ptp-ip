@@ -31,6 +31,7 @@ var (
 	BytesWrittenMismatch = errors.New("bytes written mismatch: written %d wanted %d")
 	ReadResponseError    = errors.New("unable to read response packet")
 	WaitForResponseError = errors.New("timeout reached when waiting for response")
+	WaitForEventError    = errors.New("timeout reached when waiting for event")
 	InvalidPacketError   = errors.New("invalid packet")
 	NotConnectedError    = errors.New("not connected")
 )
@@ -455,7 +456,7 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, error) {
 		select {
 		case <-timeout:
 			wait = false
-			err = WaitForResponseError
+			err = WaitForEventError
 		default:
 			res, err = c.ReadPacketFromEventConn(p)
 			if res != nil || (err != nil && err != io.EOF && !strings.Contains(err.Error(), "i/o timeout")) {
@@ -550,18 +551,18 @@ func (c *Client) initEventConn() error {
 
 	c.EventChan = make(chan EventPacket, 10)
 	go func() {
-		c.Info("Subscribing message listener to event connection...")
+		c.Info("[eventListener] subscribing event listener to event connection...")
 		for {
 			p := c.vendorExtensions.newEventPacket()
 			_, err := c.WaitForPacketFromEventConn(p)
 			if err == nil {
-				c.Debugf("Publishing new event '%#x' to event channel...", p.GetEventCode())
+				c.Debugf("[eventListener] publishing new event '%#x' to event channel...", p.GetEventCode())
 				c.EventChan <- p
 				continue
-			} else if err == WaitForResponseError {
+			} else if err == WaitForEventError {
 				continue
 			}
-			c.Errorf("Message listener stopped: %s", err)
+			c.Errorf("[eventListener] message listener stopped: %s", err)
 			return
 		}
 	}()
