@@ -8,6 +8,7 @@ import (
 	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"strconv"
+	"time"
 )
 
 type FujiBatteryLevel uint16
@@ -139,8 +140,16 @@ const (
 	// store the client's friendly name to allow future connections without the need for a confirmation.
 	DPC_Fuji_AppVersion ptp.DevicePropCode = 0xDF24
 
-	EC_Fuji_CaptureComplete ptp.EventCode = 0xC001
-	EC_Fuji_ObjectAdded     ptp.EventCode = 0xC004
+	// EC_Fuji_PreviewAvailable is sent out as the second event during the ptp.OC_InitiateCapture operation indicating
+	// the preview buffer is filled with a preview of the captured image. The client MUST empty this buffer by executing
+	// the OC_Fuji_GetCapturePreview operation to make the camera send out a ptp.EC_CaptureComplete event which will
+	// round up the ptp.OC_InitiateCapture operation allowing for a new capture to be taken.
+	// Parameter2 of the event object will hold the size in bytes of the image preview data.
+	EC_Fuji_PreviewAvailable ptp.EventCode = 0xC001
+	// EC_Fuji_ObjectAdded is the first event sent during the ptp.OC_InitiateCapture operation informing the initiator
+	// of a new object having been added to the device. Sadly none of the parameters hold the object handle allowing
+	// the initiator to retrieve the full object.
+	EC_Fuji_ObjectAdded      ptp.EventCode = 0xC004
 
 	// FR_Fuji_DeviceBusy is returned in the following cases:
 	//   - The FriendlyName stored in the camera does not match the FriendlyName being sent. Set the camera to 'change'
@@ -153,9 +162,13 @@ const (
 	// Seems to be an own version of RC_InvalidParameter.
 	FR_Fuji_InvalidParameter FailReason = 0x0000201D
 
-	OC_Fuji_GetLastImage    ptp.OperationCode = 0x9022
-	OC_Fuji_SetFocusPoint   ptp.OperationCode = 0x9026
-	OC_Fuji_ResetFocusPoint ptp.OperationCode = 0x9027
+	// OC_Fuji_GetCapturePreview requests the contents of the preview buffer of the image captured by the
+	// ptp.OC_InitiateCapture operation. This operation MUST be called immediately after receiving the
+	// EC_Fuji_PreviewAvailable event to empty the preview buffer, thereby triggering the camera to sent the
+	// ptp.EC_CaptureComplete event after which a new capture can be executed.
+	OC_Fuji_GetCapturePreview ptp.OperationCode = 0x9022
+	OC_Fuji_SetFocusPoint     ptp.OperationCode = 0x9026
+	OC_Fuji_ResetFocusPoint   ptp.OperationCode = 0x9027
 
 	// OC_Fuji_GetDeviceInfo returns a list of DevicePropDesc structs so it is not at all the same as OC_GetDeviceInfo.
 	OC_Fuji_GetDeviceInfo ptp.OperationCode = 0x902B
@@ -1080,8 +1093,12 @@ func FujiGetDeviceState(c *Client) (interface{}, error) {
 	return list, nil
 }
 
-// FujiInitiateCapture releases the shutter and returns a byte array containing the raw JPEG data representing a preview
+// FujiInitiateCapture releases the shutter and returns a byte array containing the raw image data representing a preview
 // of the image taken.
+// The sequence is a bit odd: it partly follows the PTP/IP spec but expects the client to request the preview buffer
+// from the camera in order for the ptp.EC_CaptureComplete to be sent out.
+// Failing to do this, will not allow the client to release the shutter again. The operation request will be accepted
+// but no further actions will be taken by the camera.
 func FujiInitiateCapture(c *Client) ([]byte, error) {
 	c.Infof("Releasing %s shutter...", c.ResponderFriendlyName())
 	_, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateCapture, PM_Fuji_NoParam, 0)
@@ -1089,26 +1106,44 @@ func FujiInitiateCapture(c *Client) ([]byte, error) {
 		return nil, err
 	}
 
-	// TODO: properly handle the event channel to verify the capture has been complete before executing
-	//  OC_Fuji_GetLastImage!
-	msg := <- c.EventChan
-	c.Debugf("Received event %#v", msg)
-	msg = <- c.EventChan
-	c.Debugf("Received event %#v", msg)
+	var pvSize int
+	invalidEvent := "invalid event received, expected '%#x' got '%#x'"
+	for _, ec := range []ptp.EventCode{EC_Fuji_ObjectAdded, EC_Fuji_PreviewAvailable} {
+		select {
+		case msg := <-c.EventChan:
+			if msg.GetEventCode() != ec {
+				return nil, fmt.Errorf(invalidEvent, ec, msg.GetEventCode())
+			}
+			var txt string
+			var extra string
+			switch ec {
+			case EC_Fuji_ObjectAdded:
+				txt = "object added"
+			case EC_Fuji_PreviewAvailable:
+				txt = "preview available"
+				pvSize = int(msg.(*FujiEventPacket).Parameter2)
+				extra = fmt.Sprintf(": preview size is %d bytes", pvSize)
+			}
+			c.Debugf("Received %s event (%#x)%s.", txt, msg.GetEventCode(), extra)
+		case <-time.After(DefaultReadTimeout):
+			return nil, WaitForEventError
+		}
+	}
 
-	// Immediately after the image has been taken, the operation OC_Fuji_GetLastImage MUST be executed. Failing to do so
-	// will not allow the shutter to be fired again!
-	// Looks as though the image buffer must be cleared before the camera will execute a new ptp.OC_InitiateCapture
-	// request.
-	raw, err := FujiSendOperationRequestAndGetRawResponse(c, OC_Fuji_GetLastImage, nil)
+	raw, err := FujiSendOperationRequestAndGetRawResponse(c, OC_Fuji_GetCapturePreview, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: After the OC_Fuji_GetLastImage is complete, the ptp.EC_CaptureComplete event will be sent to the event
-	//  channel, handle that as well!
-	msg = <- c.EventChan
-	c.Debugf("Received event %#v", msg)
+	select {
+	case msg := <-c.EventChan:
+		if msg.GetEventCode() != ptp.EC_CaptureComplete {
+			return nil, fmt.Errorf("invalid event received, expected '%#x' got '%#x'", ptp.EC_CaptureComplete, msg.GetEventCode())
+		}
+		c.Debugf("Received capture complete event (%#x).", msg.GetEventCode())
+	case <-time.After(DefaultReadTimeout):
+		return nil, WaitForEventError
+	}
 
 	var img []byte
 	for _, pkt := range raw {
@@ -1116,10 +1151,14 @@ func FujiInitiateCapture(c *Client) ([]byte, error) {
 		switch {
 		case code == uint16(ptp.RC_OK):
 			break
-		case code != uint16(OC_Fuji_GetLastImage):
-			return nil, errors.New("failed reading JPEG data")
+		case code != uint16(OC_Fuji_GetCapturePreview):
+			return nil, errors.New("failed reading image data")
 		}
 		img = append(img, pkt[12:]...)
+	}
+
+	if len(img) != pvSize {
+		c.Warnf("Preview size mismatch: expected %d, got %d. Returning possibly malformed data nonetheless.", pvSize, len(img))
 	}
 
 	return img, nil
