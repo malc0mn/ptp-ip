@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -457,7 +458,7 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, error) {
 			err = WaitForResponseError
 		default:
 			res, err = c.ReadPacketFromEventConn(p)
-			if err != io.EOF || res != nil {
+			if res != nil || (err != nil && err != io.EOF && !strings.Contains(err.Error(), "i/o timeout")) {
 				wait = false
 			}
 			time.Sleep(20 * time.Millisecond)
