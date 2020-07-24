@@ -214,10 +214,6 @@ const (
 )
 
 func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
-	if msg := ptp.DevicePropCodeAsString(code); msg != "" {
-		return msg
-	}
-
 	switch code {
 	case DPC_Fuji_FilmSimulation:
 		return "film simulation"
@@ -252,15 +248,11 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 	case DPC_Fuji_AppVersion:
 		return "app version"
 	default:
-		return ""
+		return ptp.DevicePropCodeAsString(code)
 	}
 }
 
 func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
-	if msg := ptp.DevicePropValueAsString(code, v); msg != "" {
-		return msg
-	}
-
 	switch code {
 	case ptp.DPC_BatteryLevel, DPC_Fuji_BatteryLevel:
 		return FujiBatteryLevelAsString(FujiBatteryLevel(v))
@@ -289,7 +281,7 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 	case ptp.DPC_CaptureDelay:
 		return FujiSelfTimerAsString(FujiSelfTimer(v))
 	default:
-		return ""
+		return ptp.DevicePropValueAsString(code, v)
 	}
 }
 
