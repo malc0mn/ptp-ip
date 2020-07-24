@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"strconv"
 	"time"
@@ -575,7 +575,7 @@ func (ficrp *FujiInitCommandRequestPacket) PacketType() PacketType {
 }
 
 func (ficrp *FujiInitCommandRequestPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(ficrp)
+	return internal.MarshalLittleEndian(ficrp)
 }
 
 func (ficrp *FujiInitCommandRequestPacket) GetGUID() uuid.UUID {
@@ -639,7 +639,7 @@ func (forp *FujiOperationRequestPacket) PacketType() PacketType {
 }
 
 func (forp *FujiOperationRequestPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(forp)
+	return internal.MarshalLittleEndian(forp)
 }
 
 // FujiOperationResponsePacket deviates from the PTP/IP standard similarly to FujiOperationRequestPacket:
@@ -659,7 +659,7 @@ func (forp *FujiOperationResponsePacket) PacketType() PacketType {
 }
 
 func (forp *FujiOperationResponsePacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(forp)
+	return internal.TotalSizeOfFixedFields(forp)
 }
 
 func operationCodeToOKResponseCode(oc ptp.OperationCode) ptp.OperationResponseCode {
@@ -736,7 +736,7 @@ func (fep *FujiEventPacket) PacketType() PacketType {
 }
 
 func (fep *FujiEventPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(fep)
+	return internal.TotalSizeOfFixedFields(fep)
 }
 
 func NewFujiEventPacket() EventPacket {

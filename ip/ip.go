@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
@@ -335,12 +335,12 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
 	if p.PacketType() == PKT_Invalid {
 		// Send length only. The length must include the size of the length field, so we add 4 bytes for that!
-		if _, err := w.Write(ipInternal.MarshalLittleEndian(uint32(pll + 4))); err != nil {
+		if _, err := w.Write(internal.MarshalLittleEndian(uint32(pll + 4))); err != nil {
 			return err
 		}
 	} else {
 		// The packet length MUST include the header, so we add 8 bytes for that!
-		h := ipInternal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
+		h := internal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
 
 		// Send header.
 		n, err := w.Write(h)
@@ -505,7 +505,7 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
 	vs := hl - p.TotalFixedFieldSize()
-	if err := ipInternal.UnmarshalLittleEndian(r, p, hl, vs); err != nil && err != io.EOF {
+	if err := internal.UnmarshalLittleEndian(r, p, hl, vs); err != nil && err != io.EOF {
 		return nil, err
 	}
 

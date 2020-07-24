@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
@@ -59,7 +59,7 @@ func (c *Client) loadVendorExtensions() {
 func GenericInitCommandDataConn(c *Client) error {
 	var err error
 
-	c.commandDataConn, err = ipInternal.RetryDialer(c.Network(), c.CommandDataAddress(), DefaultDialTimeout)
+	c.commandDataConn, err = internal.RetryDialer(c.Network(), c.CommandDataAddress(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func GenericInitCommandDataConn(c *Client) error {
 func GenericInitEventConn(c *Client) error {
 	var err error
 
-	c.eventConn, err = ipInternal.RetryDialer(c.Network(), c.EventAddress(), DefaultDialTimeout)
+	c.eventConn, err = internal.RetryDialer(c.Network(), c.EventAddress(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func GenericInitEventConn(c *Client) error {
 func GenericInitStreamerConn(c *Client) error {
 	var err error
 
-	c.streamConn, err = ipInternal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
+	c.streamConn, err = internal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
 	if err != nil {
 		return err
 	}

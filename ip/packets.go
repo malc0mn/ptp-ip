@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	ipInternal "github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
@@ -103,7 +103,7 @@ func (icrp *GenericInitCommandRequestPacket) PacketType() PacketType {
 }
 
 func (icrp *GenericInitCommandRequestPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(icrp)
+	return internal.MarshalLittleEndian(icrp)
 }
 
 func (icrp *GenericInitCommandRequestPacket) GetGUID() uuid.UUID {
@@ -158,7 +158,7 @@ func (icap *InitCommandAckPacket) PacketType() PacketType {
 }
 
 func (icap *InitCommandAckPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(icap)
+	return internal.TotalSizeOfFixedFields(icap)
 }
 
 type InitEventRequestPacket interface {
@@ -179,7 +179,7 @@ func (ierp *GenericInitEventRequestPacket) PacketType() PacketType {
 }
 
 func (ierp *GenericInitEventRequestPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(ierp)
+	return internal.MarshalLittleEndian(ierp)
 }
 
 func (ierp *GenericInitEventRequestPacket) GetConnectionNumber() uint32 {
@@ -202,7 +202,7 @@ func (ieap *InitEventAckPacket) PacketType() PacketType {
 }
 
 func (ieap *InitEventAckPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(ieap)
+	return internal.TotalSizeOfFixedFields(ieap)
 }
 
 // This packet is used by the Responder to inform the Initiator that the PTP-IP connection establishment failed. The
@@ -219,7 +219,7 @@ func (ifp *InitFailPacket) PacketType() PacketType {
 }
 
 func (ifp *InitFailPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(ifp)
+	return internal.TotalSizeOfFixedFields(ifp)
 }
 
 func (ifp *InitFailPacket) ReasonAsError() error {
@@ -263,7 +263,7 @@ func (orp *OperationRequestPacket) PacketType() PacketType {
 }
 
 func (orp *OperationRequestPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(orp)
+	return internal.MarshalLittleEndian(orp)
 }
 
 // This packet is used to transport Operation Responses by the Responder and are transported to the Initiator via the
@@ -278,7 +278,7 @@ func (orp *OperationResponsePacket) PacketType() PacketType {
 }
 
 func (orp *OperationResponsePacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(orp)
+	return internal.TotalSizeOfFixedFields(orp)
 }
 
 type EventPacket interface {
@@ -297,7 +297,7 @@ func (ep *GenericEventPacket) PacketType() PacketType {
 }
 
 func (ep *GenericEventPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(ep)
+	return internal.TotalSizeOfFixedFields(ep)
 }
 
 func (ep *GenericEventPacket) GetEventCode() ptp.EventCode {
@@ -322,11 +322,11 @@ func (sdp *StartDataPacket) PacketType() PacketType {
 }
 
 func (sdp *StartDataPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(sdp)
+	return internal.MarshalLittleEndian(sdp)
 }
 
 func (sdp *StartDataPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(sdp)
+	return internal.TotalSizeOfFixedFields(sdp)
 }
 
 // This packet is used to transport data. DataPackets are only used during data phase of a transaction and can be
@@ -346,11 +346,11 @@ func (dp *DataPacket) PacketType() PacketType {
 }
 
 func (dp *DataPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(dp)
+	return internal.MarshalLittleEndian(dp)
 }
 
 func (dp *DataPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(dp)
+	return internal.TotalSizeOfFixedFields(dp)
 }
 
 // This packet is used to indicate the end of the data phase. The EndDataPacket can also carry useful data. This
@@ -367,11 +367,11 @@ func (edp *EndDataPacket) PacketType() PacketType {
 }
 
 func (edp *EndDataPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(edp)
+	return internal.MarshalLittleEndian(edp)
 }
 
 func (edp *EndDataPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(edp)
+	return internal.TotalSizeOfFixedFields(edp)
 }
 
 // This packet is used to cancel a transaction.
@@ -384,11 +384,11 @@ func (cp *CancelPacket) PacketType() PacketType {
 }
 
 func (cp *CancelPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(cp)
+	return internal.MarshalLittleEndian(cp)
 }
 
 func (cp *CancelPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(cp)
+	return internal.TotalSizeOfFixedFields(cp)
 }
 
 // This packet can be used by both Initiator and Responder to check if a peer device is still active. Upon receiving
@@ -412,11 +412,11 @@ func (prqp *ProbeRequestPacket) PacketType() PacketType {
 }
 
 func (prqp *ProbeRequestPacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(prqp)
+	return internal.MarshalLittleEndian(prqp)
 }
 
 func (prqp *ProbeRequestPacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(prqp)
+	return internal.TotalSizeOfFixedFields(prqp)
 }
 
 // This packet can be used in PTP-IP by both Initiator and Responder, as a response to a ProbeRequestPacket. Upon
@@ -430,11 +430,11 @@ func (prsp *ProbeResponsePacket) PacketType() PacketType {
 }
 
 func (prsp *ProbeResponsePacket) Payload() []byte {
-	return ipInternal.MarshalLittleEndian(prsp)
+	return internal.MarshalLittleEndian(prsp)
 }
 
 func (prsp *ProbeResponsePacket) TotalFixedFieldSize() int {
-	return ipInternal.TotalSizeOfFixedFields(prsp)
+	return internal.TotalSizeOfFixedFields(prsp)
 }
 
 // Creates an new packet struct based on the given packet type. All fields, save for the packetType field, will be left
