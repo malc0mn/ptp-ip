@@ -252,6 +252,21 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 	}
 }
 
+func FujiFieldToDevicePropCode(field string) (ptp.DevicePropCode, error) {
+	switch field {
+	case "iso":
+		return DPC_Fuji_ExposureIndex, nil
+	case "film-sim":
+		return DPC_Fuji_FilmSimulation, nil
+	case "recmode":
+		return DPC_Fuji_RecMode, nil
+	case "focusmtr":
+		return DPC_Fuji_FocusMeteringMode, nil
+	default:
+		return ptp.FieldToDevicePropCode(field)
+	}
+}
+
 func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 	switch code {
 	case ptp.DPC_BatteryLevel, DPC_Fuji_BatteryLevel:

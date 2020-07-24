@@ -1,5 +1,7 @@
 package ptp
 
+import "fmt"
+
 type DataTypeCode uint16
 
 // The most significant nibble (4 bits) is used to indicate the category of the code and whether the code value is
@@ -289,6 +291,27 @@ func DevicePropCodeAsString(code DevicePropCode) string {
 		return "copyright info"
 	default:
 		return ""
+	}
+}
+
+func FieldToDevicePropCode(field string) (DevicePropCode, error) {
+	switch field {
+	case "iso":
+		return DPC_ExposureIndex, nil
+	case "exposure":
+		return DPC_ExposureTime, nil
+	case "exp-bias":
+		return DPC_ExposureBiasCompensation, nil
+	case "delay":
+		return DPC_CaptureDelay, nil
+	case "flashmode":
+		return DPC_FlashMode, nil
+	case "whitebalance":
+		return DPC_WhiteBalance, nil
+	case "focusmtr":
+		return DPC_FocusMeteringMode, nil
+	default:
+		return 0, fmt.Errorf("unknown field name '%s'", field)
 	}
 }
 
