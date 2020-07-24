@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
+	"io/ioutil"
 	"net"
+	"os"
 )
 
-func handleFujiMessages(conn net.Conn, lmp string) {
+func handleFujiMessages(conn net.Conn, evtChan chan uint32, lmp string) {
 	// NO defer conn.Close() here since we need to mock a real Fuji responder and thus need to keep the connections open
 	// when established and continuously listen for messages in a loop.
 	for {
@@ -27,6 +29,7 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 			msg  string
 			resp PacketIn
 			data []byte
+			evt  uint32
 		)
 		eodp := false
 
@@ -36,6 +39,10 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		switch binary.LittleEndian.Uint32(raw[0:4]) {
 		case uint32(PKT_InitCommandRequest):
 			msg, resp = genericInitCommandRequestResponse(lmp, ProtocolVersion(0))
+		case constructPacketType(OC_Fuji_GetCapturePreview):
+			msg, resp, data = fujiGetCapturePreview(raw[4:8])
+			evt = constructEventData(OC_Fuji_GetCapturePreview, raw[4:8])
+			eodp = true
 		case constructPacketType(OC_Fuji_GetDeviceInfo):
 			msg, resp, data = fujiGetDeviceInfo(raw[4:8])
 			eodp = true
@@ -45,6 +52,9 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 		case constructPacketType(ptp.OC_GetDevicePropValue):
 			msg, resp, data = fujiGetDevicePropValueResponse(raw[4:8], raw[8:10])
 			eodp = true
+		case constructPacketType(ptp.OC_InitiateCapture):
+			msg, resp = fujiInitiateCaptureResponse(raw[4:8])
+			evt = constructEventData(ptp.OC_InitiateCapture, raw[4:8])
 		case constructPacketType(ptp.OC_InitiateOpenCapture):
 			msg, resp = fujiInitiateOpenCaptureResponse(raw[4:8])
 		case constructPacketType(ptp.OC_OpenSession):
@@ -64,6 +74,57 @@ func handleFujiMessages(conn net.Conn, lmp string) {
 				sendMessage(conn, fujiEndOfDataPacket(raw[4:8]), nil, lmp)
 			}
 		}
+
+		if evt != 0 {
+			evtChan <- evt
+			lgr.Infof("%s requested event dispatch for oc|tid %#x...", lmp, evt)
+		}
+	}
+}
+
+func handleFujiEvents(conn net.Conn, evtChan chan uint32, lmp string) {
+	for {
+		var evts []*FujiEventPacket
+		data := <-evtChan
+		lgr.Infof("%s received event request %#x", lmp, data)
+		oc := ptp.OperationCode(data & uint32(0xFFFF0000) >> 16)
+		tid := ptp.TransactionID(data & uint32(0x0000FFFF))
+		lgr.Infof("%s operation code %#x with transaction ID %#x", lmp, oc, tid)
+
+		switch oc {
+		case ptp.OC_InitiateCapture:
+			fSize, _ := os.Stat("testdata/preview.jpg")
+			evts = append(
+				evts,
+				&FujiEventPacket{
+					DataPhase:     0x0004,
+					EventCode:     EC_Fuji_ObjectAdded,
+					Amount:        1, // No clue what this is, always seems to be set to 1
+					TransactionID: tid,
+					Parameter1:    uint32(tid), // Yes, it is always set to the transaction ID!
+				},
+				&FujiEventPacket{
+					DataPhase:     0x0004,
+					EventCode:     EC_Fuji_PreviewAvailable,
+					Amount:        1, // No clue what this is, always seems to be set to 1
+					TransactionID: tid,
+					Parameter1:    uint32(tid), // Yes, it is always set to the transaction ID!
+					Parameter2:    uint32(fSize.Size()),
+				},
+			)
+		case OC_Fuji_GetCapturePreview:
+			evts = append(evts, &FujiEventPacket{
+				DataPhase:     0x0004,
+				EventCode:     ptp.EC_CaptureComplete,
+				Amount:        1,
+				TransactionID: tid,
+				Parameter1:    uint32(tid),
+			})
+		}
+
+		for _, evt := range evts {
+			sendMessage(conn, evt, nil, lmp)
+		}
 	}
 }
 
@@ -73,6 +134,18 @@ func constructPacketType(code ptp.OperationCode) uint32 {
 
 func constructPacketTypeWithDataPhase(code ptp.OperationCode, dp DataPhase) uint32 {
 	return uint32(code)<<16 | uint32(dp)
+}
+
+// Don't try this at home: it is fine for testing as the transaction ID will always be quite low.
+func constructEventData(code ptp.OperationCode, tid []byte) uint32 {
+	return uint32(code)<<16 | binary.LittleEndian.Uint32(tid)
+}
+
+func fujiGetCapturePreview(tid []byte) (string, *FujiOperationResponsePacket, []byte) {
+	dat, _ := ioutil.ReadFile("testdata/preview.jpg")
+	return "GetCapturePreview",
+		fujiOperationResponsePacket(DP_DataOut, RC_Fuji_GetCapturePreview, tid),
+		dat
 }
 
 func fujiGetDeviceInfo(tid []byte) (string, *FujiOperationResponsePacket, []byte) {
@@ -137,6 +210,11 @@ func fujiGetDevicePropValueResponse(tid []byte, prop []byte) (string, *FujiOpera
 	return fmt.Sprintf("GetDevicePropValue %#x", binary.LittleEndian.Uint16(prop)),
 		fujiOperationResponsePacket(DP_DataOut, RC_Fuji_GetDevicePropValue, tid),
 		p
+}
+
+func fujiInitiateCaptureResponse(tid []byte) (string, *FujiOperationResponsePacket) {
+	return "InitiateCapture",
+		fujiEndOfDataPacket(tid)
 }
 
 func fujiInitiateOpenCaptureResponse(tid []byte) (string, *FujiOperationResponsePacket) {

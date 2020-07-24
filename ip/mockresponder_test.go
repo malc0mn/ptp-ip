@@ -16,12 +16,15 @@ import (
 const MockResponderGUID string = "3e8626cc-5059-4225-bdd6-d160b2e6a60f"
 
 var (
-	address         = "127.0.0.1"
-	okPort          = DefaultPort
-	fujiPort uint16 = 55740
-	failPort uint16 = 25740
-	logLevel        = LevelSilent
-	lgr      Logger
+	address            = "127.0.0.1"
+	okPort             = DefaultPort
+	fujiCmdPort uint16 = 55740
+	fujiEvtPort uint16 = 55741
+	failPort    uint16 = 25740
+	logLevel           = LevelSilent
+	lgr         Logger
+	// TODO: the eventChan needs to be moved, see the comment in TestMain()
+	evtChan = make(chan uint32, 10)
 )
 
 func TestMain(m *testing.M) {
@@ -34,12 +37,14 @@ func TestMain(m *testing.M) {
 	lgr = NewLogger(logLevel, os.Stderr, "", log.LstdFlags)
 
 	go newLocalOkResponder(DefaultVendor, address, okPort)
-	go newLocalOkResponder("fuji", address, fujiPort)
+	// TODO: this is not good, we need to integrate the event handler in a single mock responder run...
+	go newLocalOkResponder("fuji", address, fujiCmdPort)
+	go newLocalOkResponder("fuji-event", address, fujiEvtPort)
 	go newLocalFailResponder(address, failPort)
 	os.Exit(m.Run())
 }
 
-type msgHandler func(net.Conn, string)
+type msgHandler func(net.Conn, chan uint32, string)
 
 type MockResponder struct {
 	vendor  ptp.VendorExtension
@@ -66,6 +71,8 @@ func newLocalOkResponder(vendor string, address string, port uint16) {
 	switch vendor {
 	case "fuji":
 		handler = handleFujiMessages
+	case "fuji-event":
+		handler = handleFujiEvents
 	default:
 		handler = handleGenericMessages
 	}
@@ -93,7 +100,7 @@ func (mr *MockResponder) run() {
 			continue
 		}
 		lgr.Infof("%s new connection %v...", mr.lmp, conn)
-		go mr.handler(conn, mr.lmp)
+		go mr.handler(conn, evtChan, mr.lmp)
 	}
 }
 
@@ -158,7 +165,7 @@ func sendMessage(w io.Writer, pkt Packet, extra []byte, lmp string) {
 	}
 }
 
-func alwaysFailMessage(conn net.Conn, lmp string) {
+func alwaysFailMessage(conn net.Conn, _ chan uint32, lmp string) {
 	// TCP connections are closed by the Responder on failure!
 	defer conn.Close()
 	if _, pkt, _ := readMessage(conn, lmp); pkt == nil {

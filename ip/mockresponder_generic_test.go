@@ -6,7 +6,7 @@ import (
 	"net"
 )
 
-func handleGenericMessages(conn net.Conn, lmp string) {
+func handleGenericMessages(conn net.Conn, _ chan uint32, lmp string) {
 	// NO defer conn.Close() here since we need to mock a real responder and thus need to keep the connections open when
 	// established and continuously listen for messages in a loop.
 	for {

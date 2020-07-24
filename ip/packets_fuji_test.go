@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -354,7 +355,7 @@ func TestFujiOperationRequestPacket_Payload(t *testing.T) {
 }
 
 func TestFujiInitCommandDataConn(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -372,7 +373,7 @@ func TestFujiInitCommandDataConn(t *testing.T) {
 }
 
 func TestFujiSetDeviceProperty(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -396,7 +397,7 @@ func TestFujiSetDeviceProperty(t *testing.T) {
 }
 
 func TestFujiSetDevicePropertyFail(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -409,7 +410,7 @@ func TestFujiSetDevicePropertyFail(t *testing.T) {
 }
 
 func TestFujiGetEndOfDataPacket(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -446,7 +447,7 @@ func TestFujiGetEndOfDataPacket(t *testing.T) {
 }
 
 func TestFujiGetDevicePropertyValue(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -469,7 +470,7 @@ func TestFujiGetDevicePropertyValue(t *testing.T) {
 }
 
 func TestFujiSendOperationRequest(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -488,7 +489,7 @@ func TestFujiSendOperationRequest(t *testing.T) {
 }
 
 func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -516,7 +517,7 @@ func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
 }
 
 func TestFujiSendOperationRequestAndGetRawResponse(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -547,7 +548,7 @@ func TestFujiSendOperationRequestAndGetRawResponse(t *testing.T) {
 }
 
 func TestFujiGetDeviceInfo(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -700,7 +701,7 @@ func TestFujiGetDeviceInfo(t *testing.T) {
 }
 
 func TestFujiGetDeviceState(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -741,5 +742,30 @@ func TestFujiGetDeviceState(t *testing.T) {
 			t.Errorf("FujiGetDeviceState() got = %#v; want %#v", got, want)
 			break
 		}
+	}
+}
+
+func TestFujiInitiateCapture(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	c.SetEventPort(fujiEvtPort)
+
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want, _ := ioutil.ReadFile("testdata/preview.jpg")
+	got, err := FujiInitiateCapture(c)
+	if err != nil {
+		t.Errorf("FujiInitiateCapture() error = %s; want <nil>", err)
+	}
+
+	if bytes.Compare(got, want) != 0 {
+		t.Errorf("FujiInitiateCapture() imgdata = %#v; want %#v", got, want)
 	}
 }
