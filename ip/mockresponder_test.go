@@ -23,8 +23,6 @@ var (
 	failPort    uint16 = 25740
 	logLevel           = LevelSilent
 	lgr         Logger
-	// TODO: the eventChan needs to be moved, see the comment in TestMain()
-	evtChan = make(chan uint32, 10)
 )
 
 func TestMain(m *testing.M) {
@@ -36,56 +34,55 @@ func TestMain(m *testing.M) {
 
 	lgr = NewLogger(logLevel, os.Stderr, "", log.LstdFlags)
 
-	go newLocalOkResponder(DefaultVendor, address, okPort)
-	// TODO: this is not good, we need to integrate the event handler in a single mock responder run...
-	go newLocalOkResponder("fuji", address, fujiCmdPort)
-	go newLocalOkResponder("fuji-event", address, fujiEvtPort)
-	go newLocalFailResponder(address, failPort)
+	newLocalOkResponder(DefaultVendor, address, []uint16{okPort})
+	newLocalOkResponder("fuji", address, []uint16{fujiCmdPort, fujiEvtPort})
+	newLocalFailResponder(address, failPort)
 	os.Exit(m.Run())
 }
 
 type msgHandler func(net.Conn, chan uint32, string)
 
 type MockResponder struct {
-	vendor  ptp.VendorExtension
-	address string
-	port    uint16
-	handler msgHandler
-	lmp     string
+	vendor   ptp.VendorExtension
+	address  string
+	ports    []uint16
+	handlers []msgHandler
+	lmp      string
 }
 
-func runResponder(vendor ptp.VendorExtension, address string, port uint16, handler msgHandler, lmp string) {
+func runResponder(vendor ptp.VendorExtension, address string, ports []uint16, handlers []msgHandler, lmp string) {
 	mr := &MockResponder{
-		vendor:  vendor,
-		address: address,
-		port:    port,
-		handler: handler,
-		lmp:     lmp,
+		vendor:   vendor,
+		address:  address,
+		ports:    ports,
+		handlers: handlers,
+		lmp:      lmp,
 	}
 
-	mr.run()
+	evtChan := make(chan uint32, 10)
+	for i, _ := range mr.handlers {
+		go mr.run(i, evtChan)
+	}
 }
 
-func newLocalOkResponder(vendor string, address string, port uint16) {
-	var handler msgHandler
+func newLocalOkResponder(vendor string, address string, ports []uint16) {
+	var handlers []msgHandler
 	switch vendor {
 	case "fuji":
-		handler = handleFujiMessages
-	case "fuji-event":
-		handler = handleFujiEvents
+		handlers = []msgHandler{handleFujiMessages, handleFujiEvents}
 	default:
-		handler = handleGenericMessages
+		handlers = []msgHandler{handleGenericMessages}
 	}
 
-	runResponder(ptp.VendorStringToType(vendor), address, port, handler, fmt.Sprintf("[Mocked %s OK responder]", vendor))
+	runResponder(ptp.VendorStringToType(vendor), address, ports, handlers, fmt.Sprintf("[Mocked %s OK responder]", vendor))
 }
 
 func newLocalFailResponder(address string, port uint16) {
-	runResponder(ptp.VendorExtension(0), address, port, alwaysFailMessage, "[Mocked FAIL responder]")
+	runResponder(ptp.VendorExtension(0), address, []uint16{port}, []msgHandler{alwaysFailMessage}, "[Mocked FAIL responder]")
 }
 
-func (mr *MockResponder) run() {
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", mr.address, mr.port))
+func (mr *MockResponder) run(i int, evtChan chan uint32) {
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", mr.address, mr.ports[i]))
 	defer ln.Close()
 	if err != nil {
 		lgr.Errorf("%s error %s...", mr.lmp, err)
@@ -100,7 +97,7 @@ func (mr *MockResponder) run() {
 			continue
 		}
 		lgr.Infof("%s new connection %v...", mr.lmp, conn)
-		go mr.handler(conn, evtChan, mr.lmp)
+		go mr.handlers[i](conn, evtChan, mr.lmp)
 	}
 }
 
