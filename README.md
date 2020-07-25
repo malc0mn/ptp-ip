@@ -147,9 +147,14 @@ There are three aliases for this command: `shoot`, `shutter` and `snap`.
 #### `info`
 The info command will display the current info about the camera. The output
 will vary from vendor to vendor.
-There is one additional parameter for this command: `json`. It is no doubt
+There are one additional parameter for this command: `json`. It is no doubt
 clear what it does: it will print the data as parsable JSON output, but again
 it will differ from vendor to vendor!
+Finally the `json` parameter itself has the option `pretty` to print indented
+JSON output, e.g.:
+```text
+info json pretty
+```
 
 ##### `get`
 This command will request a property from the camera and return its current
@@ -203,7 +208,11 @@ set iso 800
 This command is, for now, only supported by Fuji cameras and will display the
 current state of a fixed list of camera dependent properties.
 Like the `info` command, `state` also has the `json` parameter to output the
-data in JSON parsable format.
+data in JSON parsable format with the additional `pretty` for indented JSON
+output:
+```text
+state json pretty
+```
 
 ### Server mode
 When executing the command with the `-s` flag, it will first connect to your
