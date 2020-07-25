@@ -181,6 +181,15 @@ Depending on the error, the exit code of the `ptpip` command will differ:
 
 ### Supported commands
 
+Commands can be executed using the `-c` flag or when running in server mode by
+sending them to the port the server is listening on.
+
+When using the `-c` flag to issue commands with parameters, take care to **wrap
+the full command in quotes**. E.g.:
+```text
+ptpip -f ~/fuji.conf -c "capture /tmp/capture.jpg"
+```
+
 #### `capture`
 This command will make the responder capture a single image. Some devices will
 return a preview of the captured image. To save this preview to disk, you can
