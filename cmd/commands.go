@@ -7,7 +7,6 @@ import (
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io/ioutil"
-	"log"
 )
 
 type command func(*ip.Client, []string) string
@@ -51,7 +50,6 @@ func capture(c *ip.Client, f []string) string {
 
 func info(c *ip.Client, f []string) string {
 	res, err := c.GetDeviceInfo()
-log.Printf("%v - %T", res, res)
 
 	if err != nil {
 		res = err.Error()
@@ -104,7 +102,6 @@ func opreq(c *ip.Client, f []string) string {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-log.Printf("opreq received %d packets.", len(d))
 	for _, raw := range d {
 		res += fmt.Sprintf("\nReceived %d bytes. HEX dump:\n%s", len(raw), hex.Dump(raw))
 	}
@@ -114,7 +111,6 @@ log.Printf("opreq received %d packets.", len(d))
 
 func state(c *ip.Client, f []string) string {
 	res, err := c.GetDeviceState()
-log.Printf("%v - %T, %s", res, err, err)
 
 	if err != nil {
 		res = err.Error()
