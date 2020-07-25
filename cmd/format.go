@@ -3,18 +3,29 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	ptpfmt "github.com/malc0mn/ptp-ip/fmt"
 	"github.com/malc0mn/ptp-ip/ip"
-	ptpjson "github.com/malc0mn/ptp-ip/json"
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
-func formatDevicePropVal(vendor ptp.VendorExtension, code ptp.DevicePropCode, v int64) string {
-	switch vendor {
-	case ptp.VE_FujiPhotoFilmCoLtd:
-		return ip.FujiDevicePropValueAsString(code, v)
-	default:
-		return ptp.DevicePropValueAsString(code, v)
+func formatDeviceProperty(c *ip.Client, param string) (ptp.DevicePropCode, error) {
+	var cod ptp.DevicePropCode
+
+	conv, errH := ptpfmt.HexStringToUint64(param, 16)
+	if errH != nil {
+		var errS error
+		cod, errS = ptpfmt.PropNameToDevicePropCode(c.ResponderVendor(), param)
+		if errS != nil {
+			return 0, fmt.Errorf("%s or %s", errH, errS)
+		} else {
+			c.Debugf("Converted %s: %#x", param, cod)
+		}
+	} else {
+		cod = ptp.DevicePropCode(conv)
+		c.Debugf("Converted uint16: %#x", cod)
 	}
+
+	return cod, nil
 }
 
 // TODO: add generic device info formatting.
@@ -40,9 +51,9 @@ func fujiFormatDeviceInfo(list []*ptp.DevicePropDesc, f []string) string {
 }
 
 func fujiFormatJson(list []*ptp.DevicePropDesc, opt string) string {
-	lj := make([]*ptpjson.DevicePropDescJSON, len(list))
+	lj := make([]*ptpfmt.DevicePropDescJSON, len(list))
 	for i := 0; i < len(list); i++ {
-		lj[i] = &ptpjson.DevicePropDescJSON{
+		lj[i] = &ptpfmt.DevicePropDescJSON{
 			DevicePropDesc: list[i],
 		}
 	}
@@ -67,8 +78,8 @@ func fujiFormatTable(list []*ptp.DevicePropDesc) string {
 
 	for _, dpd := range list {
 		s += fmt.Sprintf("%s: %s || %d - %v - %#x - %#x",
-			ip.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
-			ip.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
+			ptpfmt.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
+			ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
 			uint16(dpd.CurrentValueAsInt64()),
 			dpd.CurrentValue,
 			dpd.CurrentValue,

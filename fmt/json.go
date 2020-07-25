@@ -1,9 +1,7 @@
-package json
+package fmt
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
 )
 
@@ -45,19 +43,19 @@ func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
 	}{
 		DevicePropertyCode: CodeLabel{
 			Code:  ConvertToHexString(dpdj.DevicePropertyCode),
-			Label: DevicePropertyName(dpdj.DevicePropertyCode),
+			Label: DevicePropCodeAsString(dpdj.DevicePropertyCode),
 		},
-		DataType: ptp.DataTypeCodeAsString(dpdj.DataType),
+		DataType: DataTypeCodeAsString(dpdj.DataType),
 		GetSet:   dpdj.GetSet != ptp.DPD_GetSet,
 		FactoryDefaultValue: ValueLabel{
 			Value: ConvertToHexString(dpdj.FactoryDefaultValueAsInt64()),
-			Label: ip.FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.FactoryDefaultValueAsInt64()),
+			Label: FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.FactoryDefaultValueAsInt64()),
 		},
 		CurrentValue: ValueLabel{
 			Value: ConvertToHexString(dpdj.CurrentValueAsInt64()),
-			Label: ip.FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.CurrentValueAsInt64()),
+			Label: FujiDevicePropValueAsString(dpdj.DevicePropertyCode, dpdj.CurrentValueAsInt64()),
 		},
-		FormFlag: ptp.FormFlagAsString(dpdj.FormFlag),
+		FormFlag: FormFlagAsString(dpdj.FormFlag),
 		Form:     form,
 	})
 }
@@ -88,7 +86,7 @@ func (ef *EnumerationFormJSON) MarshalJSON() ([]byte, error) {
 	for i := 0; i < len(values); i++ {
 		hex[i] = ValueLabel{
 			Value: ConvertToHexString(values[i]),
-			Label: ip.FujiDevicePropValueAsString(ef.DevicePropDesc.DevicePropertyCode, values[i]),
+			Label: FujiDevicePropValueAsString(ef.DevicePropDesc.DevicePropertyCode, values[i]),
 		}
 	}
 
@@ -97,18 +95,4 @@ func (ef *EnumerationFormJSON) MarshalJSON() ([]byte, error) {
 	}{
 		SupportedValues: hex,
 	})
-}
-
-func ConvertToHexString(v interface{}) string {
-	return fmt.Sprintf("%#x", v)
-}
-
-// TODO: how to do this better without the need to pass in a vendor?
-func DevicePropertyName(code ptp.DevicePropCode) string {
-	res := ptp.DevicePropCodeAsString(code)
-	if res == "" {
-		res = ip.FujiDevicePropCodeAsString(code)
-	}
-
-	return res
 }

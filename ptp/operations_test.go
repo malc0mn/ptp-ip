@@ -2,10 +2,9 @@ package ptp
 
 import "testing"
 
-func TestOperationResponseCodeAsString(t *testing.T) {
+func TestOperationResponseCodeAsError(t *testing.T) {
 	check := map[OperationResponseCode]string{
 		RC_Undefined:                             "undefined response code",
-		RC_OK:                                    "ok",
 		RC_GeneralError:                          "general error occured",
 		RC_SessionNotOpen:                        "session not open: open a session first",
 		RC_InvalidTransactionID:                  "invalid transaction id",
@@ -41,10 +40,16 @@ func TestOperationResponseCodeAsString(t *testing.T) {
 	}
 
 	for code, want := range check {
-		got := OperationResponseCodeAsString(code)
-		if got != want {
+		got := OperationResponseCodeAsError(code)
+		if got.Error() != want {
 			t.Errorf("OperationResponseCodeAsString() return = '%s', want '%s'", got, want)
 		}
+	}
+
+	var want error = nil
+	got := OperationResponseCodeAsError(RC_OK)
+	if got != want {
+		t.Errorf("OperationResponseCodeAsString() return = '%s', want '%#v'", got, want)
 	}
 }
 

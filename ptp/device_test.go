@@ -2,87 +2,8 @@ package ptp
 
 import (
 	"encoding/binary"
-	"fmt"
 	"testing"
 )
-
-func TestDevicePropCodeAsString(t *testing.T) {
-	check := map[DevicePropCode]string{
-		DPC_BatteryLevel:             "battery level",
-		DPC_FunctionalMode:           "functional mode",
-		DPC_ImageSize:                "image size",
-		DPC_CompressionSetting:       "compression setting",
-		DPC_WhiteBalance:             "white balance",
-		DPC_RGBGain:                  "RGB gain",
-		DPC_FNumber:                  "F number",
-		DPC_FocalLength:              "focal length",
-		DPC_FocusDistance:            "focus distance",
-		DPC_FocusMode:                "focus mode",
-		DPC_ExposureMeteringMode:     "exposure metering mode",
-		DPC_FlashMode:                "flash mode",
-		DPC_ExposureTime:             "exposure time",
-		DPC_ExposureProgramMode:      "exposure program mode",
-		DPC_ExposureIndex:            "exposure index",
-		DPC_ExposureBiasCompensation: "exposure bias compensation",
-		DPC_DateTime:                 "date time",
-		DPC_CaptureDelay:             "capture delay",
-		DPC_StillCaptureMode:         "still capture mode",
-		DPC_Contrast:                 "contrast",
-		DPC_Sharpness:                "sharpness",
-		DPC_DigitalZoom:              "digital zoom",
-		DPC_EffectMode:               "effect mode",
-		DPC_BurstNumber:              "burst number",
-		DPC_BurstInterval:            "burst interval",
-		DPC_TimelapseNumber:          "timelapse number",
-		DPC_TimelapseInterval:        "timelapse interval",
-		DPC_FocusMeteringMode:        "focus metering mode",
-		DPC_UploadURL:                "upload URL",
-		DPC_Artist:                   "artist",
-		DPC_CopyrightInfo:            "copyright info",
-		DevicePropCode(0):            "",
-	}
-
-	for code, want := range check {
-		got := DevicePropCodeAsString(code)
-		if got != want {
-			t.Errorf("DevicePropCodeAsString() return = '%s', want '%s'", got, want)
-		}
-	}
-}
-
-func TestPropToDevicePropCode(t *testing.T) {
-	check := map[string]DevicePropCode{
-		PRP_Delay:             DPC_CaptureDelay,
-		PRP_Effect:            DPC_EffectMode,
-		PRP_Exposure:          DPC_ExposureTime,
-		PRP_ExpBias:           DPC_ExposureBiasCompensation,
-		PRP_FlashMode:         DPC_FlashMode,
-		PRP_FocusMeteringMode: DPC_FocusMeteringMode,
-		PRP_ISO:               DPC_ExposureIndex,
-		PRP_WhiteBalance:      DPC_WhiteBalance,
-	}
-
-	for prop, want := range check {
-		got, err := PropToDevicePropCode(prop)
-		if err != nil {
-			t.Errorf("PropToDevicePropCode() error = %s, want <nil>", err)
-		}
-		if got != want {
-			t.Errorf("PropToDevicePropCode() return = '%#x', want '%#x'", got, want)
-		}
-	}
-
-	prop := "test"
-	got, err := PropToDevicePropCode(prop)
-	wantE := fmt.Sprintf("unknown field name '%s'", prop)
-	if err.Error() != wantE {
-		t.Errorf("PropToDevicePropCode() error = %s, want %s", err, wantE)
-	}
-	wantC := DevicePropCode(0)
-	if got != wantC {
-		t.Errorf("PropToDevicePropCode() return = %d, want %d", got, wantC)
-	}
-}
 
 func TestDevicePropDesc_SizeOfValueInBytes(t *testing.T) {
 	check := map[DataTypeCode]int{
@@ -200,57 +121,6 @@ func TestEnumerationForm_SupportedValuesAsInt64Array(t *testing.T) {
 	for i := 0; i < total; i++ {
 		if got[i] != want[i] {
 			t.Errorf("StepSizeAsInt64() %d = %d, want %d", i, got[i], want[i])
-		}
-	}
-}
-
-func TestFormFlagAsString(t *testing.T) {
-	check := map[DevicePropFormFlag]string{
-		DPF_FormFlag_None:     "none",
-		DPF_FormFlag_Range:    "range",
-		DPF_FormFlag_Enum:     "enum",
-		DevicePropFormFlag(3): "",
-	}
-
-	for code, want := range check {
-		got := FormFlagAsString(code)
-		if got != want {
-			t.Errorf("FormFlagAsString() return = '%s', want '%s'", got, want)
-		}
-	}
-}
-
-func TestDataTypeCodeAsString(t *testing.T) {
-	check := map[DataTypeCode]string{
-		DTC_UNDEF:            "undefined",
-		DTC_INT8:             "int8",
-		DTC_UINT8:            "uint8",
-		DTC_INT16:            "int16",
-		DTC_UINT16:           "uint16",
-		DTC_INT32:            "int32",
-		DTC_UINT32:           "uint32",
-		DTC_INT64:            "int64",
-		DTC_UINT64:           "uint64",
-		DTC_INT128:           "int128",
-		DTC_UINT128:          "uint128",
-		DTC_AINT8:            "aint8",
-		DTC_AUINT8:           "auint8",
-		DTC_AINT16:           "aint16",
-		DTC_AUINT16:          "auint16",
-		DTC_AINT32:           "aint32",
-		DTC_AUINT32:          "auint32",
-		DTC_AINT64:           "aint64",
-		DTC_AUINT64:          "auint64",
-		DTC_AINT128:          "aint128",
-		DTC_AUINT128:         "auint128",
-		DTC_STR:              "string",
-		DataTypeCode(0xF000): "",
-	}
-
-	for code, want := range check {
-		got := DataTypeCodeAsString(code)
-		if got != want {
-			t.Errorf("DataTypeCodeAsString() return = '%s', want '%s'", got, want)
 		}
 	}
 }

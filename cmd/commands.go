@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	ptpfmt "github.com/malc0mn/ptp-ip/fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io/ioutil"
@@ -62,25 +63,25 @@ log.Printf("%v - %T", res, res)
 func getval(c *ip.Client, f []string) string {
 	errorFmt := "getval error: %s\n"
 
-	cod, err := ip.HexStringToUint64(f[0], 16)
+	cod, err := formatDeviceProperty(c, f[0])
 	if err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
 	c.Debugf("Converted uint16: %#x", cod)
 
-	v, err := c.GetDevicePropertyValue(ptp.DevicePropCode(cod))
+	v, err := c.GetDevicePropertyValue(cod)
 	if err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	return formatDevicePropVal(c.ResponderVendor(), ptp.DevicePropCode(cod), int64(v)) + fmt.Sprintf(" (%#x)", v)
+	return ptpfmt.DevicePropValAsString(c.ResponderVendor(), cod, int64(v)) + fmt.Sprintf(" (%#x)", v)
 }
 
 func opreq(c *ip.Client, f []string) string {
 	var res string
 	errorFmt := "opreq error: %s\n"
 
-	cod, err := ip.HexStringToUint64(f[0], 16)
+	cod, err := ptpfmt.HexStringToUint64(f[0], 16)
 	if err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
@@ -89,7 +90,7 @@ func opreq(c *ip.Client, f []string) string {
 	params := f[1:]
 	p := make([]uint32, len(params))
 	for i, param := range params {
-		conv, err := ip.HexStringToUint64(param, 64)
+		conv, err := ptpfmt.HexStringToUint64(param, 64)
 		if err != nil {
 			return fmt.Sprintf(errorFmt, err)
 		}

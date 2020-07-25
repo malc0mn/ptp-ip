@@ -95,77 +95,85 @@ const (
 	RC_SpecificationofDestinationUnsupported OperationResponseCode = 0x2020
 )
 
-func OperationResponseCodeAsString(code OperationResponseCode) string {
+func OperationResponseCodeAsError(code OperationResponseCode) error {
+	var err string
+
 	switch code {
 	case RC_Undefined:
-		return "undefined response code"
+		err = "undefined response code"
 	case RC_OK:
-		return "ok"
+		err = ""
 	case RC_GeneralError:
-		return "general error occured"
+		err = "general error occured"
 	case RC_SessionNotOpen:
-		return "session not open: open a session first"
+		err = "session not open: open a session first"
 	case RC_InvalidTransactionID:
-		return "invalid transaction id"
+		err = "invalid transaction id"
 	case RC_OperationNotSupported:
-		return "operation not supported"
+		err = "operation not supported"
 	case RC_ParameterNotSupported:
-		return "paramter not supported"
+		err = "paramter not supported"
 	case RC_IncompleteTransfer:
-		return "incomplete transfer"
+		err = "incomplete transfer"
 	case RC_InvalidStorageID:
-		return "invalid storage id"
+		err = "invalid storage id"
 	case RC_InvalidObjectHandle:
-		return "invalid object handle"
+		err = "invalid object handle"
 	case RC_DevicePropNotSupported:
-		return "device property not supported"
+		err = "device property not supported"
 	case RC_InvalidObjectFormatCode:
-		return "invalid object format code"
+		err = "invalid object format code"
 	case RC_StoreFull:
-		return "store full"
+		err = "store full"
 	case RC_ObjectWriteProtected:
-		return "object write protected"
+		err = "object write protected"
 	case RC_StoreReadOnly:
-		return "store read only"
+		err = "store read only"
 	case RC_AccessDenied:
-		return "access denied"
+		err = "access denied"
 	case RC_NoThumbnailPresent:
-		return "no thumbnail present"
+		err = "no thumbnail present"
 	case RC_SelfTestFailed:
-		return "self test failed"
+		err = "self test failed"
 	case RC_PartialDeletion:
-		return "partial deletion"
+		err = "partial deletion"
 	case RC_StoreNotAvailable:
-		return "store not available"
+		err = "store not available"
 	case RC_SpecificationByFormatUnsupported:
-		return "specification by format unsupported"
+		err = "specification by format unsupported"
 	case RC_NoValidObjectInfo:
-		return "no valid object info"
+		err = "no valid object info"
 	case RC_InvalidCodeFormat:
-		return "invalid code format"
+		err = "invalid code format"
 	case RC_UnknownVendorCode:
-		return "unknown vendor code"
+		err = "unknown vendor code"
 	case RC_CaptureAlreadyTerminated:
-		return "capture already terminated"
+		err = "capture already terminated"
 	case RC_DeviceBusy:
-		return "device busy"
+		err = "device busy"
 	case RC_InvalidParentObject:
-		return "invalid parent object"
+		err = "invalid parent object"
 	case RC_InvalidDevicePropFormat:
-		return "invalid device property format"
+		err = "invalid device property format"
 	case RC_InvalidDevicePropValue:
-		return "invalid device property value"
+		err = "invalid device property value"
 	case RC_InvalidParameter:
-		return "invalid parameter"
+		err = "invalid parameter"
 	case RC_SessionAlreadyOpen:
-		return "session already open"
+		err = "session already open"
 	case RC_TransactionCancelled:
-		return "transaction cancelled"
+		err = "transaction cancelled"
 	case RC_SpecificationofDestinationUnsupported:
-		return "specification of destination unsupported"
+		err = "specification of destination unsupported"
 	default:
-		return fmt.Sprintf("unknown operation response code: %#x", code)
+		err = fmt.Sprintf("unknown operation response code: %#x", code)
 	}
+
+	if err != "" {
+		return fmt.Errorf(err)
+	}
+
+	return nil
 }
 
 // OperationRequest consists of the ip-specific transmission of a 30-byte operation dataset from the Initiator to the
