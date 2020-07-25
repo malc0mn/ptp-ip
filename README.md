@@ -21,7 +21,7 @@ photography (and ultimately even triggers based on what the camera is actually
 
 ### The `ptp` package
 This package holds all of the PTP protocol related stuff. It's pretty basic for
-now and needs some work to make a lot more usable as a stand alone package.
+now and needs some work to make it a lot more usable as a stand-alone package.
 As the Fuji implementation deviates quite a bit from the PTP/IP standard, the
 work on this package is somewhat limited because of the custom stuff needed to
 talk to a Fuji device.
