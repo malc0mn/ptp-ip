@@ -4,7 +4,7 @@ This project started out as an implementation of
 - the Picture Transfer Protocol (PTP) ISO-15740
 - the PTP over IP protocol (PTP-IP) DC-X005-2005
 
-The goals were
+while the goals were
 - get to learn the Go programming language better; all code improvement
 suggestions are thus always welcomed (there will undoubtedly be lots of those
 ;-) ) so feel free to create a PR
@@ -12,6 +12,40 @@ suggestions are thus always welcomed (there will undoubtedly be lots of those
 possible
 - have a working PTP/IP implementation for a Fuji X-T1 camera on firmware 5.51
 as a nice reverse engineering exercise :-p
+- make the implementation such that the camera can be *programmed* using any
+scripting language to get features such as: focus stacking, time-lapse
+photography (and ultimately even triggers based on what the camera is actually
+*seeing* using https://gocv.io)
+
+## What it has become
+
+### The `ptp` package
+This package holds all of the PTP protocol related stuff. It's pretty basic for
+now and needs some work to make a lot more usable as a stand alone package.
+As the Fuji implementation deviates quite a bit from the PTP/IP standard, the
+work on this package is somewhat limited because of the custom stuff needed to
+talk to a Fuji device.
+
+Whenever possible, this package is used to stick to the standard as much as
+possible.
+
+### The `ip` package
+This one holds the IP transport layer implementation of the PTP protocol. As
+with the `ptp` package, it is not fully developed because of the same reason:
+the Fuji PTP/IP implementation takes lots of bits and pieces from the standard
+but extends and drops just as much.
+
+The Fuji bits are in `_fuji` files and any other future vendor that gets added
+should use the same approach.
+
+### The `fmt` package
+All things related to formatting that are not at all part of the PTP nor PTP/IP
+protocols are in here. The `ptp` and `ip` packages are meant to be usable
+without the need for the `fmt` package.
+
+### The `cmd` package
+A command line interface implementation of the PTP/IP protocol that uses the
+`ptp`, `ip` and `fmt` packages. See *CLI command* for further info.
 
 ## Connecting to your camera
 The first and obvious step is to enable the camera's wifi. Have your network
