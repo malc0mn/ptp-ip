@@ -215,7 +215,7 @@ import(
     "github.com/malc0mn/ptp-ip/ip"
 )
 
-c := NewClient("192.168.0.1", ip.DefaultPort, "MyClient", "")
+c := ip.NewClient("generic", "192.168.0.1", ip.DefaultPort, "MyClient", "", ip.LevelDebug)
 ```
 
 ### Credits
