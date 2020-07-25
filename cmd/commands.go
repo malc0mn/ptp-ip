@@ -15,12 +15,20 @@ func commandByName(n string) command {
 	switch n {
 	case "capture", "shoot", "shutter", "snap":
 		return capture
+	// TODO: add "describe" (0x1014)
+	//case "describe":
+	//	return describe
 	case "info":
 		return info
-	case "getval":
-		return getval
+	case "get":
+		return get
+	// TODO: add "help" command that can output usage for all supported commands
+	//case "help":
+	//	return help
 	case "opreq":
 		return opreq
+	case "set":
+		return set
 	case "state":
 		return state
 	default:
@@ -58,8 +66,8 @@ func info(c *ip.Client, f []string) string {
 	return formatDeviceInfo(c.ResponderVendor(), res, f)
 }
 
-func getval(c *ip.Client, f []string) string {
-	errorFmt := "getval error: %s\n"
+func get(c *ip.Client, f []string) string {
+	errorFmt := "get error: %s\n"
 
 	cod, err := formatDeviceProperty(c, f[0])
 	if err != nil {
@@ -73,6 +81,29 @@ func getval(c *ip.Client, f []string) string {
 	}
 
 	return ptpfmt.DevicePropValAsString(c.ResponderVendor(), cod, int64(v)) + fmt.Sprintf(" (%#x)", v)
+}
+
+func set(c *ip.Client, f []string) string {
+	errorFmt := "set error: %s\n"
+
+	cod, err := formatDeviceProperty(c, f[0])
+	if err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+
+	// TODO: add support for "string" values such as "astia" for film simulation.
+	val, err := ptpfmt.HexStringToUint64(f[1], 32)
+	if err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+	c.Debugf("Converted value to: %#x", val)
+
+	err = c.SetDeviceProperty(cod, uint32(val))
+	if err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+
+	return fmt.Sprintf("property %s successfully set to %#x\n", f[0], val)
 }
 
 func opreq(c *ip.Client, f []string) string {

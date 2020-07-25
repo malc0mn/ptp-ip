@@ -10,11 +10,12 @@ func TestCommandByName(t *testing.T) {
 	cmds := map[string]command{
 		"capture": capture,
 		"info":    info,
-		"getval":  getval,
+		"get":     get,
 		"opreq":   opreq,
 		"shoot":   capture,
 		"shutter": capture,
 		"snap":    capture,
+		"set":     set,
 		"state":   state,
 	}
 	for name, want := range cmds {
