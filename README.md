@@ -1,5 +1,17 @@
-The Picture Transfer Protocol (PTP) ISO-15740
-The PTP over IP protocol (PTP-IP) DC-X005-2005
+# PTP/IP protocol implementation in Go
+
+This project started out as an implementation of
+- the Picture Transfer Protocol (PTP) ISO-15740
+- the PTP over IP protocol (PTP-IP) DC-X005-2005
+
+The goals were
+- get to learn the Go programming language better; all code improvement
+suggestions are thus always welcomed (there will undoubtedly be lots of those
+;-) ) so feel free to create a PR
+- stick to the Go standard packages and use as little external dependencies as
+possible
+- have a working PTP/IP implementation for a Fuji X-T1 camera on firmware 5.51
+as a nice reverse engineering exercise :-p
 
 ## Connecting to your camera
 The first and obvious step is to enable the camera's wifi. Have your network
