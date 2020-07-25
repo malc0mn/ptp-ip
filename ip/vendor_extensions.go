@@ -173,12 +173,12 @@ func GenericGetDeviceInfo(c *Client) (interface{}, error) {
 	return nil, err
 }
 
-// Request the Responder's device status.
+// GenericGetDeviceState requests the Responder's device status.
 func GenericGetDeviceState(_ *Client) (interface{}, error) {
 	return nil, errors.New("command not supported")
 }
 
-// Request the Responder's device status.
+// GenericGetDevicePropertyValue requests the value for the given property from the Responder's.
 func GenericGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	return 0, errors.New("command not YET supported")
 }
