@@ -221,6 +221,17 @@ const (
 	DTC_AUINT128 DataTypeCode = 0x400A
 	// Variable-length Unicode String
 	DTC_STR DataTypeCode = 0xFFFF
+
+	// Not sure if these should be in the PTP package. We need these to be able to universally define properties
+	// across devices to allow them to be easily settable.
+	PRP_Delay             string = "delay"
+	PRP_Effect            string = "effect"
+	PRP_Exposure          string = "exposure"
+	PRP_ExpBias           string = "exp-bias"
+	PRP_FlashMode         string = "flashmode"
+	PRP_FocusMeteringMode string = "focusmtr"
+	PRP_ISO               string = "iso"
+	PRP_WhiteBalance      string = "whitebalance"
 )
 
 // DevicePropCodeAsString returns the DevicePropCode as string. When the DevicePropCode is unknown, it returns an empty
@@ -294,21 +305,24 @@ func DevicePropCodeAsString(code DevicePropCode) string {
 	}
 }
 
-func FieldToDevicePropCode(field string) (DevicePropCode, error) {
+// PropToDevicePropCode converts a standardised property string to a valid DevicePropertyCode.
+func PropToDevicePropCode(field string) (DevicePropCode, error) {
 	switch field {
-	case "iso":
-		return DPC_ExposureIndex, nil
-	case "exposure":
-		return DPC_ExposureTime, nil
-	case "exp-bias":
-		return DPC_ExposureBiasCompensation, nil
-	case "delay":
+	case PRP_Delay:
 		return DPC_CaptureDelay, nil
-	case "flashmode":
+	case PRP_Effect:
+		return DPC_EffectMode, nil
+	case PRP_Exposure:
+		return DPC_ExposureTime, nil
+	case PRP_ExpBias:
+		return DPC_ExposureBiasCompensation, nil
+	case PRP_FlashMode:
 		return DPC_FlashMode, nil
-	case "whitebalance":
+	case PRP_ISO:
+		return DPC_ExposureIndex, nil
+	case PRP_WhiteBalance:
 		return DPC_WhiteBalance, nil
-	case "focusmtr":
+	case PRP_FocusMeteringMode:
 		return DPC_FocusMeteringMode, nil
 	default:
 		return 0, fmt.Errorf("unknown field name '%s'", field)

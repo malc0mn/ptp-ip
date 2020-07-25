@@ -2,6 +2,7 @@ package ptp
 
 import (
 	"encoding/binary"
+	"fmt"
 	"testing"
 )
 
@@ -46,6 +47,40 @@ func TestDevicePropCodeAsString(t *testing.T) {
 		if got != want {
 			t.Errorf("DevicePropCodeAsString() return = '%s', want '%s'", got, want)
 		}
+	}
+}
+
+func TestPropToDevicePropCode(t *testing.T) {
+	check := map[string]DevicePropCode{
+		PRP_Delay:             DPC_CaptureDelay,
+		PRP_Effect:            DPC_EffectMode,
+		PRP_Exposure:          DPC_ExposureTime,
+		PRP_ExpBias:           DPC_ExposureBiasCompensation,
+		PRP_FlashMode:         DPC_FlashMode,
+		PRP_FocusMeteringMode: DPC_FocusMeteringMode,
+		PRP_ISO:               DPC_ExposureIndex,
+		PRP_WhiteBalance:      DPC_WhiteBalance,
+	}
+
+	for prop, want := range check {
+		got, err := PropToDevicePropCode(prop)
+		if err != nil {
+			t.Errorf("PropToDevicePropCode() error = %s, want <nil>", err)
+		}
+		if got != want {
+			t.Errorf("PropToDevicePropCode() return = '%#x', want '%#x'", got, want)
+		}
+	}
+
+	prop := "test"
+	got, err := PropToDevicePropCode(prop)
+	wantE := fmt.Sprintf("unknown field name '%s'", prop)
+	if err.Error() != wantE {
+		t.Errorf("PropToDevicePropCode() error = %s, want %s", err, wantE)
+	}
+	wantC := DevicePropCode(0)
+	if got != wantC {
+		t.Errorf("PropToDevicePropCode() return = %d, want %d", got, wantC)
 	}
 }
 

@@ -39,6 +39,36 @@ func TestFujiDevicePropCodeAsString(t *testing.T) {
 	}
 }
 
+func TestFujiPropToDevicePropCode(t *testing.T) {
+	check := map[string]ptp.DevicePropCode{
+		ptp.PRP_Effect:            DPC_Fuji_FilmSimulation,
+		ptp.PRP_FocusMeteringMode: DPC_Fuji_FocusMeteringMode,
+		ptp.PRP_ISO:               DPC_Fuji_ExposureIndex,
+		"recmode":                 DPC_Fuji_RecMode,
+	}
+
+	for prop, want := range check {
+		got, err := FujiPropToDevicePropCode(prop)
+		if err != nil {
+			t.Errorf("FujiPropToDevicePropCode() error = %s, want <nil>", err)
+		}
+		if got != want {
+			t.Errorf("FujiPropToDevicePropCode() return = '%#x', want '%#x'", got, want)
+		}
+	}
+
+	prop := "test"
+	got, err := FujiPropToDevicePropCode(prop)
+	wantE := fmt.Sprintf("unknown field name '%s'", prop)
+	if err.Error() != wantE {
+		t.Errorf("FujiPropToDevicePropCode() error = %s, want %s", err, wantE)
+	}
+	wantC := ptp.DevicePropCode(0)
+	if got != wantC {
+		t.Errorf("FujiPropToDevicePropCode() return = %d, want %d", got, wantC)
+	}
+}
+
 func TestFujiBatteryLevelAsString(t *testing.T) {
 	check := map[FujiBatteryLevel]string{
 		BAT_Fuji_3bCritical: "critical",

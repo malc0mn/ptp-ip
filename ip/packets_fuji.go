@@ -252,18 +252,19 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 	}
 }
 
-func FujiFieldToDevicePropCode(field string) (ptp.DevicePropCode, error) {
+// FujiPropToDevicePropCode converts a standardised property string to a valid ptp.DevicePropertyCode.
+func FujiPropToDevicePropCode(field string) (ptp.DevicePropCode, error) {
 	switch field {
-	case "iso":
+	case ptp.PRP_ISO:
 		return DPC_Fuji_ExposureIndex, nil
-	case "film-sim":
+	case ptp.PRP_Effect:
 		return DPC_Fuji_FilmSimulation, nil
 	case "recmode":
 		return DPC_Fuji_RecMode, nil
-	case "focusmtr":
+	case ptp.PRP_FocusMeteringMode:
 		return DPC_Fuji_FocusMeteringMode, nil
 	default:
-		return ptp.FieldToDevicePropCode(field)
+		return ptp.PropToDevicePropCode(field)
 	}
 }
 
