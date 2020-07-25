@@ -6,10 +6,12 @@ The first and obvious step is to enable the camera's wifi. Have your network
 manager scan for new SSIDs and connect to the one from your camera. It will most
 likely have an obvious name. A Fujifilm X-T1 SSID, for example, starts with
 `FUJIFILM-X-T1` followed by four more characters.
+
 ## Linux `NetworkManager` troubleshooting
 If you have trouble establishing a WiFi connection to your camera, start off by
 tailing the logs: `sudo journalctl -f`. When those are open, connect to your
 camera's SSID and look closely at what it spews out.
+
 ### IPv6 errors
 If you see IPv6 related errors in the logs, make sure you disable IPv6 for the
 connection to your camera's SSID. You can do this using the UI: under the IPv6
@@ -19,6 +21,7 @@ directly:
 
 Look for the `[ipv6]` section or add it if it's not there and make sure that
 this line is present: `method=disabled`.
+
 ### Cannot get an IP from the camera's DHCP server
 If you are using `NetworkManager` with its built-in, and rather buggy, DHCP
 client, you might have trouble getting a DHCP address from the camera.
@@ -45,6 +48,7 @@ The first shutdown candidates here are any web browser (Chrome, Firefox, Edge)
 or chat applications such as Slack, WhatsApp etc.
 
 ## CLI command
+
 ### Usage
 Executing the `ptpip` command without arguments or with the `-?` flag will
 print its usage:
@@ -78,6 +82,7 @@ Usage of ptpip:
         The vendor of the responder that will be connected to. (default "generic")
   -v    Display version info.
 ```
+
 ### Config file
 The config file is in the classic INI file format. Some examples:
 ```ini
@@ -120,6 +125,7 @@ enabled = true
 address = "127.0.0.1"
 port = 15740
 ```
+
 ### Exit codes
 Depending on the error, the exit code of the `ptpip` command will differ:
 1. Unspecified: `1`
@@ -215,7 +221,7 @@ import(
     "github.com/malc0mn/ptp-ip/ip"
 )
 
-c := ip.NewClient("generic", "192.168.0.1", ip.DefaultPort, "MyClient", "", ip.LevelDebug)
+c := ip.NewClient(ip.DefaultVendor, "192.168.0.1", ip.DefaultPort, "MyClient", "", ip.LevelDebug)
 ```
 
 ### Credits
