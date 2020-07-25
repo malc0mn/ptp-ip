@@ -6,12 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 )
 
 const (
 	ok                  = 0
 	errGeneral          = 1
+	errInvalidArgs      = 2
 	errOpenConfig       = 102
 	errCreateClient     = 104
 	errResponderConnect = 105
@@ -48,6 +50,11 @@ func main() {
 
 	checkPorts()
 
+	if cmd != "" && server == true {
+		fmt.Fprintln(os.Stderr, "Too many arguments: either run in server mode OR execute a single command; not both!")
+		os.Exit(errInvalidArgs)
+	}
+
 	// TODO: finish this implementation so CTRL+C will also abort client.Dial() etc. properly.
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -78,6 +85,11 @@ func main() {
 		os.Exit(errResponderConnect)
 	}
 
+	if cmd != "" {
+		f := strings.Fields(cmd)
+		fmt.Print(commandByName(f[0])(client, f[1:]))
+	}
+
 	if server == true {
 		go launchServer(client)
 		go func() {
@@ -85,9 +97,10 @@ func main() {
 			fmt.Printf("Received signal %s, shutting down...\n", sig)
 			done <- true
 		}()
+
+		<-done
+		fmt.Println("Bye bye!")
 	}
 
-	<-done
-	fmt.Println("Bye bye!")
 	os.Exit(ok)
 }
