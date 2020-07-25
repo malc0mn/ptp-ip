@@ -8,10 +8,14 @@ import (
 
 func TestCommandByName(t *testing.T) {
 	cmds := map[string]command{
-		"info":   info,
-		"getval": getval,
-		"opreq":  opreq,
-		"state":  state,
+		"capture": capture,
+		"info":    info,
+		"getval":  getval,
+		"opreq":   opreq,
+		"shoot":   capture,
+		"shutter": capture,
+		"snap":    capture,
+		"state":   state,
 	}
 	for name, want := range cmds {
 		got := commandByName(name)
@@ -23,7 +27,7 @@ func TestCommandByName(t *testing.T) {
 
 func TestUnknown(t *testing.T) {
 	got := unknown(&ip.Client{}, []string{})
-	want := "unknown command"
+	want := "unknown command\n"
 	if got != want {
 		t.Errorf("got = '%s'; want '%s'", got, want)
 	}
