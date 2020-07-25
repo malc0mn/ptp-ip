@@ -136,8 +136,8 @@ Depending on the error, the exit code of the `ptpip` command will differ:
 ### Supported commands
 
 #### `capture`
-This command will make the responder take a single image. Some devices will
-return a preview of the captured image. Do store this preview to disk, you can
+This command will make the responder capture a single image. Some devices will
+return a preview of the captured image. To save this preview to disk, you can
 pass a path to write the preview to as the first parameter. E.g.:
 ```text
 capture /tmp/my-preview.jpg
@@ -147,7 +147,7 @@ There are three aliases for this command: `shoot`, `shutter` and `snap`.
 #### `info`
 The info command will display the current info about the camera. The output
 will vary from vendor to vendor.
-There are one additional parameter for this command: `json`. It is no doubt
+There is one additional parameter for this command: `json`. It is no doubt
 clear what it does: it will print the data as parsable JSON output, but again
 it will differ from vendor to vendor!
 Finally the `json` parameter itself has the option `pretty` to print indented
@@ -165,7 +165,7 @@ like `0x5005`, or a unified property name. The currently supported names are:
 3. `exposure`: exposure time
 4. `exp-bias`: exposure bias compensation
 5. `flashmode`
-6. `focusmtr`: focus metering mode
+6. `focusmtr`: focus metering mode, or focus point
 7. `iso`
 8. `whitebalance`
 
@@ -175,19 +175,22 @@ TODO: add `recmode`!
 This command is intended for reverse engineering and/or debugging purposes. It
 takes two parameters in hexadecimal form: the first one is the operation code
 to execute, and the second one is a parameter for the operation. Whether or not
-this parameter is mandatory depends on the operation being executed.
+this second parameter is mandatory depends on the operation being executed.
 An example would be to describe (`0x1014`) a responder's image size property
 (`0x5003`) by calling:
 ```text
 opreq 0x1015 0x5003
 ```
-The output will always be a hexadecimal dump of the packets received from the
+The output will always be a **hexadecimal dump** of the packets received from the
 responder.
+
+See *server mode* below for example output.
 
 #### `set`
 This command will set a property on the camera to the requested value. The
-parameter defining the property can be a hexadecimal property code, like
-`0x5005`, or a unified property name. The currently supported names are:
+first parameter indicating the property to be set, can be a hexadecimal
+property code, like `0x5005`, or a unified property name. The currently
+supported names are:
 1. `delay`
 2. `effect`
 3. `exposure`
@@ -199,7 +202,7 @@ parameter defining the property can be a hexadecimal property code, like
 
 TODO: add `recmode`!
 
-The third parameter is the value to set the property to. E.g.:
+The second parameter is the value to set the property to. E.g.:
 ```text
 set iso 800
 ```
