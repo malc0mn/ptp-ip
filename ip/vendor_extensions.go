@@ -23,6 +23,7 @@ type VendorExtensions struct {
 	getDeviceInfo          func(*Client) (interface{}, error)
 	getDeviceState         func(*Client) (interface{}, error)
 	getDevicePropertyValue func(*Client, ptp.DevicePropCode) (uint32, error)
+	setDeviceProperty      func(*Client, ptp.DevicePropCode, uint32) error
 	operationRequestRaw    func(*Client, ptp.OperationCode, []uint32) ([][]byte, error)
 	initiateCapture        func(*Client) ([]byte, error)
 }
@@ -38,6 +39,7 @@ func (c *Client) loadVendorExtensions() {
 		getDeviceInfo:          GenericGetDeviceInfo,
 		getDeviceState:         GenericGetDeviceState,
 		getDevicePropertyValue: GenericGetDevicePropertyValue,
+		setDeviceProperty:      GenericSetDeviceProperty,
 		operationRequestRaw:    GenericOperationRequestRaw,
 		initiateCapture:        GenericInitiateCapture,
 	}
@@ -51,6 +53,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
 		c.vendorExtensions.getDevicePropertyValue = FujiGetDevicePropertyValue
+		c.vendorExtensions.setDeviceProperty = FujiSetDeviceProperty
 		c.vendorExtensions.operationRequestRaw = FujiSendOperationRequestAndGetRawResponse
 		c.vendorExtensions.initiateCapture = FujiInitiateCapture
 	}
@@ -181,6 +184,11 @@ func GenericGetDeviceState(_ *Client) (interface{}, error) {
 // GenericGetDevicePropertyValue requests the value for the given property from the Responder's.
 func GenericGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	return 0, errors.New("command not YET supported")
+}
+
+// GenericSetDeviceProperty sets the value for the given property on the Responder.
+func GenericSetDeviceProperty(c *Client, dpc ptp.DevicePropCode, val uint32) error {
+	return errors.New("command not YET supported")
 }
 
 func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {

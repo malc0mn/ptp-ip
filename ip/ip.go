@@ -644,6 +644,11 @@ func (c *Client) GetDevicePropertyValue(code ptp.DevicePropCode) (uint32, error)
 	return c.vendorExtensions.getDevicePropertyValue(c, code)
 }
 
+// SetDeviceProperty sets the given device property to the specified value.
+func (c *Client) SetDeviceProperty(code ptp.DevicePropCode, val uint32) error {
+	return c.vendorExtensions.setDeviceProperty(c, code, val)
+}
+
 // OperationRequestRaw allows to perform any operation request and returns the raw result intended for reverse
 // engineering purposes.
 func (c *Client) OperationRequestRaw(code ptp.OperationCode, params []uint32) ([][]byte, error) {
