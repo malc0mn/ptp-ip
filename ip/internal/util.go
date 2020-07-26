@@ -82,7 +82,7 @@ func unmarshal(r io.Reader, s interface{}, l int, vs int, bo binary.ByteOrder) (
 			}
 			// The slice operation happening here is to drop the null terminator.
 			f.SetString(string(utf16.Decode(b[:len(b) - 1])))
-			l -= vs / 2
+			l -= vs
 		default:
 			if err := binary.Read(r, bo, f.Addr().Interface()); err != nil {
 				return 0, err
