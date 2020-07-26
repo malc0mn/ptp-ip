@@ -475,7 +475,10 @@ func TestFujiInitiateCapture(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want, _ := ioutil.ReadFile("testdata/preview.jpg")
+	want, err := ioutil.ReadFile("testdata/preview.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
 	got, err := FujiInitiateCapture(c)
 	if err != nil {
 		t.Errorf("FujiInitiateCapture() error = %s; want <nil>", err)
