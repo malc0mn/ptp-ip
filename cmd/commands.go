@@ -73,7 +73,6 @@ func get(c *ip.Client, f []string) string {
 	if err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
-	c.Debugf("Converted uint16: %#x", cod)
 
 	v, err := c.GetDevicePropertyValue(cod)
 	if err != nil {
