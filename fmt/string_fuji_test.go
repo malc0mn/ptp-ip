@@ -186,7 +186,7 @@ func TestFujiFlashModeAsString(t *testing.T) {
 		ip.FM_Fuji_Commander:  "commander",
 		ip.FM_Fuji_Disabled:   "disabled",
 		ip.FM_Fuji_Enabled:    "enabled",
-		ptp.FlashMode(0):      "",
+		ptp.FlashMode(0):      "undefined",
 	}
 
 	for code, want := range check {
@@ -292,7 +292,7 @@ func TestFujiWhiteBalanceAsString(t *testing.T) {
 		ip.WB_Fuji_Underwater:   "underwater",
 		ip.WB_Fuji_Temperature:  "temprerature",
 		ip.WB_Fuji_Custom:       "custom",
-		ptp.WhiteBalance(0):     "",
+		ptp.WhiteBalance(0):     "undefined",
 	}
 
 	for code, want := range check {

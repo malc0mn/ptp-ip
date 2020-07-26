@@ -233,7 +233,7 @@ func FujiFlashModeAsString(mode ptp.FlashMode) string {
 	case ip.FM_Fuji_Enabled:
 		return "enabled"
 	default:
-		return ""
+		return FlashModeAsString(mode)
 	}
 }
 
@@ -327,7 +327,7 @@ func FujiWhiteBalanceAsString(wb ptp.WhiteBalance) string {
 	case ip.WB_Fuji_Custom:
 		return "custom"
 	default:
-		return ""
+		return WhiteBalanceAsString(wb)
 	}
 }
 

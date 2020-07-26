@@ -41,7 +41,7 @@
         "readOnly": false,
         "FactoryDefaultValue": {
             "value": "0x2",
-            "label": ""
+            "label": "off"
         },
         "CurrentValue": {
             "value": "0x8009",
@@ -70,22 +70,22 @@
         "readOnly": false,
         "FactoryDefaultValue": {
             "value": "0x2",
-            "label": ""
+            "label": "automatic"
         },
         "CurrentValue": {
             "value": "0x2",
-            "label": ""
+            "label": "automatic"
         },
         "formType": "enum",
         "form": {
             "values": [
                 {
                     "value": "0x2",
-                    "label": ""
+                    "label": "automatic"
                 },
                 {
                     "value": "0x4",
-                    "label": ""
+                    "label": "daylight"
                 },
                 {
                     "value": "0x8006",
@@ -105,7 +105,7 @@
                 },
                 {
                     "value": "0x6",
-                    "label": ""
+                    "label": "tungsten"
                 },
                 {
                     "value": "0x800a",
