@@ -74,7 +74,7 @@ func GenericInitCommandDataConn(c *Client) error {
 		return err
 	}
 
-	res, err := c.WaitForPacketFromCmdDataConn(nil)
+	res, _, err := c.WaitForPacketFromCmdDataConn(nil)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func GenericInitEventConn(c *Client) error {
 		return err
 	}
 
-	res, err := c.WaitForPacketFromEventConn(nil)
+	res, _, err := c.WaitForPacketFromEventConn(nil)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func GenericGetDeviceInfo(c *Client) (interface{}, error) {
 		return nil, err
 	}
 
-	res, err := c.WaitForPacketFromCmdDataConn(nil)
+	res, _, err := c.WaitForPacketFromCmdDataConn(nil)
 	if err != nil {
 		return nil, err
 	}

@@ -373,7 +373,8 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 
 // ReadPacketFromCmdDataConn reads a packet from the command/data connection with a read timout of 30 seconds.
 // When expecting a specific packet, you can pass it in, otherwise pass nil.
-func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
+// The byte array that is returned will contain any excess data that was not unmarshalled, empty otherwise.
+func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
 	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.commandDataConn, p)
 }
@@ -413,9 +414,12 @@ func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {
 }
 
 // WaitForPacketFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
-func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
+// This function will return a packet satisfying PacketIn together with any excess data that was not unmarshalled as a
+// byte array. The excess data will be empty if there was none.
+func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
+		b []byte
 		err error
 	)
 
@@ -425,7 +429,7 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 			wait = false
 			err = WaitForResponseError
 		default:
-			res, err = c.ReadPacketFromCmdDataConn(p)
+			res, b, err = c.ReadPacketFromCmdDataConn(p)
 			if err != io.EOF || res != nil {
 				wait = false
 			}
@@ -433,22 +437,26 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, error) {
 		}
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return res, nil
+	return res, b, nil
 }
 
 // ReadPacketFromEventConn reads a packet from the Event connection.
-func (c *Client) ReadPacketFromEventConn(p PacketIn) (PacketIn, error) {
+// The byte array that is returned will contain any excess data that was not unmarshalled, empty otherwise.
+func (c *Client) ReadPacketFromEventConn(p PacketIn) (PacketIn, []byte, error) {
 	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.eventConn, p)
 }
 
 // WaitForPacketFromEventConn waits for a packet on the Event connection.
-func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, error) {
+// This function will return a packet satisfying EventPacket together with any excess data that was not unmarshalled as
+// a byte array. The excess data will be empty if there was none.
+func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
+		b []byte
 		err error
 	)
 
@@ -458,7 +466,7 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, error) {
 			wait = false
 			err = WaitForEventError
 		default:
-			res, err = c.ReadPacketFromEventConn(p)
+			res, b, err = c.ReadPacketFromEventConn(p)
 			if res != nil || (err != nil && err != io.EOF && !strings.Contains(err.Error(), "i/o timeout")) {
 				wait = false
 			}
@@ -466,13 +474,13 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, error) {
 		}
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return res, nil
+	return res, b, nil
 }
 
-func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
+func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, []byte, error) {
 	var err error
 	var h Header
 	var hl int
@@ -481,23 +489,23 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 	if p != nil && p.PacketType() == PKT_Invalid {
 		var l uint32
 		if err := binary.Read(r, binary.LittleEndian, &l); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		hl = int(l) - 4
 	} else {
 		if err := binary.Read(r, binary.LittleEndian, &h); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if h.Length == 0 {
-			return nil, ReadResponseError
+			return nil, nil, ReadResponseError
 		}
 		hl = int(h.Length) - HeaderSize
 	}
 
 	if p == nil {
 		if p, err = NewPacketInFromPacketType(h.PacketType); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -505,11 +513,12 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, error) {
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
 	vs := hl - p.TotalFixedFieldSize()
-	if err := internal.UnmarshalLittleEndian(r, p, hl, vs); err != nil && err != io.EOF {
-		return nil, err
+	b, err := internal.UnmarshalLittleEndian(r, p, hl, vs)
+	if err != nil && err != io.EOF {
+		return nil, nil, err
 	}
 
-	return p, nil
+	return p, b, nil
 }
 
 // The reading approach taken here is so that we can return the full raw data but still reliably read the complete
@@ -554,7 +563,7 @@ func (c *Client) initEventConn() error {
 		c.Info("[eventListener] subscribing event listener to event connection...")
 		for {
 			p := c.vendorExtensions.newEventPacket()
-			_, err := c.WaitForPacketFromEventConn(p)
+			_, _, err := c.WaitForPacketFromEventConn(p)
 			if err == nil {
 				c.Debugf("[eventListener] publishing new event '%#x' to event channel...", p.GetEventCode())
 				c.EventChan <- p

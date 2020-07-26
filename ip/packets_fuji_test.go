@@ -216,7 +216,10 @@ func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gotPar, gotPkt, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_AppVersion), 4)
+	gotPar, gotPkt, b, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_AppVersion), 4)
+	if len(b) > 0 {
+		t.Errorf("FujiSendOperationRequestAndGetResponse() excess bytes = %d; want <nil>", len(b))
+	}
 	if err != nil {
 		t.Errorf("FujiSendOperationRequestAndGetResponse() error = %s; want <nil>", err)
 	}

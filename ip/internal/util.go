@@ -95,16 +95,23 @@ func unmarshal(r io.Reader, s interface{}, l int, vs int, bo binary.ByteOrder) (
 		}
 	}
 
-	// TODO: we ignore the leftover data for now, but how should we handle it properly?
 	return l, nil
 }
 
 // Unmarshal a byte array, Little Endian formant, upon reception.
 // We need a reader, a destination container, the total expected length and a "variable size" integer indicating the
 // variable sized portion of the packet.
-func UnmarshalLittleEndian(r io.Reader, s interface{}, l int, vs int) error {
-	_, err := unmarshal(r, s, l, vs, binary.LittleEndian)
-	return err
+// Any data that is left over after reading to s will be returned as as a byte array to be dealt with by the caller.
+func UnmarshalLittleEndian(r io.Reader, s interface{}, l int, vs int) ([]byte, error) {
+	var b []byte
+
+	left, err := unmarshal(r, s, l, vs, binary.LittleEndian)
+	if left > 0 {
+		b = make([]byte, left)
+		binary.Read(r, binary.LittleEndian, &b)
+	}
+
+	return b, err
 }
 
 func TotalSizeOfFixedFields(s interface{}) int {

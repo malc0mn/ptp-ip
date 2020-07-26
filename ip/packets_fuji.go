@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -436,7 +437,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.Info("Opening a session...")
-	if _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
+	if _, _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
 		return err
 	}
 
@@ -457,7 +458,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.Info("Initiating open capture...")
-	if _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
+	if _, _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
 		return err
 	}
 
@@ -487,7 +488,7 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 	}
 
 	p := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+	if _, _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
 		return err
 	}
 
@@ -504,7 +505,7 @@ func FujiGetEndOfDataPacket(c *Client, orp *FujiOperationResponsePacket) (*FujiO
 	}
 
 	eodp := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(eodp); err != nil {
+	if _, _, err := c.WaitForPacketFromCmdDataConn(eodp); err != nil {
 		return nil, err
 	}
 
@@ -523,7 +524,7 @@ func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, erro
 	var rp *FujiOperationResponsePacket
 
 	// First we get the actual value from the Responder.
-	if val, rp, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
+	if val, rp, _, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
 		return 0, err
 	}
 
@@ -554,34 +555,53 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) e
 // simply pass in PM_Fuji_NoParam!
 // Sometimes, the response will have an additional variable sized parameter. Use pSize to indicate you are expecting one
 // by passing the size in bytes of the expected data. Pass 0 when not expecting anything.
-func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, *FujiOperationResponsePacket, error) {
+// The byte array being returned may contain excess dat that could not be unmarshalled. This will often be the case so
+// check this data to see if it is not nil and handle it accordingly.
+func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, *FujiOperationResponsePacket, []byte, error) {
 	if err := FujiSendOperationRequest(c, code, param); err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	p := new(FujiOperationResponsePacket)
-	if _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
-		return 0, nil, err
+	_, b, err := c.WaitForPacketFromCmdDataConn(p)
+	if err != nil {
+		return 0, nil, nil, err
 	}
 
+	if b == nil && pSize > 0 {
+		return 0, p, nil, errors.New("expected additional value but none was returned")
+	}
+
+	r := bytes.NewReader(b)
 	var parameter uint32
 	if pSize > 0 {
-		b := make([]byte, pSize)
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &b); err != nil {
-			return 0, nil, err
+		// This here is done to remove complexity in the variable parameter size being returned depending on the
+		// requested property. The PTP/IP standard states the parameters should always be uint32, but Fuji...
+		// The size adjustment here would mean that when expecting 4 bytes but only 2 are returned, you will still get
+		// that data. Be careful though...
+		if len(b) < pSize {
+			pSize = len(b)
+		}
+
+		v := make([]byte, pSize)
+		if err := binary.Read(r, binary.LittleEndian, &v); err != nil {
+			return 0, nil, nil, err
 		}
 		if pSize < 4 {
 			pad := make([]byte, 4-pSize)
-			b = append(b, pad...)
+			v = append(v, pad...)
 		}
-		parameter = binary.LittleEndian.Uint32(b)
+		parameter = binary.LittleEndian.Uint32(v)
+
+		// Remove bytes read from unmarshalled data.
+		b = b[pSize:]
 	}
 
 	if !p.WasSuccessful(operationCodeToOKResponseCode(code)) {
-		return 0, nil, p.ReasonAsError()
+		return 0, nil, nil, p.ReasonAsError()
 	}
 
-	return parameter, p, nil
+	return parameter, p, b, nil
 }
 
 // FujiSendOperationRequestAndGetRawResponse wraps FujiSendOperationRequest and returns the raw camera response data.
@@ -618,31 +638,32 @@ func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode
 // specification.
 func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device info...", c.ResponderFriendlyName())
-	numProps, rp, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
+	numProps, rp, b, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
 	if err != nil {
 		return nil, err
 	}
 
 	c.Debugf("Number of properties returned: %d", numProps)
 
+	buf := bytes.NewReader(b)
 	list := make([]*ptp.DevicePropDesc, numProps)
 
 	for i := 0; i < int(numProps); i++ {
 		var l uint32
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &l); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, &l); err != nil {
 			return nil, err
 		}
 
 		c.Debugf("Property length: %d", l)
 
 		dpd := new(ptp.DevicePropDesc)
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
 			return nil, err
 		}
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DataType); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, &dpd.DataType); err != nil {
 			return nil, err
 		}
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.GetSet); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, &dpd.GetSet); err != nil {
 			return nil, err
 		}
 
@@ -650,17 +671,17 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 
 		// We now know the DataTypeCode so we know what to expect next.
 		dpd.FactoryDefaultValue = make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.FactoryDefaultValue); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, dpd.FactoryDefaultValue); err != nil {
 			return nil, err
 		}
 
 		dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.CurrentValue); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, dpd.CurrentValue); err != nil {
 			return nil, err
 		}
 
 		// Read the type of form that will follow.
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.FormFlag); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, &dpd.FormFlag); err != nil {
 			return nil, err
 		}
 
@@ -673,19 +694,19 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 
 			// Minimum possible value.
 			form.MinimumValue = make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, form.MinimumValue); err != nil {
+			if err := binary.Read(buf, binary.LittleEndian, form.MinimumValue); err != nil {
 				return nil, err
 			}
 
 			// Maximum possible value.
 			form.MaximumValue = make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, form.MaximumValue); err != nil {
+			if err := binary.Read(buf, binary.LittleEndian, form.MaximumValue); err != nil {
 				return nil, err
 			}
 
 			// Stepper value.
 			form.StepSize = make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, form.StepSize); err != nil {
+			if err := binary.Read(buf, binary.LittleEndian, form.StepSize); err != nil {
 				return nil, err
 			}
 
@@ -698,7 +719,7 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 
 			// First read the number of values that will follow.
 			var num uint16
-			if err := binary.Read(c.commandDataConn, binary.LittleEndian, &num); err != nil {
+			if err := binary.Read(buf, binary.LittleEndian, &num); err != nil {
 				return nil, err
 			}
 			form.NumberOfValues = int(num)
@@ -706,7 +727,7 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 			// Now fill the enumeration form with the actual values.
 			for i := 0; i < form.NumberOfValues; i++ {
 				v := make([]byte, dpd.SizeOfValueInBytes())
-				if err := binary.Read(c.commandDataConn, binary.LittleEndian, v); err != nil {
+				if err := binary.Read(buf, binary.LittleEndian, v); err != nil {
 					return nil, err
 				}
 				form.SupportedValues = append(form.SupportedValues, v)
@@ -727,25 +748,26 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 
 func FujiGetDeviceState(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device state...", c.ResponderFriendlyName())
-	numProps, rp, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
+	numProps, rp, b, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
 	if err != nil {
 		return nil, err
 	}
 
 	c.Debugf("Number of properties returned: %d", numProps)
 
+	buf := bytes.NewReader(b)
 	list := make([]*ptp.DevicePropDesc, numProps)
 
 	for i := 0; i < int(numProps); i++ {
 		dpd := new(ptp.DevicePropDesc)
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
 			return nil, err
 		}
 		c.Debugf("Property code: %#x", dpd.DevicePropertyCode)
 
 		dpd.DataType = ptp.DTC_UINT32
 		dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(c.commandDataConn, binary.LittleEndian, dpd.CurrentValue); err != nil {
+		if err := binary.Read(buf, binary.LittleEndian, dpd.CurrentValue); err != nil {
 			return nil, err
 		}
 		c.Debugf("Property value: %#x", dpd.CurrentValue)
@@ -769,7 +791,7 @@ func FujiGetDeviceState(c *Client) (interface{}, error) {
 // but no further actions will be taken by the camera.
 func FujiInitiateCapture(c *Client) ([]byte, error) {
 	c.Infof("Releasing %s shutter...", c.ResponderFriendlyName())
-	_, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateCapture, PM_Fuji_NoParam, 0)
+	_, _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateCapture, PM_Fuji_NoParam, 0)
 	if err != nil {
 		return nil, err
 	}

@@ -122,7 +122,8 @@ func readMessage(r io.Reader, lmp string) (Header, PacketOut, error) {
 	}
 
 	vs := int(h.Length) - HeaderSize - internal.TotalSizeOfFixedFields(pkt)
-	err = internal.UnmarshalLittleEndian(r, pkt, int(h.Length), vs)
+	_, err = internal.UnmarshalLittleEndian(r, pkt, int(h.Length) - HeaderSize, vs)
+	// TODO: handle byte array being returned?
 	if err != nil {
 		lgr.Errorf("%s error reading packet %T data %s", lmp, pkt, err)
 		return h, nil, err
