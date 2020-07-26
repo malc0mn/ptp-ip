@@ -40,7 +40,7 @@ func GenericDevicePropCodeAsString(code ptp.DevicePropCode) string {
 	case ptp.DPC_ExposureProgramMode:
 		return "exposure program mode"
 	case ptp.DPC_ExposureIndex:
-		return "exposure index"
+		return "ISO"
 	case ptp.DPC_ExposureBiasCompensation:
 		return "exposure bias compensation"
 	case ptp.DPC_DateTime:

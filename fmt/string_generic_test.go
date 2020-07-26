@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestDevicePropCodeAsString(t *testing.T) {
+func TestGenericDevicePropCodeAsString(t *testing.T) {
 	check := map[ptp.DevicePropCode]string{
 		ptp.DPC_BatteryLevel:             "battery level",
 		ptp.DPC_FunctionalMode:           "functional mode",
@@ -22,7 +22,7 @@ func TestDevicePropCodeAsString(t *testing.T) {
 		ptp.DPC_FlashMode:                "flash mode",
 		ptp.DPC_ExposureTime:             "exposure time",
 		ptp.DPC_ExposureProgramMode:      "exposure program mode",
-		ptp.DPC_ExposureIndex:            "exposure index",
+		ptp.DPC_ExposureIndex:            "ISO",
 		ptp.DPC_ExposureBiasCompensation: "exposure bias compensation",
 		ptp.DPC_DateTime:                 "date time",
 		ptp.DPC_CaptureDelay:             "capture delay",
