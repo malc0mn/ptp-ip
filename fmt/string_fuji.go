@@ -331,6 +331,8 @@ func FujiWhiteBalanceAsString(wb ptp.WhiteBalance) string {
 	}
 }
 
+// TODO: FujiRecModeAsString(rm ip.FujiRecMode)
+
 func FujiSelfTimerAsString(st ip.FujiSelfTimer) string {
 	switch st {
 	case ip.ST_Fuji_1Sec:
