@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	BytesWrittenMismatch = errors.New("bytes written mismatch: written %d wanted %d")
+	BytesWrittenMismatch = "bytes written mismatch: written %d wanted %d"
 	ReadResponseError    = errors.New("unable to read response packet")
 	WaitForResponseError = errors.New("timeout reached when waiting for response")
 	WaitForEventError    = errors.New("timeout reached when waiting for event")
@@ -348,7 +348,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 			return err
 		}
 		if n != HeaderSize {
-			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
+			return fmt.Errorf(BytesWrittenMismatch, n, HeaderSize)
 		}
 		c.Debugf("[sendPacket] header bytes written %d", n)
 	}
@@ -364,7 +364,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		return err
 	}
 	if n != pll {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
+		return fmt.Errorf(BytesWrittenMismatch, n, pll)
 	}
 	c.Debugf("[sendPacket] payload bytes written %d", n)
 

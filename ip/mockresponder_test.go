@@ -200,7 +200,7 @@ func sendAnyPacket(w io.Writer, p Packet, extra []byte, lmp string) error {
 		}
 
 		if n != HeaderSize {
-			return fmt.Errorf(BytesWrittenMismatch.Error(), n, HeaderSize)
+			return fmt.Errorf(BytesWrittenMismatch, n, HeaderSize)
 		}
 		lgr.Infof("%s sendAnyPacket() header bytes written %d", lmp, n)
 	}
@@ -225,7 +225,7 @@ func sendAnyPacket(w io.Writer, p Packet, extra []byte, lmp string) error {
 	}
 
 	if n != pll {
-		return fmt.Errorf(BytesWrittenMismatch.Error(), n, pll)
+		return fmt.Errorf(BytesWrittenMismatch, n, pll)
 	}
 
 	lgr.Infof("%s sendAnyPacket() payload bytes written %d", lmp, n)
