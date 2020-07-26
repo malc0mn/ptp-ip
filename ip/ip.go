@@ -419,7 +419,7 @@ func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {
 func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
-		b []byte
+		b   []byte
 		err error
 	)
 
@@ -456,7 +456,7 @@ func (c *Client) ReadPacketFromEventConn(p PacketIn) (PacketIn, []byte, error) {
 func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
-		b []byte
+		b   []byte
 		err error
 	)
 
