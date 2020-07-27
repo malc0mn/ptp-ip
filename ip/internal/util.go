@@ -54,8 +54,10 @@ func MarshalLittleEndian(s interface{}) []byte {
 
 // We always read using reflection to fill each field of s as we go along. This way, we can fill structs like the
 // ptp.OperationResponsePacket which does not necessarily receive all parameter fields 'over the wire'. According to the
-// protocol we should, but unfortunately it depends on the vendor's implementation.
-// So we need to make sure this unmarshal function is usable by all future implementations.
+// protocol we should, but unfortunately it depends on the vendor's implementation. So we need to make sure this
+// unmarshal function is usable by all future implementations.
+// The int returned is the left over length of the data that has NOT been unmarshalled. It is the responsibility of the
+// caller to handle it.
 func unmarshal(r io.Reader, s interface{}, l int, vs int, bo binary.ByteOrder) (int, error) {
 	v := reflect.Indirect(reflect.ValueOf(s))
 
@@ -103,15 +105,15 @@ func unmarshal(r io.Reader, s interface{}, l int, vs int, bo binary.ByteOrder) (
 // variable sized portion of the packet.
 // Any data that is left over after reading to s will be returned as as a byte array to be dealt with by the caller.
 func UnmarshalLittleEndian(r io.Reader, s interface{}, l int, vs int) ([]byte, error) {
-	var b []byte
+	var xs []byte
 
 	left, err := unmarshal(r, s, l, vs, binary.LittleEndian)
 	if left > 0 {
-		b = make([]byte, left)
-		binary.Read(r, binary.LittleEndian, &b)
+		xs = make([]byte, left)
+		binary.Read(r, binary.LittleEndian, &xs)
 	}
 
-	return b, err
+	return xs, err
 }
 
 func TotalSizeOfFixedFields(s interface{}) int {

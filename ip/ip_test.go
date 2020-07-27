@@ -246,9 +246,9 @@ func TestClient_readResponse(t *testing.T) {
 		"[ip_test]",
 	)
 
-	rp, byt, err := c.readResponse(&b, nil)
-	if len(byt) > 0 {
-		t.Errorf("readResponse() excess bytes = %d; want 0", len(byt))
+	rp, xs, err := c.readResponse(&b, nil)
+	if len(xs) > 0 {
+		t.Errorf("readResponse() excess bytes = %d; want 0", len(xs))
 	}
 	if err != nil {
 		t.Errorf("readResponse() error = %s; want <nil>", err)

@@ -419,7 +419,7 @@ func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {
 func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
-		b   []byte
+		xs  []byte
 		err error
 	)
 
@@ -429,7 +429,7 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, err
 			wait = false
 			err = WaitForResponseError
 		default:
-			res, b, err = c.ReadPacketFromCmdDataConn(p)
+			res, xs, err = c.ReadPacketFromCmdDataConn(p)
 			if err != io.EOF || res != nil {
 				wait = false
 			}
@@ -440,7 +440,7 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, err
 		return nil, nil, err
 	}
 
-	return res, b, nil
+	return res, xs, nil
 }
 
 // ReadPacketFromEventConn reads a packet from the Event connection.
@@ -456,7 +456,7 @@ func (c *Client) ReadPacketFromEventConn(p PacketIn) (PacketIn, []byte, error) {
 func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
-		b   []byte
+		xs  []byte
 		err error
 	)
 
@@ -466,7 +466,7 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, er
 			wait = false
 			err = WaitForEventError
 		default:
-			res, b, err = c.ReadPacketFromEventConn(p)
+			res, xs, err = c.ReadPacketFromEventConn(p)
 			if res != nil || (err != nil && err != io.EOF && !strings.Contains(err.Error(), "i/o timeout")) {
 				wait = false
 			}
@@ -477,7 +477,7 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, er
 		return nil, nil, err
 	}
 
-	return res, b, nil
+	return res, xs, nil
 }
 
 func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, []byte, error) {
@@ -513,12 +513,12 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, []byte, error)
 	// We calculate the size of the variable portion of the packet here!
 	// If there is no variable portion, vs will be 0.
 	vs := hl - p.TotalFixedFieldSize()
-	b, err := internal.UnmarshalLittleEndian(r, p, hl, vs)
+	xs, err := internal.UnmarshalLittleEndian(r, p, hl, vs)
 	if err != nil && err != io.EOF {
 		return nil, nil, err
 	}
 
-	return p, b, nil
+	return p, xs, nil
 }
 
 // The reading approach taken here is so that we can return the full raw data but still reliably read the complete
