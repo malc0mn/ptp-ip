@@ -208,6 +208,10 @@ The full length command would be:
 ```text
 describe 0x5005 json pretty
 ```
+**Note**: for Fuji cameras, some property descriptions will be incomplete when
+they are requested *before* having called the `info` command. Exactly which
+properties have that odd behavior can be determined by doing an `info json
+pretty` call.
 
 #### `info`
 The info command will display the current info about the camera. The output
