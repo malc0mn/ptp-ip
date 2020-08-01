@@ -303,6 +303,30 @@ func TestFujiGetDevicePropertyDesc(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("FujiGetDevicePropertyDesc() got = %#v; want %#v", got, want)
 	}
+
+	got, err = FujiGetDevicePropertyDesc(c, DPC_Fuji_FocusMeteringMode)
+	if err != nil {
+		t.Errorf("FujiGetDevicePropertyDesc() error = %s; want <nil>", err)
+	}
+
+	want = &ptp.DevicePropDesc{
+		DevicePropertyCode:  DPC_Fuji_FocusMeteringMode,
+		DataType:            ptp.DTC_UINT32,
+		GetSet:              ptp.DPD_GetSet,
+		FactoryDefaultValue: []uint8{0x0, 0x0, 0x0, 0x0},
+		CurrentValue:        []uint8{0x2, 0x7, 0x2, 0x3},
+		FormFlag:            ptp.DPF_FormFlag_Range,
+		Form: &ptp.RangeForm{
+			MinimumValue:[]uint8{0x0, 0x0, 0x0, 0x0},
+			MaximumValue:[]uint8{0x7, 0x7, 0x9, 0x10},
+			StepSize:[]uint8{0x1, 0x0, 0x0, 0x0},
+		},
+	}
+	want.Form.SetDevicePropDesc(want)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("FujiGetDevicePropertyDesc() got = %#v; want %#v", got, want)
+	}
 }
 
 func TestFujiGetDeviceInfo(t *testing.T) {
