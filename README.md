@@ -43,6 +43,9 @@ All things related to formatting that are *not at all* part of the PTP nor
 PTP/IP protocols are in here. The `ptp` and `ip` packages are meant to be
 usable without the need for the `fmt` package.
 
+Fuji specific stuff is in `_fuji` files and any other future vendor that gets
+added should do the same.
+
 ### The `cmd` package
 A command line interface implementation of the PTP/IP protocol that uses the
 `ptp`, `ip` and `fmt` packages. See *CLI command* for further info.
