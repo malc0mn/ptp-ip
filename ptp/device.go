@@ -64,9 +64,12 @@ const (
 	// to enforce minimum and/or maximum ratios, the green channel may be forced to a fixed value. An example of this
 	// would be a minimum field of "1:1000:1", a maximum field of "20000:1000:20000" and a step field of "1:0:1".
 	DPC_RGBGain DevicePropCode = 0x5006
-	// DPC_FNumber allows the exposure program mode settings of the device, corresponding to the "Exposure Program" tag
-	// within an EXIF or a TIFF/EP image file, to be constrained by a list of allowed exposure program mode settings
-	// supported by the device.
+	// DPC_FNumber corresponds to the aperture of the lens. The units are equal to the F-number scaled by 100. When the
+	// device is in an automatic Exposure Program Mode, the setting of this property via the SetDeviceProp operation may
+	// cause other properties such as Exposure Time and Exposure Index to change. Like all device properties that cause
+	// other device properties to change, the device is required to issue DevicePropChanged events for the other device
+	// properties that changed as a side effect of the invoked change. The setting of this property is typically only
+	// valid when the device has an ExposureProgramMode setting of Manual or Aperture Priority.
 	DPC_FNumber DevicePropCode = 0x5007
 	// DPC_FocalLength represents the 35mm equivalent focal length. The values of this property correspond to the focal
 	// length in millimeters multiplied by 100.
