@@ -20,7 +20,7 @@ type CodeLabel struct {
 }
 
 func (dpdj *DevicePropDescJSON) MarshalJSON() ([]byte, error) {
-	var form interface{}
+	var form ptp.Form
 	switch dpdj.FormFlag {
 	case ptp.DPF_FormFlag_Range:
 		form = &RangeFormJSON{
