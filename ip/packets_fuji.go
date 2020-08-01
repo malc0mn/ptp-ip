@@ -636,7 +636,9 @@ func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode
 	return raw, err
 }
 
-// FujiGetDevicePropDesc retrieves the description for the given device property code.
+// FujiGetDevicePropDesc retrieves the description for the given device property code. Beware that this method can
+// return no error and at the same time return nil for *ptp.DevicePropDesc! This means that the requested device
+// property does not exist: the camera gave a response but returned no property data.
 func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DevicePropDesc, error) {
 	c.Infof("Requesting %s device property description for %#x...", c.ResponderFriendlyName(), code)
 	_, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropDesc, uint32(code), 0)
@@ -647,7 +649,9 @@ func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DeviceP
 	r := bytes.NewReader(xs)
 
 	dpd, err := fujiReadDevicePropDesc(c, r)
-	if err != nil {
+	// When requesting the description of a non-existing device property, the camera does not return an error code, it
+	// just does not return any data. Another annoying complexity we need to handle here...
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
