@@ -70,7 +70,7 @@ func describe(c *ip.Client, f []string) string {
 	}
 
 	if res == nil {
-		return fmt.Sprintf(errorFmt, fmt.Sprintf("unknown property %#x", cod))
+		return fmt.Sprintf(errorFmt, fmt.Sprintf("cannot describe property %#x", cod))
 	}
 
 	return fujiFormatDeviceProperty(res, f[1:])
