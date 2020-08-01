@@ -16,8 +16,8 @@ func commandByName(n string) command {
 	case "capture", "shoot", "shutter", "snap":
 		return capture
 	// TODO: add "describe" (0x1014)
-	//case "describe":
-	//	return describe
+	case "describe":
+		return describe
 	case "info":
 		return info
 	case "get":
@@ -54,6 +54,26 @@ func capture(c *ip.Client, f []string) string {
 	}
 
 	return "Image captured, check the camera\n"
+}
+
+func describe(c *ip.Client, f []string) string {
+	errorFmt := "describe error: %s\n"
+
+	cod, err := formatDeviceProperty(c, f[0])
+	if err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+
+	res, err := c.GetDevicePropertyDescription(cod)
+	if err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+
+	if res == nil {
+		return fmt.Sprintf(errorFmt, fmt.Sprintf("unknown property %#x", cod))
+	}
+
+	return fujiFormatDeviceProperty(res, f[1:])
 }
 
 func info(c *ip.Client, f []string) string {

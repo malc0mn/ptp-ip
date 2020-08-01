@@ -199,6 +199,16 @@ capture /tmp/my-preview.jpg
 ```
 There are three aliases for this command: `shoot`, `shutter` and `snap`.
 
+#### `describe`
+Describe will request a device property description for the given device
+property. The property can be a hexadecimal code or a property name.
+The output can be formatted as JSON by adding `json` as additional parameter.
+As a last parameter you can specify `pretty` to print the JSON output indented.
+The full length command would be:
+```text
+describe 0x5005 json pretty
+```
+
 #### `info`
 The info command will display the current info about the camera. The output
 will vary from vendor to vendor.

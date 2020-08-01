@@ -40,19 +40,35 @@ func formatDeviceInfo(vendor ptp.VendorExtension, data interface{}, f []string) 
 	return ""
 }
 
+func fujiFormatDeviceProperty(dpd *ptp.DevicePropDesc, f []string) string {
+	if len(f) >= 1 && f[0] == "json" {
+		var opt string
+		if len(f) > 1 {
+			opt = f[1]
+		}
+
+		return fujiFormatJson(&ptpfmt.DevicePropDescJSON{
+			DevicePropDesc: dpd,
+		}, opt)
+	}
+
+	return fujiFormatTable(dpd)
+}
+
 func fujiFormatDeviceInfo(list []*ptp.DevicePropDesc, f []string) string {
 	if len(f) >= 1 && f[0] == "json" {
 		var opt string
 		if len(f) > 1 {
 			opt = f[1]
 		}
-		return fujiFormatJson(list, opt)
+
+		return fujiFormatJsonList(list, opt)
 	}
 
-	return fujiFormatTable(list)
+	return fujiFormatListAsTable(list)
 }
 
-func fujiFormatJson(list []*ptp.DevicePropDesc, opt string) string {
+func fujiFormatJsonList(list []*ptp.DevicePropDesc, opt string) string {
 	lj := make([]*ptpfmt.DevicePropDescJSON, len(list))
 	for i := 0; i < len(list); i++ {
 		lj[i] = &ptpfmt.DevicePropDescJSON{
@@ -60,12 +76,16 @@ func fujiFormatJson(list []*ptp.DevicePropDesc, opt string) string {
 		}
 	}
 
+	return fujiFormatJson(lj, opt)
+}
+
+func fujiFormatJson(v interface{}, opt string) string {
 	var err error
 	var res []byte
 	if opt == "pretty" {
-		res, err = json.MarshalIndent(lj, "", "    ")
+		res, err = json.MarshalIndent(v, "", "    ")
 	} else {
-		res, err = json.Marshal(lj)
+		res, err = json.Marshal(v)
 	}
 	if err != nil {
 		return err.Error()
@@ -75,7 +95,12 @@ func fujiFormatJson(list []*ptp.DevicePropDesc, opt string) string {
 }
 
 // TODO: write as ASCII table.
-func fujiFormatTable(list []*ptp.DevicePropDesc) string {
+func fujiFormatTable(dpd *ptp.DevicePropDesc) string {
+	return fmt.Sprintf("%#v", dpd)
+}
+
+// TODO: write as ASCII table.
+func fujiFormatListAsTable(list []*ptp.DevicePropDesc) string {
 	var s string
 
 	for _, dpd := range list {
