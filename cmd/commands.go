@@ -17,13 +17,13 @@ func commandByName(n string) command {
 		return capture
 	case "describe":
 		return describe
-	case "info":
-		return info
 	case "get":
 		return get
 	// TODO: add "help" command that can output usage for all supported commands
 	//case "help":
 	//	return help
+	case "info":
+		return info
 	case "opreq":
 		return opreq
 	case "set":
