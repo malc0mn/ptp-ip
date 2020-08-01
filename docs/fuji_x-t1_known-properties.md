@@ -1,5 +1,10 @@
 ## Fujifilm X-T1 Device Proprty Codes list
 
+**Warning**: if you do not get the same results listed here when requesting
+the description of a device property, then request the device info (operation
+`0x902B`) first! After that, describe the property again.
+Why the camera reacts like this is a mistery ;-)
+
 ### Supported from the PTP/IP standard
 
 #### Property Code 0x5001 - Battery Level
