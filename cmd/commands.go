@@ -15,7 +15,6 @@ func commandByName(n string) command {
 	switch n {
 	case "capture", "shoot", "shutter", "snap":
 		return capture
-	// TODO: add "describe" (0x1014)
 	case "describe":
 		return describe
 	case "info":
