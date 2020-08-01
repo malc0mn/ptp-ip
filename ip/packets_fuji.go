@@ -638,7 +638,9 @@ func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode
 
 // FujiGetDevicePropDesc retrieves the description for the given device property code. Beware that this method can
 // return no error and at the same time return nil for *ptp.DevicePropDesc! This means that the requested device
-// property does not exist: the camera gave a response but returned no property data.
+// property cannot be described: the camera gave a response but returned no property data.
+// With the Fuji implementation one cannot be sure if the property does not exist or cannot be described as there is no
+// clear error being returned.
 func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DevicePropDesc, error) {
 	c.Infof("Requesting %s device property description for %#x...", c.ResponderFriendlyName(), code)
 	_, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropDesc, uint32(code), 0)
