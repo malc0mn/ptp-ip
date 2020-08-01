@@ -266,6 +266,45 @@ func TestFujiSendOperationRequestAndGetRawResponse(t *testing.T) {
 	}
 }
 
+func TestFujiGetDevicePropertyDesc(t *testing.T) {
+	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Dial()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := FujiGetDevicePropertyDesc(c, ptp.DPC_WhiteBalance)
+	if err != nil {
+		t.Errorf("FujiGetDevicePropertyDesc() error = %s; want <nil>", err)
+	}
+
+	want := &ptp.DevicePropDesc{
+		DevicePropertyCode:  ptp.DPC_WhiteBalance,
+		DataType:            ptp.DTC_UINT16,
+		GetSet:              ptp.DPD_GetSet,
+		FactoryDefaultValue: []uint8{0x2, 0x0},
+		CurrentValue:        []uint8{0x2, 0x0},
+		FormFlag:            ptp.DPF_FormFlag_Enum,
+		Form: &ptp.EnumerationForm{
+			NumberOfValues: 10,
+			SupportedValues: [][]uint8{
+				{0x02, 0x00}, {0x04, 0x00}, {0x06, 0x80}, {0x01, 0x80}, {0x02, 0x80}, {0x03, 0x80}, {0x06, 0x00},
+				{0x0a, 0x80}, {0x0b, 0x80}, {0x0c, 0x80},
+			},
+		},
+	}
+	want.Form.SetDevicePropDesc(want)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("FujiGetDevicePropertyDesc() got = %#v; want %#v", got, want)
+	}
+}
+
 func TestFujiGetDeviceInfo(t *testing.T) {
 	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()

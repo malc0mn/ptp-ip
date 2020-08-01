@@ -22,6 +22,7 @@ type VendorExtensions struct {
 	newEventPacket         func() EventPacket
 	getDeviceInfo          func(*Client) (interface{}, error)
 	getDeviceState         func(*Client) (interface{}, error)
+	getDevicePropertyDesc  func(*Client, ptp.DevicePropCode) (*ptp.DevicePropDesc, error)
 	getDevicePropertyValue func(*Client, ptp.DevicePropCode) (uint32, error)
 	setDeviceProperty      func(*Client, ptp.DevicePropCode, uint32) error
 	operationRequestRaw    func(*Client, ptp.OperationCode, []uint32) ([][]byte, error)
@@ -38,6 +39,7 @@ func (c *Client) loadVendorExtensions() {
 		newEventPacket:         NewEventPacket,
 		getDeviceInfo:          GenericGetDeviceInfo,
 		getDeviceState:         GenericGetDeviceState,
+		getDevicePropertyDesc:  GenericGetDevicePropertyDesc,
 		getDevicePropertyValue: GenericGetDevicePropertyValue,
 		setDeviceProperty:      GenericSetDeviceProperty,
 		operationRequestRaw:    GenericOperationRequestRaw,
@@ -52,6 +54,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.newEventPacket = NewFujiEventPacket
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
+		c.vendorExtensions.getDevicePropertyDesc = FujiGetDevicePropertyDesc
 		c.vendorExtensions.getDevicePropertyValue = FujiGetDevicePropertyValue
 		c.vendorExtensions.setDeviceProperty = FujiSetDeviceProperty
 		c.vendorExtensions.operationRequestRaw = FujiSendOperationRequestAndGetRawResponse
@@ -179,6 +182,11 @@ func GenericGetDeviceInfo(c *Client) (interface{}, error) {
 // GenericGetDeviceState requests the Responder's device status.
 func GenericGetDeviceState(_ *Client) (interface{}, error) {
 	return nil, errors.New("command not supported")
+}
+
+// GenericGetDevicePropertyValue requests the value for the given property from the Responder's.
+func GenericGetDevicePropertyDesc(c *Client, dpc ptp.DevicePropCode) (*ptp.DevicePropDesc, error) {
+	return nil, errors.New("command not YET supported")
 }
 
 // GenericGetDevicePropertyValue requests the value for the given property from the Responder's.

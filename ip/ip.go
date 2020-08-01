@@ -648,6 +648,11 @@ func (c *Client) GetDeviceState() (interface{}, error) {
 	return c.vendorExtensions.getDeviceState(c)
 }
 
+// GetDevicePropertyDescription gets the description of the given device property.
+func (c *Client) GetDevicePropertyDescription(code ptp.DevicePropCode) (*ptp.DevicePropDesc, error) {
+	return c.vendorExtensions.getDevicePropertyDesc(c, code)
+}
+
 // GetDevicePropertyValue gets the value of the given device property.
 func (c *Client) GetDevicePropertyValue(code ptp.DevicePropCode) (uint32, error) {
 	return c.vendorExtensions.getDevicePropertyValue(c, code)

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/malc0mn/ptp-ip/ip/internal"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"io"
 	"time"
 )
 
@@ -333,6 +334,8 @@ func operationCodeToOKResponseCode(oc ptp.OperationCode) ptp.OperationResponseCo
 	switch oc {
 	case OC_Fuji_GetDeviceInfo:
 		return RC_Fuji_GetDeviceInfo
+	case ptp.OC_GetDevicePropDesc:
+		return RC_Fuji_GetDevicePropDesc
 	case ptp.OC_GetDevicePropValue:
 		return RC_Fuji_GetDevicePropValue
 	case ptp.OC_OpenSession:
@@ -633,6 +636,29 @@ func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode
 	return raw, err
 }
 
+// FujiGetDevicePropDesc retrieves the description for the given device property code.
+func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DevicePropDesc, error) {
+	c.Infof("Requesting %s device property description for %#x...", c.ResponderFriendlyName(), code)
+	_, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropDesc, uint32(code), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	r := bytes.NewReader(xs)
+
+	dpd, err := fujiReadDevicePropDesc(c, r)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = FujiGetEndOfDataPacket(c, rp)
+	if err != nil {
+		return nil, err
+	}
+
+	return dpd, nil
+}
+
 // FujiGetDeviceInfo retrieves the current settings of a Fuji device. It is not at all a GetDeviceInfo call as specified
 // in the PTP/IP specification, but it is more of a GetDevicePropDescList call that simply does not exist in the PTP/IP
 // specification.
@@ -656,83 +682,9 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 
 		c.Debugf("Property length: %d", l)
 
-		dpd := new(ptp.DevicePropDesc)
-		if err := binary.Read(r, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
+		dpd, err := fujiReadDevicePropDesc(c, r)
+		if err != nil {
 			return nil, err
-		}
-		if err := binary.Read(r, binary.LittleEndian, &dpd.DataType); err != nil {
-			return nil, err
-		}
-		if err := binary.Read(r, binary.LittleEndian, &dpd.GetSet); err != nil {
-			return nil, err
-		}
-
-		c.Debugf("Size of property values in bytes: %d", dpd.SizeOfValueInBytes())
-
-		// We now know the DataTypeCode so we know what to expect next.
-		dpd.FactoryDefaultValue = make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(r, binary.LittleEndian, dpd.FactoryDefaultValue); err != nil {
-			return nil, err
-		}
-
-		dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
-		if err := binary.Read(r, binary.LittleEndian, dpd.CurrentValue); err != nil {
-			return nil, err
-		}
-
-		// Read the type of form that will follow.
-		if err := binary.Read(r, binary.LittleEndian, &dpd.FormFlag); err != nil {
-			return nil, err
-		}
-
-		switch dpd.FormFlag {
-		case ptp.DPF_FormFlag_Range:
-			form := new(ptp.RangeForm)
-			c.Debug("Property is a range type, filling range form...")
-
-			form.SetDevicePropDesc(dpd)
-
-			// Minimum possible value.
-			form.MinimumValue = make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(r, binary.LittleEndian, form.MinimumValue); err != nil {
-				return nil, err
-			}
-
-			// Maximum possible value.
-			form.MaximumValue = make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(r, binary.LittleEndian, form.MaximumValue); err != nil {
-				return nil, err
-			}
-
-			// Stepper value.
-			form.StepSize = make([]byte, dpd.SizeOfValueInBytes())
-			if err := binary.Read(r, binary.LittleEndian, form.StepSize); err != nil {
-				return nil, err
-			}
-
-			dpd.Form = form
-		case ptp.DPF_FormFlag_Enum:
-			form := new(ptp.EnumerationForm)
-			c.Debug("Property is an enum type, filling enum form...")
-
-			form.SetDevicePropDesc(dpd)
-
-			// First read the number of values that will follow.
-			var num uint16
-			if err := binary.Read(r, binary.LittleEndian, &num); err != nil {
-				return nil, err
-			}
-			form.NumberOfValues = int(num)
-
-			// Now fill the enumeration form with the actual values.
-			for i := 0; i < form.NumberOfValues; i++ {
-				v := make([]byte, dpd.SizeOfValueInBytes())
-				if err := binary.Read(r, binary.LittleEndian, v); err != nil {
-					return nil, err
-				}
-				form.SupportedValues = append(form.SupportedValues, v)
-			}
-			dpd.Form = form
 		}
 
 		list[i] = dpd
@@ -744,6 +696,89 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 	}
 
 	return list, nil
+}
+
+func fujiReadDevicePropDesc(c *Client, r io.Reader) (*ptp.DevicePropDesc, error) {
+	dpd := new(ptp.DevicePropDesc)
+	if err := binary.Read(r, binary.LittleEndian, &dpd.DevicePropertyCode); err != nil {
+		return nil, err
+	}
+	if err := binary.Read(r, binary.LittleEndian, &dpd.DataType); err != nil {
+		return nil, err
+	}
+	if err := binary.Read(r, binary.LittleEndian, &dpd.GetSet); err != nil {
+		return nil, err
+	}
+
+	c.Debugf("Size of property values in bytes: %d", dpd.SizeOfValueInBytes())
+
+	// We now know the DataTypeCode so we know what to expect next.
+	dpd.FactoryDefaultValue = make([]byte, dpd.SizeOfValueInBytes())
+	if err := binary.Read(r, binary.LittleEndian, dpd.FactoryDefaultValue); err != nil {
+		return nil, err
+	}
+
+	dpd.CurrentValue = make([]byte, dpd.SizeOfValueInBytes())
+	if err := binary.Read(r, binary.LittleEndian, dpd.CurrentValue); err != nil {
+		return nil, err
+	}
+
+	// Read the type of form that will follow.
+	if err := binary.Read(r, binary.LittleEndian, &dpd.FormFlag); err != nil {
+		return nil, err
+	}
+
+	switch dpd.FormFlag {
+	case ptp.DPF_FormFlag_Range:
+		form := new(ptp.RangeForm)
+		c.Debug("Property is a range type, filling range form...")
+
+		form.SetDevicePropDesc(dpd)
+
+		// Minimum possible value.
+		form.MinimumValue = make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(r, binary.LittleEndian, form.MinimumValue); err != nil {
+			return nil, err
+		}
+
+		// Maximum possible value.
+		form.MaximumValue = make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(r, binary.LittleEndian, form.MaximumValue); err != nil {
+			return nil, err
+		}
+
+		// Stepper value.
+		form.StepSize = make([]byte, dpd.SizeOfValueInBytes())
+		if err := binary.Read(r, binary.LittleEndian, form.StepSize); err != nil {
+			return nil, err
+		}
+
+		dpd.Form = form
+	case ptp.DPF_FormFlag_Enum:
+		form := new(ptp.EnumerationForm)
+		c.Debug("Property is an enum type, filling enum form...")
+
+		form.SetDevicePropDesc(dpd)
+
+		// First read the number of values that will follow.
+		var num uint16
+		if err := binary.Read(r, binary.LittleEndian, &num); err != nil {
+			return nil, err
+		}
+		form.NumberOfValues = int(num)
+
+		// Now fill the enumeration form with the actual values.
+		for i := 0; i < form.NumberOfValues; i++ {
+			v := make([]byte, dpd.SizeOfValueInBytes())
+			if err := binary.Read(r, binary.LittleEndian, v); err != nil {
+				return nil, err
+			}
+			form.SupportedValues = append(form.SupportedValues, v)
+		}
+		dpd.Form = form
+	}
+
+	return dpd, nil
 }
 
 func FujiGetDeviceState(c *Client) (interface{}, error) {
