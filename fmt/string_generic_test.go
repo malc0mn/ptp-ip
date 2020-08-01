@@ -14,7 +14,7 @@ func TestGenericDevicePropCodeAsString(t *testing.T) {
 		ptp.DPC_CompressionSetting:       "compression setting",
 		ptp.DPC_WhiteBalance:             "white balance",
 		ptp.DPC_RGBGain:                  "RGB gain",
-		ptp.DPC_FNumber:                  "F number",
+		ptp.DPC_FNumber:                  "F-number",
 		ptp.DPC_FocalLength:              "focal length",
 		ptp.DPC_FocusDistance:            "focus distance",
 		ptp.DPC_FocusMode:                "focus mode",
@@ -237,6 +237,20 @@ func TestDevicePropValueAsString(t *testing.T) {
 				t.Errorf("DevicePropValueAsString() return = '%s', want '%s'", got, want)
 			}
 		}
+	}
+}
+
+func TestFNumberAsString(t *testing.T) {
+	got := FNumberAsString(0x015e)
+	want := "f/3.5"
+	if got != want {
+		t.Errorf("FNumberAsString() return = '%s', want '%s'", got, want)
+	}
+
+	got = FNumberAsString(0xffff)
+	want = "automatic"
+	if got != want {
+		t.Errorf("FNumberAsString() return = '%s', want '%s'", got, want)
 	}
 }
 

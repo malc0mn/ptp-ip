@@ -24,7 +24,7 @@ func GenericDevicePropCodeAsString(code ptp.DevicePropCode) string {
 	case ptp.DPC_RGBGain:
 		return "RGB gain"
 	case ptp.DPC_FNumber:
-		return "F number"
+		return "F-number"
 	case ptp.DPC_FocalLength:
 		return "focal length"
 	case ptp.DPC_FocusDistance:
@@ -178,6 +178,8 @@ func DevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 		return ExposureProgramModeAsString(ptp.ExposureProgramMode(v))
 	case ptp.DPC_FlashMode:
 		return FlashModeAsString(ptp.FlashMode(v))
+	case ptp.DPC_FNumber:
+		return FNumberAsString(uint16(v))
 	case ptp.DPC_FocusMeteringMode:
 		return FocusMeteringModeAsString(ptp.FocusMeteringMode(v))
 	case ptp.DPC_FocusMode:
@@ -191,6 +193,14 @@ func DevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 	default:
 		return ""
 	}
+}
+
+func FNumberAsString(fn uint16) string {
+	if fn == 0xffff {
+		return "automatic"
+	}
+
+	return fmt.Sprintf("f/%.1f", float32(fn)/100)
 }
 
 func EffectModeAsString(fxm ptp.EffectMode) string {
