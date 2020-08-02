@@ -137,6 +137,8 @@ func NewResponder(vendor string, ip string, cport uint16, eport uint16, sport ui
 //   - the responder info, i.e. camera
 //   - the loaded vendor extensions
 //   - an async event channel receiving events from the Responder's event connection
+//   - an async streamer channel receiving raw image data from the Responder's streaming connection if there is one
+//   - a channel to request the streamer to close down
 //   - a logger
 type Client struct {
 	connectionNumber uint32
@@ -148,6 +150,8 @@ type Client struct {
 	responder        *Responder
 	vendorExtensions *VendorExtensions
 	EventChan        chan EventPacket
+	StreamChan       chan []byte
+	closeStreamChan  chan bool
 	Logger
 }
 
@@ -272,7 +276,7 @@ func (c *Client) DialWithStreamer() error {
 		return err
 	}
 
-	err = c.initStreamerConn()
+	err = c.initStreamConn()
 	if err != nil {
 		return err
 	}
@@ -480,6 +484,12 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, er
 	return res, xs, nil
 }
 
+// ReadRawFromStreamConn reads raw data from the streamer connection with a read timout of 30 seconds.
+func (c *Client) ReadRawFromStreamConn() ([]byte, error) {
+	c.commandDataConn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	return c.readRawResponse(c.streamConn)
+}
+
 func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, []byte, error) {
 	var err error
 	var h Header
@@ -583,8 +593,35 @@ func (c *Client) newEventInitPacket() InitEventRequestPacket {
 	return c.vendorExtensions.newEventInitPacket(c.connectionNumber)
 }
 
-func (c *Client) initStreamerConn() error {
-	return c.vendorExtensions.streamerInit(c)
+func (c *Client) initStreamConn() error {
+	if c.streamConn != nil {
+
+		var err error
+
+		c.streamConn, err = internal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
+		if err != nil {
+			return err
+		}
+
+		c.configureTcpConn(streamConnection)
+
+		c.StreamChan = make(chan []byte, 50)
+		c.closeStreamChan = make(chan bool)
+
+		return c.vendorExtensions.processStreamData(c)
+	}
+
+	return nil
+}
+
+func (c *Client) closeStreamConn() error {
+	if c.StreamChan != nil {
+		c.closeStreamChan <- true
+		close(c.closeStreamChan)
+		c.closeStreamChan = nil
+	}
+
+	return c.streamConn.Close()
 }
 
 func (c *Client) configureTcpConn(t connectionType) {
@@ -672,4 +709,15 @@ func (c *Client) OperationRequestRaw(code ptp.OperationCode, params []uint32) ([
 // image is returned as a byte array.
 func (c *Client) InitiateCapture() ([]byte, error) {
 	return c.vendorExtensions.initiateCapture(c)
+}
+
+// ToggleLiveView opens or closes the streamer connection on the camera if there is any and initiates or closes the
+// StreamChan on the client.
+// This channel will receive raw image data that can be processed by the client.
+func (c *Client) ToggleLiveView(en bool) error {
+	if en {
+		return c.initStreamConn()
+	}
+
+	return c.closeStreamConn()
 }

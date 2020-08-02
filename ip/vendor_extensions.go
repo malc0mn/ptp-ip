@@ -16,7 +16,7 @@ import (
 type VendorExtensions struct {
 	cmdDataInit            func(*Client) error
 	eventInit              func(*Client) error
-	streamerInit           func(*Client) error
+	processStreamData      func(*Client) error
 	newCmdDataInitPacket   func(uuid.UUID, string) InitCommandRequestPacket
 	newEventInitPacket     func(uint32) InitEventRequestPacket
 	newEventPacket         func() EventPacket
@@ -33,7 +33,7 @@ func (c *Client) loadVendorExtensions() {
 	c.vendorExtensions = &VendorExtensions{
 		cmdDataInit:            GenericInitCommandDataConn,
 		eventInit:              GenericInitEventConn,
-		streamerInit:           GenericInitStreamerConn,
+		processStreamData:      GenericProcessStreamData,
 		newCmdDataInitPacket:   NewInitCommandRequestPacket,
 		newEventInitPacket:     NewInitEventRequestPacket,
 		newEventPacket:         NewEventPacket,
@@ -49,6 +49,7 @@ func (c *Client) loadVendorExtensions() {
 	switch c.ResponderVendor() {
 	case ptp.VE_FujiPhotoFilmCoLtd:
 		c.vendorExtensions.cmdDataInit = FujiInitCommandDataConn
+		c.vendorExtensions.processStreamData = FujiProcessStreamData
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
 		c.vendorExtensions.newEventPacket = NewFujiEventPacket
@@ -140,16 +141,9 @@ func GenericInitEventConn(c *Client) error {
 	return err
 }
 
-func GenericInitStreamerConn(c *Client) error {
-	var err error
-
-	c.streamConn, err = internal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
-	if err != nil {
-		return err
-	}
-
-	c.configureTcpConn(streamConnection)
-
+// GenericProcessStreamData does absolutely nothing since the standard PTP/IP protocol does not have a streamer
+// connection.
+func GenericProcessStreamData(_ *Client) error {
 	return nil
 }
 

@@ -468,6 +468,41 @@ func FujiInitCommandDataConn(c *Client) error {
 	return nil
 }
 
+// FujiProcessStreamData reads raw image data from the incoming stream and sends them to the streamer channel.
+func FujiProcessStreamData(c *Client) error {
+	go func() {
+		c.Info("[streamListener] subscribing stream listener to streamer connection...")
+		for {
+			switch {
+			case <-c.closeStreamChan:
+				close(c.StreamChan)
+				c.StreamChan = nil
+				c.Info("[streamListener] stopping stream listener.")
+				return
+			default:
+				data, err := c.ReadRawFromStreamConn()
+				if err != nil {
+					// As always, packet length first.
+					var l uint32
+					binary.LittleEndian.PutUint32(data[:4], l)
+					c.Debug("[streamListener] Packet length %d", l)
+
+					// Next is clearly a counter, we're assuming a 6 byte one.
+					var count uint64
+					binary.LittleEndian.PutUint64(data[4:10], count)
+					c.Debug("[streamListener] Image number %d", count)
+
+					// Unknown what the next 8 bytes are, but they always END in 0xff 0xff which seems like a 'header
+					// delimiter' after which the image data begins, filling the rest of the packet.
+					c.StreamChan <- data[18:]
+				}
+			}
+		}
+	}()
+
+	return nil
+}
+
 // FujiSetDeviceProperty sets a device property to the given value.
 func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error {
 	c.incrementTransactionId()
