@@ -112,7 +112,7 @@ Usage of ptpip:
         A custom GUID to use for the initiator. (default random)
   -h string
         The responder host to connect to. (default "192.168.0.1")
-  -i    This will run the ptpip command with an interactive shell
+  -i    This will run the ptpip command with an interactive shell.
   -n string
         A custom friendly name to use for the initiator.
   -p value
