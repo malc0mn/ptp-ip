@@ -31,6 +31,7 @@ func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
 	_, err = rw.Write([]byte(commandByName(f[0])(c, f[1:])))
 	if err != nil {
 		log.Printf("%s error writing response: '%s'", lmp, err)
+		return
 	}
 	err = rw.Flush()
 	if err != nil {
