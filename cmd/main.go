@@ -31,7 +31,7 @@ func main() {
 
 	initFlags()
 
-	if noArgs := len(os.Args) < 2; noArgs || help == true {
+	if noArgs := len(os.Args) < 2; noArgs || help {
 		printUsage()
 		exit := ok
 		if noArgs {
@@ -40,7 +40,7 @@ func main() {
 		os.Exit(exit)
 	}
 
-	if ver == true {
+	if ver {
 		fmt.Printf("%s version %s built on %s\n", exe, version, buildTime)
 		os.Exit(ok)
 	}
