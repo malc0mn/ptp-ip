@@ -18,6 +18,7 @@ var (
 	cmd  string
 	file string
 
+	interactive bool
 	server bool
 
 	help bool
@@ -52,6 +53,8 @@ func initFlags() {
 	flag.Var(&conf.sport, "ps", "The responder port used for the streamer or 'live view' connection.")
 	flag.StringVar(&conf.fname, "n", "", "A custom friendly name to use for the initiator.")
 	flag.StringVar(&conf.guid, "g", "", "A custom GUID to use for the initiator. (default random)")
+
+	flag.BoolVar(&interactive, "i", false, fmt.Sprintf("This will run the %s command with an interactive shell", exe))
 
 	flag.StringVar(&cmd, "c", "", "The command to send to the responder.")
 	flag.StringVar(&file, "f", "", "Read all settings from a config file. The config file will override any command line flags present.")

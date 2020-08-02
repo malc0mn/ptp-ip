@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"os"
@@ -50,8 +51,8 @@ func main() {
 
 	checkPorts()
 
-	if cmd != "" && server == true {
-		fmt.Fprintln(os.Stderr, "Too many arguments: either run in server mode OR execute a single command; not both!")
+	if cmd != "" && (interactive || server) || (interactive && server) {
+		fmt.Fprintln(os.Stderr, "Too many arguments: either run in server mode OR interactive mode OR execute a single command; not all at once!")
 		os.Exit(errInvalidArgs)
 	}
 
@@ -59,6 +60,11 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan bool, 1)
+	go func() {
+		sig := <-sigs
+		fmt.Printf("Received signal %s, shutting down...\n", sig)
+		done <- true
+	}()
 
 	client, err := ip.NewClient(conf.vendor, conf.host, uint16(conf.port), conf.fname, conf.guid, verbosity)
 	if err != nil {
@@ -90,17 +96,29 @@ func main() {
 		fmt.Print(commandByName(f[0])(client, f[1:]))
 	}
 
-	if server == true {
-		go launchServer(client)
-		go func() {
-			sig := <-sigs
-			fmt.Printf("Received signal %s, shutting down...\n", sig)
-			done <- true
-		}()
+	if server || interactive {
+		if interactive {
+			go shell(client)
+		}
+
+		if server {
+			go launchServer(client)
+		}
 
 		<-done
 		fmt.Println("Bye bye!")
 	}
 
 	os.Exit(ok)
+}
+
+func shell(c *ip.Client) {
+	rw := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(os.Stdout))
+	for {
+		// TODO: find a way to "separate" the outputs so that the '> ' below does not get 'mixed' with the Dial() debug
+		//  output from the client...
+		fmt.Print("> ")
+		readAndExecuteCommand(rw, c, " *")
+		fmt.Print("\n\n")
+	}
 }

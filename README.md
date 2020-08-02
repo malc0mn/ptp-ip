@@ -103,7 +103,7 @@ Executing the `ptpip` command without arguments or with the `-?` flag will
 print its usage:
 ```text
 Usage of ptpip:
-  -?	Display usage information.
+  -?    Display usage information.
   -c string
         The command to send to the responder.
   -f string
@@ -112,6 +112,7 @@ Usage of ptpip:
         A custom GUID to use for the initiator. (default random)
   -h string
         The responder host to connect to. (default "192.168.0.1")
+  -i    This will run the ptpip command with an interactive shell
   -n string
         A custom friendly name to use for the initiator.
   -p value
@@ -129,7 +130,10 @@ Usage of ptpip:
         To be used in combination with '-s': this defines the server port to listen on. (default 15740)
   -t string
         The vendor of the responder that will be connected to. (default "generic")
-  -v    Display version info.
+  -v value
+        PTP/IP log level verbosity: ranges from v to vvv.
+  -version
+        Display version info.
 ```
 
 ### Config file
