@@ -19,7 +19,7 @@ var (
 	file string
 
 	interactive bool
-	server bool
+	server      bool
 
 	help bool
 	ver  bool
