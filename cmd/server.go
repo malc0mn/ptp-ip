@@ -5,7 +5,6 @@ import (
 	"github.com/malc0mn/ptp-ip/ip"
 	"log"
 	"net"
-	"strings"
 )
 
 func validateAddress() {
@@ -41,18 +40,5 @@ func handleMessages(conn net.Conn, c *ip.Client, lmp string) {
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 
-	msg, err := rw.ReadString('\n')
-	if err != nil {
-		log.Printf("%s error reading message '%s'", lmp, err)
-		return
-	}
-	msg = strings.TrimSuffix(msg, "\n")
-	if msg == "" {
-		log.Printf("%s ignoring empty message!", lmp)
-		return
-	}
-	log.Printf("%s message received: '%s'", lmp, msg)
-
-	f := strings.Fields(msg)
-	conn.Write([]byte(commandByName(f[0])(c, f[1:])))
+	readAndExecuteCommand(rw, c, lmp)
 }

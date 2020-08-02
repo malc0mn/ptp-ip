@@ -1,15 +1,42 @@
 package main
 
 import (
+	"bufio"
 	"encoding/hex"
 	"fmt"
 	ptpfmt "github.com/malc0mn/ptp-ip/fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"io/ioutil"
+	"log"
+	"strings"
 )
 
 type command func(*ip.Client, []string) string
+
+func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
+	msg, err := rw.ReadString('\n')
+	if err != nil {
+		log.Printf("%s error reading message '%s'", lmp, err)
+		return
+	}
+	msg = strings.TrimSuffix(msg, "\n")
+	if msg == "" {
+		log.Printf("%s ignoring empty message!", lmp)
+		return
+	}
+	log.Printf("%s message received: '%s'", lmp, msg)
+
+	f := strings.Fields(msg)
+	_, err = rw.Write([]byte(commandByName(f[0])(c, f[1:])))
+	if err != nil {
+		log.Printf("%s error writing response: '%s'", lmp, err)
+	}
+	err = rw.Flush()
+	if err != nil {
+		log.Printf("%s error flushing buffer: '%s'", lmp, err)
+	}
+}
 
 func commandByName(n string) command {
 	switch n {
