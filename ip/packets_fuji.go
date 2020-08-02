@@ -475,9 +475,9 @@ func FujiProcessStreamData(c *Client) error {
 		for {
 			switch {
 			case <-c.closeStreamChan:
+				c.Info("[streamListener] stopping stream listener.")
 				close(c.StreamChan)
 				c.StreamChan = nil
-				c.Info("[streamListener] stopping stream listener.")
 				return
 			default:
 				data, err := c.ReadRawFromStreamConn()
