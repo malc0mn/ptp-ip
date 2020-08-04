@@ -595,7 +595,6 @@ func (c *Client) newEventInitPacket() InitEventRequestPacket {
 
 func (c *Client) initStreamConn() error {
 	if c.streamConn != nil {
-
 		var err error
 
 		c.streamConn, err = internal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
