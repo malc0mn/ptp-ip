@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var lvState bool
+
 type command func(*ip.Client, []string) string
 
 func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
@@ -52,6 +54,8 @@ func commandByName(n string) command {
 	//	return help
 	case "info":
 		return info
+	case "liveview":
+		return liveview
 	case "opreq":
 		return opreq
 	case "set":
@@ -184,6 +188,22 @@ func opreq(c *ip.Client, f []string) string {
 	}
 
 	return res
+}
+
+func liveview(c *ip.Client, f []string) string {
+	errorFmt := "liveview error: %s\n"
+
+	lvState = !lvState
+
+	if err := c.ToggleLiveView(lvState); err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+
+	if lvState {
+		return "enabled\n"
+	}
+
+	return "disabled\n"
 }
 
 func state(c *ip.Client, f []string) string {
