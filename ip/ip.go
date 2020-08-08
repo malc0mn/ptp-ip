@@ -594,7 +594,7 @@ func (c *Client) newEventInitPacket() InitEventRequestPacket {
 }
 
 func (c *Client) initStreamConn() error {
-	if c.streamConn != nil {
+	if c.streamConn == nil {
 		var err error
 
 		c.streamConn, err = internal.RetryDialer(c.Network(), c.StreamerAddress(), DefaultDialTimeout)
@@ -613,14 +613,15 @@ func (c *Client) initStreamConn() error {
 	return nil
 }
 
-func (c *Client) closeStreamConn() error {
+func (c *Client) closeStreamConn() {
 	if c.StreamChan != nil {
 		c.closeStreamChan <- true
 		close(c.closeStreamChan)
 		c.closeStreamChan = nil
 	}
 
-	return c.streamConn.Close()
+	c.streamConn.Close()
+	c.streamConn = nil
 }
 
 func (c *Client) configureTcpConn(t connectionType) {
@@ -718,5 +719,7 @@ func (c *Client) ToggleLiveView(en bool) error {
 		return c.initStreamConn()
 	}
 
-	return c.closeStreamConn()
+	c.closeStreamConn()
+
+	return nil
 }

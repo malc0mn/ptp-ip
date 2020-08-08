@@ -471,29 +471,28 @@ func FujiInitCommandDataConn(c *Client) error {
 // FujiProcessStreamData reads raw image data from the incoming stream and sends them to the streamer channel.
 func FujiProcessStreamData(c *Client) error {
 	go func() {
-		c.Info("[streamListener] subscribing stream listener to streamer connection...")
+		c.Info("[fujiStreamListener] subscribing stream listener to streamer connection...")
 		for {
-			switch {
+			select {
 			case <-c.closeStreamChan:
-				c.Info("[streamListener] stopping stream listener.")
+				c.Info("[fujiStreamListener] stopping stream listener.")
 				close(c.StreamChan)
 				c.StreamChan = nil
 				return
 			default:
-				data, err := c.ReadRawFromStreamConn()
-				if err != nil {
+				if data, err := c.ReadRawFromStreamConn(); err == nil {
 					// As always, packet length first.
-					var l uint32
-					binary.LittleEndian.PutUint32(data[:4], l)
-					c.Debug("[streamListener] Packet length %d", l)
+					l := binary.LittleEndian.Uint32(data[:4])
+					c.Debugf("[fujiStreamListener] Packet length %d", l)
 
-					// Next is clearly a counter, we're assuming a 6 byte one.
-					var count uint64
-					binary.LittleEndian.PutUint64(data[4:10], count)
-					c.Debug("[streamListener] Image number %d", count)
+					// Four bytes always zero followed by what is clearly a counter which resets on 0xff, so one byte
+					// only.
+					count := binary.LittleEndian.Uint16(append(data[8:9], 0))
+					c.Debugf("[fujiStreamListener] Image number %d", count)
 
-					// Unknown what the next 8 bytes are, but they always END in 0xff 0xff which seems like a 'header
-					// delimiter' after which the image data begins, filling the rest of the packet.
+					// Unknown what the next 9 bytes are, but they always END in two bytes with unknown significance
+					// (seen 0xff, 0xff as well as 0x5e, 0x49 and 0x4b, 0xbf) after which the image data begins, filling
+					// the rest of the packet.
 					c.StreamChan <- data[18:]
 				}
 			}
