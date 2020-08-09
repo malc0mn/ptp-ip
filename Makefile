@@ -1,10 +1,11 @@
 SOURCEDIR=cmd
-SOURCES := ${SOURCEDIR}/*.go
 BINARY=ptpip
+BINARY_NOLV=${BINARY}-nolv
 VERSION := $(shell git describe --tags)
 BUILD_TIME := $(shell date +%FT%T%z)
 
 LDFLAGS=-ldflags "-s -w -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}"
+TAGS=-tags with_lv
 
 .DEFAULT_GOAL: all
 
@@ -12,12 +13,15 @@ LDFLAGS=-ldflags "-s -w -X main.version=${VERSION} -X main.buildTime=${BUILD_TIM
 all: ptpip
 
 ptpip:
-	go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
+	cd cmd; go build ${LDFLAGS} ${TAGS} -o ../${BINARY}
+
+nolv:
+	cd cmd; go build ${LDFLAGS} -o ../${BINARY_NOLV}
 
 .PHONY: install
 install:
-	go install ${LDFLAGS} ${SOURCES}
+	cd cmd; GOBIN=/usr/local/bin/ go install ${LDFLAGS} ${TAGS}
 
 .PHONY: clean
 clean:
-	if [ -f ${BINARY} ] ; then rm ${BINARY} ; fi
+	if [ -f ${BINARY} ] ; then rm ${BINARY} ; fi ; if [ -f ${BINARY_NOLV} ] ; then rm ${BINARY_NOLV} ; fi

@@ -1,3 +1,7 @@
+github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7 h1:SCYMcCJ89LjRGwEa0tRluNRiMjZHalQZrVrvTbPh+qw=
+github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7/go.mod h1:482civXOzJJCPzJ4ZOX/pwvXBWSnzD4OKMdH4ClKGbk=
+github.com/go-gl/glfw v0.0.0-20200707082815-5321531c36a2 h1:tCvD9jzwA40XAvO3wIhY748dWrXyNJ0mDQ3pTvlHlXQ=
+github.com/go-gl/glfw v0.0.0-20200707082815-5321531c36a2/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-ini/ini v1.56.0 h1:6HjxSjqdmgnujDPhlzR4a44lxK3w03WPN8te0SoUSeM=
 github.com/go-ini/ini v1.56.0/go.mod h1:ByCAeIL28uOIIG0E3PJtZPDL8WnHpFKFOtgjp+3Ies8=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=

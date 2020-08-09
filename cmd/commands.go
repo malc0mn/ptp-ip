@@ -12,7 +12,15 @@ import (
 	"strings"
 )
 
-var lvState bool
+var liveview command
+
+func init() {
+	if liveview == nil {
+		liveview = func(_ *ip.Client, _ []string) string {
+			return "Binary not compiled with live view support!"
+		}
+	}
+}
 
 type command func(*ip.Client, []string) string
 
@@ -188,22 +196,6 @@ func opreq(c *ip.Client, f []string) string {
 	}
 
 	return res
-}
-
-func liveview(c *ip.Client, f []string) string {
-	errorFmt := "liveview error: %s\n"
-
-	lvState = !lvState
-
-	if err := c.ToggleLiveView(lvState); err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	if lvState {
-		return "enabled\n"
-	}
-
-	return "disabled\n"
 }
 
 func state(c *ip.Client, f []string) string {
