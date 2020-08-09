@@ -251,7 +251,8 @@ like `0x5005`, or a unified property name. The currently supported names are:
 TODO: add `recmode`!
 
 #### `liveview`
-This *does what it says on the tin* if your camera supports it. It is a
+This *does what it says on the tin* if your camera supports it. This will open
+an addional window displaying a live view through the camera lens. It is a
 *toggle* so type the command once to enable it and once again to disable it.
 
 #### `opreq`
@@ -396,3 +397,4 @@ c := ip.NewClient(ip.DefaultVendor, "192.168.0.1", ip.DefaultPort, "MyClient", "
 Projects that were used to realise this library:
 - https://github.com/atotto/ptpip
 - https://github.com/hkr/fuji-cam-wifi-tool
+- https://github.com/fogleman/imview
