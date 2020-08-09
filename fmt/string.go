@@ -1,7 +1,6 @@
 package fmt
 
 import (
-	"errors"
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"strconv"
@@ -28,7 +27,7 @@ func ConvertToHexString(v interface{}) string {
 func HexStringToUint64(code string, bitSize int) (uint64, error) {
 	cod, err := strconv.ParseUint(strings.Replace(code, "0x", "", -1), 16, bitSize)
 	if err != nil {
-		return 0, errors.New(fmt.Sprintf("error converting: %s", err))
+		return 0, fmt.Errorf("error converting: %s", err)
 	}
 
 	return cod, nil
