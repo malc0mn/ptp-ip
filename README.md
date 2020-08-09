@@ -50,6 +50,19 @@ added should do the same.
 A command line interface implementation of the PTP/IP protocol that uses the
 `ptp`, `ip` and `fmt` packages. See *CLI command* for further info.
 
+## Building the CLI tool
+To build the command including the opengl based live view simply execute:
+```shell script
+make clean; make
+```
+This will result in a `ptpip` binary in the root dir.
+
+To build a version without live view support and shave off a megabyte or so run:
+```shell script
+make clean; make nolv
+```
+This will result in a `ptpip-nolv` binary in the root dir.
+
 ## Connecting to your camera
 The first and obvious step is to enable the camera's wifi. Have your network
 manager scan for new SSIDs and connect to the one from your camera. It will most
