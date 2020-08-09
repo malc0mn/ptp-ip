@@ -290,20 +290,23 @@ func (c *Client) Close() error {
 
 	if c.commandDataConn != nil {
 		err = c.commandDataConn.Close()
+		c.commandDataConn = nil
 		if err != nil {
 			return err
 		}
 	}
 
+	// TODO: add a closeEventConn() method so we can properly shut down the event channel like we do with the streamer.
 	if c.eventConn != nil {
 		err = c.eventConn.Close()
+		c.eventConn = nil
 		if err != nil {
 			return err
 		}
 	}
 
 	if c.streamConn != nil {
-		c.streamConn.Close()
+		err = c.closeStreamConn()
 		if err != nil {
 			return err
 		}
@@ -613,15 +616,17 @@ func (c *Client) initStreamConn() error {
 	return nil
 }
 
-func (c *Client) closeStreamConn() {
+func (c *Client) closeStreamConn() error {
 	if c.StreamChan != nil {
 		c.closeStreamChan <- true
 		close(c.closeStreamChan)
 		c.closeStreamChan = nil
 	}
 
-	c.streamConn.Close()
+	err := c.streamConn.Close()
 	c.streamConn = nil
+
+	return err
 }
 
 func (c *Client) configureTcpConn(t connectionType) {
@@ -719,7 +724,5 @@ func (c *Client) ToggleLiveView(en bool) error {
 		return c.initStreamConn()
 	}
 
-	c.closeStreamConn()
-
-	return nil
+	return c.closeStreamConn()
 }
