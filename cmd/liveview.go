@@ -37,6 +37,8 @@ func openLv(c *ip.Client, _ []string) string {
 	return "enabled\n"
 }
 
+// TODO: this is unstable for a yet unknown reason. The first window opened never has a problem, but any following
+//  initialization of live view can crash with a segfault. Any pointers as to why would be great :/
 func liveViewUI(c *ip.Client) error {
 	if err := gl.Init(); err != nil {
 		return err
@@ -77,6 +79,7 @@ func openPreview(img []byte) string {
 	return "preview window opened"
 }
 
+// TODO: same as with the live view: this is unstable for an unknown reason.
 func previewUI(img []byte) error {
 	if err := gl.Init(); err != nil {
 		return err
