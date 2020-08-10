@@ -226,6 +226,13 @@ pass a path to write the preview to as the first parameter. E.g.:
 ```text
 capture /tmp/my-preview.jpg
 ```
+If the command is compiled with `liveview` support, you can view the preview
+image returned by the camera like so:
+```text
+capture view
+```
+This will open a window displaying the preview of the captured image.
+
 There are three aliases for this command: `shoot`, `shutter` and `snap`.
 
 #### `describe`
