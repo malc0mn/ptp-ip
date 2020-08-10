@@ -39,6 +39,7 @@ func openLv(c *ip.Client, _ []string) string {
 
 // TODO: this is unstable for a yet unknown reason. The first window opened never has a problem, but any following
 //  initialization of live view can crash with a segfault. Any pointers as to why would be great :/
+//  Need to look into https://github.com/golang/go/wiki/LockOSThread
 func liveViewUI(c *ip.Client) error {
 	if err := gl.Init(); err != nil {
 		return err
