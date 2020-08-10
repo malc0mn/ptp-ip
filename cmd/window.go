@@ -53,6 +53,7 @@ func NewWindow(im image.Image, title string) (*Window, error) {
 	texture.SetImage(im)
 	result := &Window{window, im, texture}
 	result.SetRefreshCallback(result.onRefresh)
+
 	return result, nil
 }
 
@@ -62,7 +63,7 @@ func (window *Window) SetImage(im image.Image) {
 	window.Draw()
 }
 
-func (window *Window) onRefresh(x *glfw.Window) {
+func (window *Window) onRefresh(_ *glfw.Window) {
 	window.Draw()
 }
 
