@@ -14,13 +14,18 @@ import (
 
 var (
 	liveview  command
+	preview   func([]byte) string
 	lvEnabled bool
+	nolv      = "Binary not compiled with live view support!"
 )
 
 func init() {
 	if !lvEnabled {
 		liveview = func(_ *ip.Client, _ []string) string {
-			return "Binary not compiled with live view support!"
+			return nolv + "\n"
+		}
+		preview = func(_ []byte) string {
+			return nolv
 		}
 	}
 }
@@ -83,12 +88,16 @@ func unknown(_ *ip.Client, _ []string) string {
 }
 
 func capture(c *ip.Client, f []string) string {
-	res, err := c.InitiateCapture()
+	img, err := c.InitiateCapture()
 	if err != nil {
 		return err.Error()
 	}
 	if len(f) == 1 {
-		if err := ioutil.WriteFile(f[0], res, 0644); err != nil {
+		if f[0] == "view" {
+			return preview(img) + "\n"
+		}
+
+		if err := ioutil.WriteFile(f[0], img, 0644); err != nil {
 			return err.Error() + "\n"
 		}
 

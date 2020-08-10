@@ -16,6 +16,7 @@ var lvState bool
 func init() {
 	lvEnabled = true
 	liveview = openLv
+	preview = openPreview
 }
 
 func openLv(c *ip.Client, _ []string) string {
@@ -66,6 +67,37 @@ func liveViewUI(c *ip.Client) error {
 	if err := c.ToggleLiveView(lvState); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func openPreview(img []byte) string {
+	go previewUI(img)
+
+	return "preview window opened"
+}
+
+func previewUI(img []byte) error {
+	if err := gl.Init(); err != nil {
+		return err
+	}
+
+	if err := glfw.Init(); err != nil {
+		return err
+	}
+	defer glfw.Terminate()
+
+	window, err := showImage(img, "Capture preview")
+	if err != nil {
+		return err
+	}
+
+	for !window.ShouldClose() {
+		window.Draw()
+		glfw.PollEvents()
+	}
+
+	window.Destroy()
 
 	return nil
 }
