@@ -12,34 +12,31 @@ import (
 )
 
 var lvState bool
-var lvTerm chan bool
 
 func init() {
-	liveview = toggleLv
-	lvTerm = make(chan bool, 1)
+	lvEnabled = true
+	liveview = openLv
 }
 
-func toggleLv(c *ip.Client, f []string) string {
+func openLv(c *ip.Client, _ []string) string {
 	errorFmt := "liveview error: %s\n"
 
-	lvState = !lvState
+	if lvState {
+		return "already enabled!\n"
+	}
+
+	lvState = true
 
 	if err := c.ToggleLiveView(lvState); err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	if lvState {
-		go liveviewUI(c.StreamChan, lvTerm)
+	go liveViewUI(c)
 
-		return "enabled\n"
-	}
-
-	lvTerm <- true
-
-	return "disabled\n"
+	return "enabled\n"
 }
 
-func liveviewUI(imgs chan []byte, term chan bool) error {
+func liveViewUI(c *ip.Client) error {
 	if err := gl.Init(); err != nil {
 		return err
 	}
@@ -49,35 +46,41 @@ func liveviewUI(imgs chan []byte, term chan bool) error {
 	}
 	defer glfw.Terminate()
 
-	img := <-imgs
+	img := <-c.StreamChan
+	window, err := showImage(img, "Live view")
+	if err != nil {
+		return err
+	}
+
+	for !window.ShouldClose() {
+		img := <-c.StreamChan
+		im, _, err := image.Decode(bytes.NewReader(img))
+		if err == nil {
+			window.SetImage(im)
+		}
+		glfw.PollEvents()
+	}
+
+	window.Destroy()
+	lvState = false
+	if err := c.ToggleLiveView(lvState); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func showImage(img []byte, title string) (*Window, error) {
 	im, _, err := image.Decode(bytes.NewReader(img))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	window, err := NewWindow(im, "Live view")
+	window, err := NewWindow(im, title)
 	if err != nil {
-		return err
-	}
-
-	// TODO: properly handle window close!!!
-	if window.ShouldClose() {
-		window.Destroy()
+		return nil, err
 	}
 	window.Draw()
-	glfw.PollEvents()
 
-	for {
-		select {
-		case <-term:
-			window.Destroy()
-
-			return nil
-		case img := <-imgs:
-			im, _, err := image.Decode(bytes.NewReader(img))
-			if err == nil {
-				window.SetImage(im)
-			}
-		}
-	}
+	return window, nil
 }

@@ -12,10 +12,13 @@ import (
 	"strings"
 )
 
-var liveview command
+var (
+	liveview  command
+	lvEnabled bool
+)
 
 func init() {
-	if liveview == nil {
+	if !lvEnabled {
 		liveview = func(_ *ip.Client, _ []string) string {
 			return "Binary not compiled with live view support!"
 		}
