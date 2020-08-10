@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"os"
@@ -110,16 +109,4 @@ func main() {
 	}
 
 	os.Exit(ok)
-}
-
-func iShell(c *ip.Client) {
-	rw := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(os.Stdout))
-	fmt.Print("Interactive shell ready to receive commands.\n")
-	for {
-		// TODO: find a way to "separate" the outputs so that the '> ' below does not get 'mixed' with the Dial() debug
-		//  output from the client...
-		fmt.Print("> ")
-		readAndExecuteCommand(rw, c, "[iShell]")
-		fmt.Print("\n\n")
-	}
 }
