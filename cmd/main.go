@@ -23,6 +23,7 @@ var (
 	version   = "0.0.0"
 	buildTime = "unknown"
 	exe       string
+	mainStack = make(chan func())
 )
 
 func main() {
@@ -104,9 +105,28 @@ func main() {
 			go launchServer(client)
 		}
 
+		mainThread()
+
 		<-done
 		fmt.Println("Bye bye!")
 	}
 
 	os.Exit(ok)
+}
+
+// mainThread is used to execute on the main thread, which is what OpenGL requires.
+func mainThread() {
+	if !lvEnabled {
+		return
+	}
+
+	// TODO: make this loop abortable!
+	for f := range mainStack {
+		f()
+	}
+}
+
+// do executes f on the main thread but does not wait for it to finish.
+func do(f func()) {
+	mainStack <- f
 }

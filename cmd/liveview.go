@@ -32,14 +32,11 @@ func openLv(c *ip.Client, _ []string) string {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	go liveViewUI(c)
+	do(func() { liveViewUI(c) })
 
 	return "enabled\n"
 }
 
-// TODO: this is unstable for a yet unknown reason. The first window opened never has a problem, but any following
-//  initialization of live view can crash with a segfault. Any pointers as to why would be great :/
-//  Need to look into https://github.com/golang/go/wiki/LockOSThread
 func liveViewUI(c *ip.Client) error {
 	if err := gl.Init(); err != nil {
 		return err
@@ -75,12 +72,11 @@ func liveViewUI(c *ip.Client) error {
 }
 
 func openPreview(img []byte) string {
-	go previewUI(img)
+	do(func() { previewUI(img) })
 
 	return "preview window opened"
 }
 
-// TODO: same as with the live view: this is unstable for an unknown reason.
 func previewUI(img []byte) error {
 	if err := gl.Init(); err != nil {
 		return err
