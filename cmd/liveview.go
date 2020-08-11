@@ -67,6 +67,7 @@ func liveViewUI(c *ip.Client) error {
 		return err
 	}
 
+poller:
 	for !window.ShouldClose() {
 		select {
 		case img := <-c.StreamChan:
@@ -76,7 +77,7 @@ func liveViewUI(c *ip.Client) error {
 			}
 			glfw.PollEvents()
 		case <-quit:
-			return nil
+			break poller
 		}
 	}
 
@@ -111,14 +112,11 @@ func previewUI(img []byte) error {
 	}
 
 poller:
-	for {
+	for !window.ShouldClose() {
 		select {
 		case <-quit:
 			break poller
 		default:
-			if window.ShouldClose() {
-				break poller
-			}
 			glfw.PollEvents()
 		}
 	}
