@@ -91,6 +91,12 @@ poller:
 }
 
 func preview(img []byte) string {
+	// TODO: figure out how to cleanly have multiple windows open at the same time 'on the main thread' by introducing some
+	//  sort of extremely simple window manager.
+	if lvState {
+		return "can currently not display preview while liveview is active"
+	}
+
 	do(func() { previewUI(img) })
 
 	return "preview window opened"
