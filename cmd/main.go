@@ -59,11 +59,11 @@ func main() {
 	// TODO: finish this implementation so CTRL+C will also abort client.Dial() etc. properly.
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	done := make(chan bool, 1)
+	done := make(chan struct{})
 	go func() {
 		sig := <-sigs
 		fmt.Printf("Received signal %s, shutting down...\n", sig)
-		done <- true
+		close(done)
 	}()
 
 	client, err := ip.NewClient(conf.vendor, conf.host, uint16(conf.port), conf.fname, conf.guid, verbosity)
@@ -105,7 +105,7 @@ func main() {
 			go launchServer(client)
 		}
 
-		mainThread()
+		mainThread(done)
 
 		<-done
 		fmt.Println("Bye bye!")
@@ -115,14 +115,18 @@ func main() {
 }
 
 // mainThread is used to execute on the main thread, which is what OpenGL requires.
-func mainThread() {
+func mainThread(done chan struct{}) {
 	if !lvEnabled {
 		return
 	}
 
-	// TODO: make this loop abortable!
-	for f := range mainStack {
-		f()
+	for {
+		select {
+		case f := <-mainStack:
+			f()
+		case <-done:
+			return
+		}
 	}
 }
 
