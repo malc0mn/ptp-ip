@@ -12,24 +12,6 @@ import (
 	"strings"
 )
 
-var (
-	liveview  command
-	preview   func([]byte) string
-	lvEnabled bool
-	nolv      = "Binary not compiled with live view support!"
-)
-
-func init() {
-	if !lvEnabled {
-		liveview = func(_ *ip.Client, _ []string) string {
-			return nolv + "\n"
-		}
-		preview = func(_ []byte) string {
-			return nolv
-		}
-	}
-}
-
 type command func(*ip.Client, []string) string
 
 func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {

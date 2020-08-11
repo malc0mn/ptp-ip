@@ -11,15 +11,29 @@ import (
 	"image"
 )
 
-var lvState bool
+var (
+	lvState   bool
+	mainStack = make(chan func())
+)
 
-func init() {
-	lvEnabled = true
-	liveview = openLv
-	preview = openPreview
+// mainThread is used to execute on the main thread, which is what OpenGL requires.
+func mainThread() {
+	for {
+		select {
+		case f := <-mainStack:
+			f()
+		case <-quit:
+			return
+		}
+	}
 }
 
-func openLv(c *ip.Client, _ []string) string {
+// do executes f on the main thread but does not wait for it to finish.
+func do(f func()) {
+	mainStack <- f
+}
+
+func liveview(c *ip.Client, _ []string) string {
 	errorFmt := "liveview error: %s\n"
 
 	if lvState {
@@ -54,12 +68,16 @@ func liveViewUI(c *ip.Client) error {
 	}
 
 	for !window.ShouldClose() {
-		img := <-c.StreamChan
-		im, _, err := image.Decode(bytes.NewReader(img))
-		if err == nil {
-			window.SetImage(im)
+		select {
+		case img := <-c.StreamChan:
+			im, _, err := image.Decode(bytes.NewReader(img))
+			if err == nil {
+				window.SetImage(im)
+			}
+			glfw.PollEvents()
+		case <-quit:
+			return nil
 		}
-		glfw.PollEvents()
 	}
 
 	window.Destroy()
@@ -71,7 +89,7 @@ func liveViewUI(c *ip.Client) error {
 	return nil
 }
 
-func openPreview(img []byte) string {
+func preview(img []byte) string {
 	do(func() { previewUI(img) })
 
 	return "preview window opened"
@@ -92,9 +110,17 @@ func previewUI(img []byte) error {
 		return err
 	}
 
-	for !window.ShouldClose() {
-		window.Draw()
-		glfw.PollEvents()
+poller:
+	for {
+		select {
+		case <-quit:
+			break poller
+		default:
+			if window.ShouldClose() {
+				break poller
+			}
+			glfw.PollEvents()
+		}
 	}
 
 	window.Destroy()

@@ -23,7 +23,7 @@ var (
 	version   = "0.0.0"
 	buildTime = "unknown"
 	exe       string
-	mainStack = make(chan func())
+	quit      = make(chan struct{}) // Should this be global or do we need to pass it along to all who need it?
 )
 
 func main() {
@@ -59,11 +59,10 @@ func main() {
 	// TODO: finish this implementation so CTRL+C will also abort client.Dial() etc. properly.
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	done := make(chan struct{})
 	go func() {
 		sig := <-sigs
 		fmt.Printf("Received signal %s, shutting down...\n", sig)
-		close(done)
+		close(quit)
 	}()
 
 	client, err := ip.NewClient(conf.vendor, conf.host, uint16(conf.port), conf.fname, conf.guid, verbosity)
@@ -105,32 +104,11 @@ func main() {
 			go launchServer(client)
 		}
 
-		mainThread(done)
+		mainThread()
 
-		<-done
+		<-quit
 		fmt.Println("Bye bye!")
 	}
 
 	os.Exit(ok)
-}
-
-// mainThread is used to execute on the main thread, which is what OpenGL requires.
-func mainThread(done chan struct{}) {
-	if !lvEnabled {
-		return
-	}
-
-	for {
-		select {
-		case f := <-mainStack:
-			f()
-		case <-done:
-			return
-		}
-	}
-}
-
-// do executes f on the main thread but does not wait for it to finish.
-func do(f func()) {
-	mainStack <- f
 }
