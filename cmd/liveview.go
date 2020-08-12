@@ -123,7 +123,7 @@ poller:
 		case <-quit:
 			break poller
 		default:
-			glfw.PollEvents()
+			glfw.WaitEvents()
 		}
 	}
 
