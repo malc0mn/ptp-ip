@@ -40,7 +40,8 @@ func (t *Texture) SetRGBA(im *image.RGBA) {
 	size := im.Rect.Size()
 	gl.TexImage2D(
 		gl.TEXTURE_2D, 0, gl.RGBA, int32(size.X), int32(size.Y),
-		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(im.Pix))
+		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(im.Pix),
+	)
 }
 
 func (t *Texture) SetMinFilter(x int32) {
