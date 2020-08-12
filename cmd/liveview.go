@@ -28,8 +28,8 @@ func mainThread() {
 	}
 }
 
-// do executes f on the main thread but does not wait for it to finish.
-func do(f func()) {
+// runOnMain executes f on the main thread but does not wait for it to finish.
+func runOnMain(f func()) {
 	mainStack <- f
 }
 
@@ -46,7 +46,7 @@ func liveview(c *ip.Client, _ []string) string {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	do(func() { liveViewUI(c) })
+	runOnMain(func() { liveViewUI(c) })
 
 	return "enabled\n"
 }
@@ -97,7 +97,7 @@ func preview(img []byte) string {
 		return "can currently not display preview while liveview is active"
 	}
 
-	do(func() { previewUI(img) })
+	runOnMain(func() { previewUI(img) })
 
 	return "preview window opened"
 }
