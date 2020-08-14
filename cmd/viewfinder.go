@@ -11,6 +11,7 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/color"
+	"math"
 	"strings"
 )
 
@@ -54,8 +55,52 @@ func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
 			fujiIso(img, p.CurrentValueAsInt64())
 		case ptp.DPC_BatteryLevel:
 			fujiBattery3Bars(img, p.CurrentValueAsInt64())
+		case ptp.DPC_ExposureBiasCompensation:
+			fujiExposureBiasCompensation(img, p.CurrentValueAsInt64())
 		}
 	}
+}
+
+func fujiExposureBiasCompensation(img *image.RGBA, ex int64) {
+	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.5)
+	y := img.Bounds().Max.Y - 10
+	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
+
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: VFGlyphs6x13,
+		Dot:  point,
+	}
+
+	zero := 9 // don't forget: zero indexed!
+	stops := 3 // bias dial is per 3 stops
+	stop := 0 // default stop is '0' meaning no fractional stop
+	bias := []rune("6..5..4..0..1..2..3")
+
+	i, f := math.Modf(float64(int16(ex)) / float64(1000))
+	if f != 0 {
+		stop = 1
+		if math.Abs(f) > 0.4 {
+			stop = 2
+		}
+		if math.Signbit(f) {
+			stop = -stop
+		}
+	}
+
+	pos := zero + stop + int(i * float64(stops))
+
+	// When we're not on a fractional number, replace the number with an 'empty' marker.
+	if f == 0 {
+		bias[pos] = '"'
+	}
+	// Now draw the basic exposure bias compensation widget.
+	d.DrawString(string(bias))
+
+	// TODO: draw the '!' on the the calculated position in yellow!
 }
 
 func fujiIso(img *image.RGBA, ex int64) {
