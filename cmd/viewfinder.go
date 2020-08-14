@@ -11,6 +11,7 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/color"
+	"strings"
 )
 
 func addViewfinder(img *image.RGBA, v ptp.VendorExtension, s []*ptp.DevicePropDesc) {
@@ -50,14 +51,14 @@ func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
 	for _, p := range s {
 		switch p.DevicePropertyCode {
 		case ip.DPC_Fuji_ExposureIndex:
-			iso(img, p.CurrentValueAsInt64())
+			fujiIso(img, p.CurrentValueAsInt64())
 		case ptp.DPC_BatteryLevel:
 			batteryIndicator3Bars(img, p.CurrentValueAsInt64())
 		}
 	}
 }
 
-func iso(img *image.RGBA, ex int64) {
+func fujiIso(img *image.RGBA, ex int64) {
 	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
 
 	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.2)
@@ -73,23 +74,22 @@ func iso(img *image.RGBA, ex int64) {
 
 	iso := ptpfmt.FujiExposureIndexAsString(ip.FujiExposureIndex(ex))
 
-	if (iso == "auto") {
-		d.DrawString("is")
+	d.DrawString("is") // iso icon
 
+	if strings.HasPrefix(iso, "S") {
 		d.Dot.X -= fixed.Int26_6(18 * 64)
 		d.Dot.Y -= fixed.Int26_6(8 * 64)
-		d.DrawString("ISO")
-		// TODO: in auto mode, the user configured 'max sensitivity' is displayed; not sure if this is exposed though.
-	} else {
-		d.DrawString("is")
-
-		d.Face = basicfont.Face7x13
-		d.Dot.X += fixed.Int26_6(6 * 64)
-		d.Dot.Y += fixed.Int26_6(2 * 64)
-
-		// actual value
-		d.DrawString(iso)
+		d.DrawString("ISO") // auto icon
+		d.Dot.Y += fixed.Int26_6(8 * 64) // reset Y axis
+		iso = iso[1:] // drop the leading S
 	}
+
+	d.Face = basicfont.Face7x13
+	d.Dot.X += fixed.Int26_6(6 * 64)
+	d.Dot.Y += fixed.Int26_6(2 * 64)
+
+	// actual value
+	d.DrawString(iso)
 }
 
 func batteryIndicator3Bars(img *image.RGBA, bl int64) {
