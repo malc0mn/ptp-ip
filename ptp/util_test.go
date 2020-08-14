@@ -14,4 +14,10 @@ func TestByteArrayToInt64(t *testing.T) {
 	if got != want {
 		t.Errorf("byteArrayToInt64() return = %d, want %d", got, want)
 	}
+
+	got = byteArrayToInt64(b, 7)
+	want = int64(0x6140)
+	if got != want {
+		t.Errorf("byteArrayToInt64() return = %d, want %d", got, want)
+	}
 }
