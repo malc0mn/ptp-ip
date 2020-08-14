@@ -40,9 +40,9 @@ const (
 	CMD_Fuji_ShutterSpeed FujiCommandDialMode = 0x0002
 	CMD_Fuji_None         FujiCommandDialMode = 0x0003
 
-	EDX_Fuji_Extended uint16            = 0x4000
-	EDX_Fuji_Standard uint16            = 0x8000
-	EDX_Fuji_Auto     FujiExposureIndex = 0xFFFFFFFF
+	EDX_Fuji_Extended       uint16            = 0x4000
+	EDX_Fuji_MaxSensitivity uint16            = 0x8000
+	EDX_Fuji_Auto           FujiExposureIndex = 0xFFFFFFFF
 
 	FCM_Fuji_Single_Auto     ptp.FocusMode = 0x8001
 	FCM_Fuji_Continuous_Auto ptp.FocusMode = 0x8002

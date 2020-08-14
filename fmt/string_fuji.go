@@ -160,7 +160,7 @@ func FujiExposureIndexAsString(edx ip.FujiExposureIndex) string {
 		if val < 200 {
 			prefix = "L"
 		}
-	case ip.EDX_Fuji_Standard:
+	case ip.EDX_Fuji_MaxSensitivity:
 		prefix = "S"
 	}
 
