@@ -81,7 +81,7 @@ func fujiIso(img *image.RGBA, ex int64) {
 		d.Dot.Y -= fixed.Int26_6(8 * 64)
 		d.DrawString("ISO") // auto icon
 		d.Dot.Y += fixed.Int26_6(8 * 64) // reset Y axis
-		iso = iso[1:] // drop the leading S
+		iso = string([]rune(iso)[1:]) // drop the leading S
 	}
 
 	d.Face = basicfont.Face7x13
