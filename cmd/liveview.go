@@ -8,6 +8,7 @@ import (
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/malc0mn/ptp-ip/ip"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"image"
 	"image/draw"
 )
@@ -43,16 +44,21 @@ func liveview(c *ip.Client, _ []string) string {
 
 	lvState = true
 
+	s, err := c.GetDeviceState()
+	if err != nil {
+		return fmt.Sprintf(errorFmt, err)
+	}
+
 	if err := c.ToggleLiveView(lvState); err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	runOnMain(func() { liveViewUI(c) })
+	runOnMain(func() { liveViewUI(c, s) })
 
 	return "enabled\n"
 }
 
-func liveViewUI(c *ip.Client) error {
+func liveViewUI(c *ip.Client, s interface{}) error {
 	if err := gl.Init(); err != nil {
 		return err
 	}
@@ -75,7 +81,7 @@ poller:
 			im, _, err := image.Decode(bytes.NewReader(img))
 			if err == nil {
 				rgba := toRGBA(im)
-				addViewfinder(rgba, c)
+				addViewfinder(rgba, c.ResponderVendor(), s.([]*ptp.DevicePropDesc))
 				window.SetImage(rgba)
 			}
 			glfw.PollEvents()

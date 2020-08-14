@@ -3,18 +3,20 @@
 package main
 
 import (
+	ptpfmt "github.com/malc0mn/ptp-ip/fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/color"
 )
 
-func addViewfinder(img *image.RGBA, c *ip.Client) {
-	switch c.ResponderVendor() {
+func addViewfinder(img *image.RGBA, v ptp.VendorExtension, s []*ptp.DevicePropDesc) {
+	switch v {
 	case ptp.VE_FujiPhotoFilmCoLtd:
-		fujiViewfinder(img)
+		fujiViewfinder(img, s)
 	}
 }
 
@@ -44,11 +46,18 @@ movie remaining time:  || 1679 - [143 6 0 0] - 0x8f060000 - 0x68f
 */
 
 // P [o]     F2.8     +/-  -3..-2..-1..|..1..2..3      iso200  bat3/3
-func fujiViewfinder(img *image.RGBA) {
-	x := 10
-	y := 20
-	col := color.RGBA{255, 255, 255, 255}
-	point := fixed.Point26_6{fixed.Int26_6(x * 64), fixed.Int26_6(y * 64)}
+func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
+
+	iso(img, s[13].CurrentValueAsInt64())
+	batteryIndicator3Bars(img, s[0].CurrentValueAsInt64())
+}
+
+func iso(img *image.RGBA, ex int64) {
+	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.2)
+	y := img.Bounds().Max.Y - 10
+	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
 
 	d := &font.Drawer{
 		Dst:  img,
@@ -57,6 +66,54 @@ func fujiViewfinder(img *image.RGBA) {
 		Dot:  point,
 	}
 
-	// Battery test: renders 3/3 2/3 1/3 critical.
-	d.DrawString("BAT bCT baU bct")
+	iso := ptpfmt.FujiExposureIndexAsString(ip.FujiExposureIndex(ex))
+
+	if (iso == "auto") {
+		d.DrawString("is")
+
+		d.Dot.X -= fixed.Int26_6(18 * 64)
+		d.Dot.Y -= fixed.Int26_6(8 * 64)
+		d.DrawString("ISO")
+		// TODO: in auto mode, the user configured 'max sensitivity' is displayed; not sure if this is exposed though.
+	} else {
+		d.DrawString("is")
+
+		d.Face = basicfont.Face7x13
+		d.Dot.X += fixed.Int26_6(6 * 64)
+		d.Dot.Y += fixed.Int26_6(2 * 64)
+
+		// actual value
+		d.DrawString(iso)
+	}
+}
+
+func batteryIndicator3Bars(img *image.RGBA, bl int64) {
+	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+	red := color.RGBA{R: 255, G: 0, B: 0, A: 255}
+
+	var lvl string
+	switch ip.FujiBatteryLevel(bl) {
+	case ip.BAT_Fuji_3bCritical:
+		col = red
+		lvl = "bct"
+	case ip.BAT_Fuji_3bOne:
+		col = red
+		lvl = "baU"
+	case ip.BAT_Fuji_3bTwo:
+		lvl = "bCT"
+	case ip.BAT_Fuji_3bFull:
+		lvl = "BAT"
+	}
+
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.1)
+	y := img.Bounds().Max.Y - 8
+	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
+
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: VFGlyphs6x13,
+		Dot:  point,
+	}
+	d.DrawString(lvl)
 }
