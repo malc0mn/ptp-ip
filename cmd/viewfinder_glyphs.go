@@ -1,3 +1,5 @@
+// +build with_lv
+
 package main
 
 import (
