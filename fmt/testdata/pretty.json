@@ -297,34 +297,34 @@
         },
         "CurrentValue": {
             "value": "0x80001900",
-            "label": "S 6400"
+            "label": "S6400"
         },
         "formType": "enum",
         "form": {
             "values": [
                 {
                     "value": "0x80000190",
-                    "label": "S 400"
+                    "label": "S400"
                 },
                 {
                     "value": "0x80000320",
-                    "label": "S 800"
+                    "label": "S800"
                 },
                 {
                     "value": "0x80000640",
-                    "label": "S 1600"
+                    "label": "S1600"
                 },
                 {
                     "value": "0x80000c80",
-                    "label": "S 3200"
+                    "label": "S3200"
                 },
                 {
                     "value": "0x80001900",
-                    "label": "S 6400"
+                    "label": "S6400"
                 },
                 {
                     "value": "0x40000064",
-                    "label": "L 100"
+                    "label": "L100"
                 },
                 {
                     "value": "0xc8",
@@ -392,15 +392,15 @@
                 },
                 {
                     "value": "0x40003200",
-                    "label": "H 12800"
+                    "label": "H12800"
                 },
                 {
                     "value": "0x40006400",
-                    "label": "H 25600"
+                    "label": "H25600"
                 },
                 {
                     "value": "0x4000c800",
-                    "label": "H 51200"
+                    "label": "H51200"
                 }
             ]
         }

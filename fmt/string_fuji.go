@@ -168,7 +168,7 @@ func FujiExposureIndexAsString(edx ip.FujiExposureIndex) string {
 		return strconv.FormatInt(val, 10)
 	}
 
-	return fmt.Sprintf("%s %d", prefix, val)
+	return fmt.Sprintf("%s%d", prefix, val)
 }
 
 func FujiFilmSimulationAsString(fs ip.FujiFilmSimulation) string {
