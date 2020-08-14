@@ -47,9 +47,14 @@ movie remaining time:  || 1679 - [143 6 0 0] - 0x8f060000 - 0x68f
 
 // P [o]     F2.8     +/-  -3..-2..-1..|..1..2..3      iso200  bat3/3
 func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
-
-	iso(img, s[13].CurrentValueAsInt64())
-	batteryIndicator3Bars(img, s[0].CurrentValueAsInt64())
+	for _, p := range s {
+		switch p.DevicePropertyCode {
+		case ip.DPC_Fuji_ExposureIndex:
+			iso(img, p.CurrentValueAsInt64())
+		case ptp.DPC_BatteryLevel:
+			batteryIndicator3Bars(img, p.CurrentValueAsInt64())
+		}
+	}
 }
 
 func iso(img *image.RGBA, ex int64) {
