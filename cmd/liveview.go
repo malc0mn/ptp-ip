@@ -9,6 +9,7 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/malc0mn/ptp-ip/ip"
 	"image"
+	"image/draw"
 )
 
 var (
@@ -73,7 +74,9 @@ poller:
 		case img := <-c.StreamChan:
 			im, _, err := image.Decode(bytes.NewReader(img))
 			if err == nil {
-				window.SetImage(im)
+				rgba := toRGBA(im)
+				addViewfinder(rgba, c)
+				window.SetImage(rgba)
 			}
 			glfw.PollEvents()
 		case <-quit:
@@ -88,6 +91,16 @@ poller:
 	}
 
 	return nil
+}
+
+func toRGBA(img image.Image) *image.RGBA {
+	rgba, ok := img.(*image.RGBA)
+	if !ok {
+		rgba = image.NewRGBA(img.Bounds())
+		draw.Draw(rgba, rgba.Rect, img, image.Point{}, draw.Src)
+	}
+
+	return rgba
 }
 
 func preview(img []byte) string {

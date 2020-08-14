@@ -7,4 +7,5 @@ require (
 	github.com/go-gl/glfw v0.0.0-20200707082815-5321531c36a2
 	github.com/go-ini/ini v1.56.0
 	github.com/google/uuid v1.1.1
+	golang.org/x/image v0.0.0-20200801110659-972c09e46d76
 )
