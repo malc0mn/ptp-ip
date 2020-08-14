@@ -53,7 +53,7 @@ func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
 		case ip.DPC_Fuji_ExposureIndex:
 			fujiIso(img, p.CurrentValueAsInt64())
 		case ptp.DPC_BatteryLevel:
-			batteryIndicator3Bars(img, p.CurrentValueAsInt64())
+			fujiBattery3Bars(img, p.CurrentValueAsInt64())
 		}
 	}
 }
@@ -92,7 +92,7 @@ func fujiIso(img *image.RGBA, ex int64) {
 	d.DrawString(iso)
 }
 
-func batteryIndicator3Bars(img *image.RGBA, bl int64) {
+func fujiBattery3Bars(img *image.RGBA, bl int64) {
 	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
 	red := color.RGBA{R: 255, G: 0, B: 0, A: 255}
 
