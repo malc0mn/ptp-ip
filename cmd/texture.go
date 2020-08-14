@@ -30,8 +30,11 @@ func (t *Texture) Bind() {
 }
 
 func (t *Texture) SetImage(im image.Image) {
-	rgba := image.NewRGBA(im.Bounds())
-	draw.Draw(rgba, rgba.Rect, im, image.Point{}, draw.Src)
+	rgba, ok := im.(*image.RGBA)
+	if !ok {
+		rgba = image.NewRGBA(im.Bounds())
+		draw.Draw(rgba, rgba.Rect, im, image.Point{}, draw.Src)
+	}
 	t.SetRGBA(rgba)
 }
 
