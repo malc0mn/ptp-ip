@@ -39,6 +39,7 @@ func NewWindow(im image.Image, title string) (*Window, error) {
 		}
 	}
 
+	glfw.WindowHint(glfw.Resizable, glfw.False)
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	window, err := glfw.CreateWindow(w, h, title, nil, nil)
