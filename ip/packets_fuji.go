@@ -39,11 +39,15 @@ const (
 	CMD_Fuji_ShutterSpeed FujiCommandDialMode = 0x0002
 	CMD_Fuji_None         FujiCommandDialMode = 0x0003
 
-	// EDX_Fuji_Extended indicates if the iso setting is an 'emulated' one. These are typically the extreme lows and
+	// EDX_Fuji_Extended indicates if the ISO setting is an 'emulated' one. These are typically the extreme lows and
 	// extreme highs such as 'L100' or 'H25600'. The 4 LSBs indicate the value.
+	// Note: changing the ISO setting from an 'automatic value' to a 'manual value' will cause the fields output by
+	// FujiGetDeviceState to change!
 	EDX_Fuji_Extended       uint16            = 0x4000
-	// EDX_Fuji_MaxSensitivity indicates if the iso setting is 'automatic' with a maximum sensitivity indicated by the 4
+	// EDX_Fuji_MaxSensitivity indicates if the ISO setting is 'automatic' with a maximum sensitivity indicated by the 4
 	// LSBs.
+	// Note: changing the ISO setting from an 'automatic value' to a 'manual value' will cause the fields output by
+	// FujiGetDeviceState to change!
 	EDX_Fuji_MaxSensitivity uint16            = 0x8000
 	EDX_Fuji_Auto           FujiExposureIndex = 0xFFFFFFFF
 
