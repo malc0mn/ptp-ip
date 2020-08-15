@@ -68,7 +68,6 @@ func TestFujiPropToDevicePropCode(t *testing.T) {
 
 func TestFujiBatteryLevelAsString(t *testing.T) {
 	check := map[ip.FujiBatteryLevel]string{
-		ip.BAT_Fuji_3bCritical: "critical",
 		ip.BAT_Fuji_3bOne:      "1/3",
 		ip.BAT_Fuji_3bTwo:      "2/3",
 		ip.BAT_Fuji_3bFull:     "3/3",
