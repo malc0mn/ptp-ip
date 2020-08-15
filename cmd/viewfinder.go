@@ -57,8 +57,58 @@ func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
 			fujiBattery3Bars(img, p.CurrentValueAsInt64())
 		case ptp.DPC_ExposureBiasCompensation:
 			fujiExposureBiasCompensation(img, p.CurrentValueAsInt64())
+		case ptp.DPC_FNumber:
+			fujiFNumber(img, p.CurrentValueAsInt64())
+		case ptp.DPC_ExposureProgramMode:
+			fujiExposureProgramMode(img, p.CurrentValueAsInt64())
 		}
 	}
+}
+
+func fujiExposureProgramMode(img *image.RGBA, epm int64) {
+	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+
+	x := float64(img.Bounds().Min.X) + (float64(img.Bounds().Max.X) * 0.1)
+	y := img.Bounds().Max.Y - 10
+	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
+
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: VFGlyphs6x13,
+		Dot:  point,
+	}
+
+	icon := " "
+	switch ptp.ExposureProgramMode(epm) {
+	case ptp.EPM_Manual:
+		icon = "Mm"
+	case ptp.EPM_Automatic:
+		icon = "Pp"
+	case ptp.EPM_AperturePriority:
+		icon = "Nn"
+	case ptp.EPM_ShutterPriority:
+		icon = "Ll"
+	}
+
+	d.DrawString(icon)
+}
+
+func fujiFNumber(img *image.RGBA, fn int64) {
+	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+
+	x := float64(img.Bounds().Min.X) + (float64(img.Bounds().Max.X) * 0.25)
+	y := img.Bounds().Max.Y - 10
+	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
+
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: basicfont.Face7x13,
+		Dot:  point,
+	}
+
+	d.DrawString(strings.Replace(ptpfmt.FNumberAsString(uint16(fn)), "f/", "F", 1))
 }
 
 func fujiExposureBiasCompensation(img *image.RGBA, ex int64) {
