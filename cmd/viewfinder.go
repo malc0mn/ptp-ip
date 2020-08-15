@@ -62,11 +62,20 @@ func fujiViewfinder(img *image.RGBA, s []*ptp.DevicePropDesc) {
 }
 
 func fujiExposureBiasCompensation(img *image.RGBA, ex int64) {
-	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+	zero := 9 // don't forget: zero indexed!
+	stops := 3 // bias dial is per 3 stops
+	stop := 0 // default stop is '0' meaning no fractional stop
+	bias := []rune("6..5..4..0..1..2..3")
+	marker := []rune("                   ")
 
-	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.5)
+	// Make sure the center point of our bias widget is in the center of the image.
+	glyphwidth := 6
+	offset := glyphwidth * len(bias) / 2
+
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.5) - float64(offset)
 	y := img.Bounds().Max.Y - 10
 	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
+	col := color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
 
 	d := &font.Drawer{
 		Dst:  img,
@@ -75,12 +84,14 @@ func fujiExposureBiasCompensation(img *image.RGBA, ex int64) {
 		Dot:  point,
 	}
 
-	zero := 9 // don't forget: zero indexed!
-	stops := 3 // bias dial is per 3 stops
-	stop := 0 // default stop is '0' meaning no fractional stop
-	bias := []rune("6..5..4..0..1..2..3")
+	// Draw the leading +/- icon
+	d.Dot.X -= fixed.Int26_6(18 * 64) // offset icon 3 glyphs to the left
+	d.DrawString("+-")
+	d.Dot = point // reset drawing position
 
+	// Calculate marker position.
 	i, f := math.Modf(float64(int16(ex)) / float64(1000))
+	onZero := i == 0 && f == 0
 	if f != 0 {
 		stop = 1
 		if math.Abs(f) > 0.4 {
@@ -90,17 +101,41 @@ func fujiExposureBiasCompensation(img *image.RGBA, ex int64) {
 			stop = -stop
 		}
 	}
-
 	pos := zero + stop + int(i * float64(stops))
 
 	// When we're not on a fractional number, replace the number with an 'empty' marker.
 	if f == 0 {
 		bias[pos] = '"'
 	}
+
+	// When the marker is on 0, the widget must be drawn in grey.
+	if onZero {
+		col = color.RGBA{R: 100, G: 100, B: 100, A: 255} // grey
+		d.Src = image.NewUniform(col)
+	}
+
 	// Now draw the basic exposure bias compensation widget.
 	d.DrawString(string(bias))
 
-	// TODO: draw the '!' on the the calculated position in yellow!
+	// When the marker is on 0, the the marker and '0' position must be drawn in white.
+	if onZero {
+		col = color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
+		d.Src = image.NewUniform(col)
+		for _, r := range []rune{'"', '!'} {
+			d.Dot = point // reset drawing position
+			marker[pos] = r
+			d.DrawString(string(marker))
+		}
+
+		return
+	}
+
+	// Draw the marker on the the calculated position in yellow!
+	marker[pos] = '!'
+	col = color.RGBA{R: 255, G: 185, B: 10, A: 255} // yellow
+	d.Src = image.NewUniform(col)
+	d.Dot = point // reset drawing position
+	d.DrawString(string(marker))
 }
 
 func fujiIso(img *image.RGBA, ex int64) {
