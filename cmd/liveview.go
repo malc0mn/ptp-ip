@@ -11,6 +11,7 @@ import (
 	"github.com/malc0mn/ptp-ip/ptp"
 	"image"
 	"image/draw"
+	"time"
 )
 
 var (
@@ -44,21 +45,21 @@ func liveview(c *ip.Client, _ []string) string {
 
 	lvState = true
 
-	s, err := c.GetDeviceState()
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
 	if err := c.ToggleLiveView(lvState); err != nil {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	runOnMain(func() { liveViewUI(c, s) })
+	runOnMain(func() { liveViewUI(c) })
 
 	return "enabled\n"
 }
 
-func liveViewUI(c *ip.Client, s interface{}) error {
+func liveViewUI(c *ip.Client) error {
+	s, err := c.GetDeviceState()
+	if err != nil {
+		s = []*ptp.DevicePropDesc{}
+	}
+
 	if err := gl.Init(); err != nil {
 		return err
 	}
@@ -74,6 +75,8 @@ func liveViewUI(c *ip.Client, s interface{}) error {
 		return err
 	}
 
+	ticker := time.NewTicker(1 * time.Second)
+
 poller:
 	for !window.ShouldClose() {
 		select {
@@ -84,10 +87,12 @@ poller:
 				addViewfinder(rgba, c.ResponderVendor(), s.([]*ptp.DevicePropDesc))
 				window.SetImage(rgba)
 			}
-			glfw.PollEvents()
+			case <-ticker.C:
+				s, _ = c.GetDeviceState()
 		case <-quit:
 			break poller
 		}
+		glfw.PollEvents()
 	}
 
 	window.Destroy()
