@@ -24,10 +24,9 @@ type FujiMovieMode uint16
 type FujiSelfTimer uint16
 
 const (
-	BAT_Fuji_3bCritical FujiBatteryLevel = 0x0001
-	BAT_Fuji_3bOne      FujiBatteryLevel = 0x0002
-	BAT_Fuji_3bTwo      FujiBatteryLevel = 0x0003
-	BAT_Fuji_3bFull     FujiBatteryLevel = 0x0004
+	BAT_Fuji_3bOne      FujiBatteryLevel = 0x0001
+	BAT_Fuji_3bTwo      FujiBatteryLevel = 0x0002
+	BAT_Fuji_3bFull     FujiBatteryLevel = 0x0003
 	BAT_Fuji_5bCritical FujiBatteryLevel = 0x0006
 	BAT_Fuji_5bOne      FujiBatteryLevel = 0x0007
 	BAT_Fuji_5bTwo      FujiBatteryLevel = 0x0008

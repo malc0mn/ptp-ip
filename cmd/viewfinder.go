@@ -178,9 +178,6 @@ func fujiBattery3Bars(img *image.RGBA, bl int64) {
 
 	var lvl string
 	switch ip.FujiBatteryLevel(bl) {
-	case ip.BAT_Fuji_3bCritical:
-		col = red
-		lvl = "bct"
 	case ip.BAT_Fuji_3bOne:
 		col = red
 		lvl = "baU"

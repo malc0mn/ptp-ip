@@ -97,8 +97,6 @@ func FujiDevicePropValueAsString(code ptp.DevicePropCode, v int64) string {
 
 func FujiBatteryLevelAsString(bat ip.FujiBatteryLevel) string {
 	switch bat {
-	case ip.BAT_Fuji_3bCritical:
-		return "critical"
 	case ip.BAT_Fuji_3bOne:
 		return "1/3"
 	case ip.BAT_Fuji_3bTwo:
