@@ -820,6 +820,9 @@ func fujiReadDevicePropDesc(c *Client, r io.Reader) (*ptp.DevicePropDesc, error)
 	return dpd, nil
 }
 
+// FujiGetDeviceState returns a list of properties with their current values. The values being returned will depend on
+// the exposure program mode of the camera: it will change if the camera is in aperture priority, shutter priority,
+// manual or auto.
 func FujiGetDeviceState(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device state...", c.ResponderFriendlyName())
 	numProps, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)

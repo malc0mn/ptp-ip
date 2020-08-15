@@ -320,6 +320,10 @@ set iso 800
 #### `state`
 This command is, for now, only supported by Fuji cameras and will display the
 current state of a fixed list of camera dependent properties.
+Do note that this list will change depending on the exposure program mode of
+the camera. So *aperture priority* will have a different list than *shutter
+priority* or *manual* or *auto*.
+
 Like the `info` command, `state` also has the `json` parameter to output the
 data in JSON parsable format with the additional `pretty` for indented JSON
 output:
@@ -332,6 +336,7 @@ When executing the command with the `-s` flag, it will first connect to your
 specified camera and when that succeeds a socket is opened on `127.0.0.1`
 port `15740`, unless you specified a custom listen address and/or port using
 the `-sa` and `-sp` flags.
+
 As soon as you see output along the lines of:
 ```text
 [Local server] listening on 127.0.0.1:15740...
@@ -340,6 +345,7 @@ As soon as you see output along the lines of:
 you can start sending messages. You can use any language you like to
 communicate with the socket. From a linux command line interface such as bash,
 you can simply use `nc` to connect and send a message.
+
 An example of using the `opreq` command for debugging or reverse engineering
 purposes would be:
 ```text
