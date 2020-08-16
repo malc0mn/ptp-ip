@@ -10,6 +10,30 @@ import (
 // For example, drawing a battery indicator where the battery is at 2/3 capacity, one would use the sequence "bCT".
 //
 // The VFGlyphs6x13 data is entirely self-contained and does not require loading from separate files.
+//
+// Supported icons
+//
+// - 3 bars battery indicator:
+//   3/3 = "BAT"
+//   2/3 = "bCT"
+//   1/3 = "baU"
+//   0/3 = "bat"
+//
+// - Exposure compensation dial:
+//   +/- icon = "+-"
+//   dial base = "6..5..4..0..1..2..3"
+//   empty number marker (for use when the indicator is on a whole number) = '"'
+//   indicator = '!'
+//
+// - Exposure program mode icons:
+//   P (auto)          = "Pp"
+//   M (manual)        = "Mm"
+//   S (shutter prio)  = "Nn"
+//   A (aperture prio) = "Ll"
+//
+// - ISO icons:
+//   AUTO (all caps black on white)    = "ISO"
+//   iso (all lowercase white letters) = "is"
 var VFGlyphs6x13 = &basicfont.Face{
 	Advance: 6,
 	Width:   6,
