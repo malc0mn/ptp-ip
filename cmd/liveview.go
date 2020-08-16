@@ -9,6 +9,7 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"github.com/malc0mn/ptp-ip/viewfinder"
 	"image"
 	"image/draw"
 	"time"
@@ -75,6 +76,12 @@ func liveViewUI(c *ip.Client) error {
 		return err
 	}
 
+	var vf *viewfinder.Viewfinder
+	im, _, err := image.Decode(bytes.NewReader(img))
+	if err == nil {
+		vf = viewfinder.NewViewfinder(toRGBA(im), c.ResponderVendor())
+	}
+
 	ticker := time.NewTicker(1 * time.Second)
 
 poller:
@@ -84,11 +91,13 @@ poller:
 			im, _, err := image.Decode(bytes.NewReader(img))
 			if err == nil {
 				rgba := toRGBA(im)
-				addViewfinder(rgba, c.ResponderVendor(), s.([]*ptp.DevicePropDesc))
+				if vf != nil {
+					viewfinder.DrawViewfinder(vf, rgba, s.([]*ptp.DevicePropDesc))
+				}
 				window.SetImage(rgba)
 			}
-			case <-ticker.C:
-				s, _ = c.GetDeviceState()
+		case <-ticker.C:
+			s, _ = c.GetDeviceState()
 		case <-quit:
 			break poller
 		}
