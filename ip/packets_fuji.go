@@ -43,7 +43,7 @@ const (
 	// extreme highs such as 'L100' or 'H25600'. The 4 LSBs indicate the value.
 	// Note: changing the ISO setting from an 'automatic value' to a 'manual value' will cause the fields output by
 	// FujiGetDeviceState to change!
-	EDX_Fuji_Extended       uint16            = 0x4000
+	EDX_Fuji_Extended uint16 = 0x4000
 	// EDX_Fuji_MaxSensitivity indicates if the ISO setting is 'automatic' with a maximum sensitivity indicated by the 4
 	// LSBs.
 	// Note: changing the ISO setting from an 'automatic value' to a 'manual value' will cause the fields output by
