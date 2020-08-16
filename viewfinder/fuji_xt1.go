@@ -72,6 +72,7 @@ func getBias() []rune {
 
 func drawFujiExposureBiasCompensation(w *Widget, val int64) {
 	w.ResetToOrigin()
+	w.ResetColour()
 
 	zero := 9  // don't forget: zero indexed!
 	stops := 3 // bias dial is per 3 stops

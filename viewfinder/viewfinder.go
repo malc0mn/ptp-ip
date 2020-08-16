@@ -49,12 +49,18 @@ type Widget struct {
 	*font.Drawer
 	origin fixed.Point26_6
 	face   font.Face
+	colour *image.Uniform
 	Draw   WidgetDrawer
 }
 
 // SetColour sets the font colour to the given red, green and blue values.
 func (w *Widget) SetColour(r, g, b uint8) {
 	w.Src = image.NewUniform(color.RGBA{R: r, G: g, B: b, A: 255})
+}
+
+// ResetColour resets the colour to the original one when the widget was first made.
+func (w *Widget) ResetColour() {
+	w.Src = w.colour
 }
 
 // ResetFace resets the font face to the original one when the widget was first made.
@@ -71,16 +77,18 @@ func (w *Widget) ResetToOrigin() {
 // Important: the destination image is NOT set but can be set later using Widget.SetImage()!
 func NewWidget(img *image.RGBA, r, g, b uint8, f *basicfont.Face, x, y int) *Widget {
 	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
+	col := image.NewUniform(color.RGBA{R: r, G: g, B: b, A: 255})
 
 	return &Widget{
 		Drawer: &font.Drawer{
 			Dst:  img,
-			Src:  image.NewUniform(color.RGBA{R: r, G: g, B: b, A: 255}),
+			Src:  col,
 			Face: f,
 			Dot:  point,
 		},
 		origin: point,
 		face:   f,
+		colour: col,
 	}
 }
 
