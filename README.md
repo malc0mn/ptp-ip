@@ -20,7 +20,7 @@ photography (and ultimately even triggers based on what the camera is actually
 ## What it has become
 
 ### The `ptp` package
-This package holds all of the PTP protocol related stuff. It's pretty basic for
+This package holds all the PTP protocol related stuff. It's pretty basic for
 now and needs some work to make it a lot more usable as a stand-alone package.
 As the Fuji implementation deviates quite a bit from the PTP/IP standard, the
 work on this package is somewhat limited because of the custom stuff needed to
@@ -56,13 +56,13 @@ A command line interface implementation of the PTP/IP protocol that uses the
 `ptp`, `ip` and `fmt` packages. See *CLI command* for further info.
 
 ## Connecting to your camera
-The first and obvious step is to enable the camera's wifi. Have your network
+The first and obvious step is to enable the camera's Wi-Fi. Have your network
 manager scan for new SSIDs and connect to the one from your camera. It will most
 likely have an obvious name. A Fujifilm X-T1 SSID, for example, starts with
 `FUJIFILM-X-T1` followed by four more characters.
 
 ### Linux `NetworkManager` troubleshooting
-If you have trouble establishing a WiFi connection to your camera, start off by
+If you have trouble establishing a Wi-Fi connection to your camera, start off by
 tailing the logs: `sudo journalctl -f`. When those are open, connect to your
 camera's SSID and look closely at what it spews out.
 
@@ -73,16 +73,16 @@ settings select the method `disabled`. Or you can edit the config file
 directly:
 `sudo vi /etc/NetworkManager/system-connections/[SSID].nmconnection`.
 
-Look for the `[ipv6]` section or add it if it's not there and make sure that
-this line is present: `method=disabled`.
+Look for the `[ipv6]` section or add it if it's not there and make sure this
+line is present: `method=disabled`.
 
 #### Cannot get an IP from the camera's DHCP server
 If you are using `NetworkManager` with its built-in, and rather buggy, DHCP
 client, you might have trouble getting a DHCP address from the camera.
 In this case, you could try using `dhclient` as follows:
 1. Make sure `dhclient` is installed: simply run `dhclient --version` from the
-CLI and if you see output in the sense of `isc-dhclient-4.4.2` then you you're
-good to go :-). If not, install it first.
+CLI and if you see output in the sense of `isc-dhclient-4.4.2` then you're good
+to go :-). If not, install it first.
 2. Now let's tell `NetworkManager` to use it by adding some config:
 `sudo vi /etc/NetworkManager/conf.d/dhcp-client.conf`
 3. Paste the following config and save it:
@@ -260,7 +260,7 @@ will vary from vendor to vendor.
 There is one additional parameter for this command: `json`. It is no doubt
 clear what it does: it will print the data as parsable JSON output, but again
 it will differ from vendor to vendor!
-Finally the `json` parameter itself has the option `pretty` to print indented
+Finally, the `json` parameter itself has the option `pretty` to print indented
 JSON output, e.g.:
 ```text
 info json pretty
@@ -283,7 +283,7 @@ TODO: add `recmode`!
 
 #### `liveview`
 This *does what it says on the tin* if your camera supports it. This will open
-an addional window displaying a live view through the camera lens. It is a
+an additional window displaying a live view through the camera lens. It is a
 *toggle* so type the command once to enable it and once again to disable it.
 
 If your camera vendor has viewfinder support added to the `viewfinder` package,
