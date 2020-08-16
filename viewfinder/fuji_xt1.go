@@ -191,8 +191,7 @@ func drawFujiISO(w *Widget, val int64) {
 	w.Dot.X += fixed.Int26_6(6 * 64)
 	w.Dot.Y += fixed.Int26_6(2 * 64)
 
-	// actual value
-	w.DrawString(iso)
+	w.DrawString(iso) // actual value
 }
 
 func NewFujiFNumberWidget(img *image.RGBA) *Widget {
