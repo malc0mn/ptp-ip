@@ -20,6 +20,7 @@ func NewFujiXT1Viewfinder(img *image.RGBA) *Viewfinder {
 			ptp.DPC_ExposureBiasCompensation: NewFujiExposureBiasCompensationWidget(img),
 			ptp.DPC_ExposureProgramMode:      NewFujiExposureProgramModeWidget(img),
 			ip.DPC_Fuji_ExposureIndex:        NewFujiISOWidget(img),
+			ip.DPC_Fuji_FilmSimulation:       NewFujiFilmSimulationWidget(img),
 			ptp.DPC_FNumber:                  NewFujiFNumberWidget(img),
 		},
 	}
@@ -192,6 +193,50 @@ func drawFujiISO(w *Widget, val int64) {
 	w.Dot.Y += fixed.Int26_6(2 * 64)
 
 	w.DrawString(iso) // actual value
+}
+
+func NewFujiFilmSimulationWidget(img *image.RGBA) *Widget {
+	// Calculate starting position.
+	x := float64(img.Bounds().Min.X) + (float64(img.Bounds().Max.X) * 0.3)
+	y := 18
+
+	w := NewWhiteGlyphWidget(img, int(x), y)
+	w.Draw = drawFujiFilmSimulation
+
+	return w
+}
+
+func drawFujiFilmSimulation(w *Widget, val int64) {
+	w.ResetToOrigin()
+
+	var flm string
+
+	switch ip.FujiFilmSimulation(val) {
+	case ip.FS_Fuji_Provia:
+		flm = "()*"
+	case ip.FS_Fuji_Velvia:
+		flm = "#$%"
+	case ip.FS_Fuji_Astia:
+		flm = "(&%"
+	case ip.FS_Fuji_Monochrome:
+		flm = "'&%"
+	case ip.FS_Fuji_Sepia:
+		flm = "9DE"
+	case ip.FS_Fuji_ProNegHigh:
+		flm = "=>;"
+	case ip.FS_Fuji_ProNegStandard:
+		flm = "=><"
+	case ip.FS_Fuji_MonochromeYeFilter:
+		flm = "'?@"
+	case ip.FS_Fuji_MonochromeRFilter:
+		flm = "'?7"
+	case ip.FS_Fuji_MonochromeGFilter:
+		flm = "'?8"
+	case ip.FS_Fuji_ClassicChrome:
+		flm = ":,/"
+	}
+
+	w.DrawString(flm)
 }
 
 func NewFujiFNumberWidget(img *image.RGBA) *Widget {
