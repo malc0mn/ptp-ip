@@ -22,6 +22,7 @@ func NewFujiXT1Viewfinder(img *image.RGBA) *Viewfinder {
 			ip.DPC_Fuji_ExposureIndex:        NewFujiISOWidget(img),
 			ip.DPC_Fuji_FilmSimulation:       NewFujiFilmSimulationWidget(img),
 			ptp.DPC_FNumber:                  NewFujiFNumberWidget(img),
+			ptp.DPC_WhiteBalance:             NewFujiWhiteBalanceWidget(img),
 		},
 	}
 }
@@ -254,4 +255,45 @@ func drawFujiFNumber(w *Widget, val int64) {
 	w.ResetToOrigin()
 
 	w.DrawString(strings.Replace(ptpfmt.FNumberAsString(uint16(val)), "f/", "F", 1))
+}
+
+func NewFujiWhiteBalanceWidget(img *image.RGBA) *Widget {
+	// Calculate starting position.
+	x := float64(img.Bounds().Min.X) + (float64(img.Bounds().Max.X) * 0.26)
+	y := 18
+
+	w := NewWhiteGlyphWidget(img, int(x), y)
+	w.Draw = drawFujiWhiteBalance
+
+	return w
+}
+
+func drawFujiWhiteBalance(w *Widget, val int64) {
+	w.ResetToOrigin()
+
+	var icon string
+
+	switch ptp.WhiteBalance(val) {
+	case ip.WB_Fuji_Fluorescent1:
+		icon = "FGH"
+	case ip.WB_Fuji_Fluorescent2:
+		icon = "FGJ"
+	case ip.WB_Fuji_Fluorescent3:
+		icon = "FGK"
+	case ip.WB_Fuji_Shade:
+		icon = "de"
+	case ip.WB_Fuji_Underwater:
+		icon = "VW"
+	case ip.WB_Fuji_Temperature:
+		icon = "]^"
+	case ip.WB_Fuji_Custom:
+		icon = "Z["
+	case ptp.WB_Daylight:
+		icon = "XY"
+	case ptp.WB_Tungsten:
+		icon = "QR"
+
+	}
+
+	w.DrawString(icon)
 }
