@@ -25,6 +25,7 @@ func NewFujiXT1Viewfinder(img *image.RGBA) *Viewfinder {
 			ip.DPC_Fuji_FilmSimulation:       NewFujiFilmSimulationWidget(img),
 			ptp.DPC_FNumber:                  NewFujiFNumberWidget(img),
 			ip.DPC_Fuji_ImageAspectRatio:     NewFujiImageSizeWidget(img),
+			ip.DPC_Fuji_ImageQuality:         NewFujiImageQualityWidget(img),
 			ptp.DPC_WhiteBalance:             NewFujiWhiteBalanceWidget(img),
 		},
 	}
@@ -279,10 +280,10 @@ func drawFujiFNumber(w *Widget, val int64) {
 
 func NewFujiImageSizeWidget(img *image.RGBA) *Widget {
 	// Calculate starting position.
-	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.09)
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.15) + float64(VFGlyphs6x13.Width*3) + 1
 	y := 18
 
-	w := NewWhiteFontWidget(img, int(x), y)
+	w := NewWhiteGlyphWidget(img, int(x), y)
 	w.Draw = drawFujiImageSize
 
 	return w
@@ -291,7 +292,54 @@ func NewFujiImageSizeWidget(img *image.RGBA) *Widget {
 func drawFujiImageSize(w *Widget, val int64) {
 	w.ResetToOrigin()
 
-	w.DrawString(string([]rune(ptpfmt.FujiImageAspectRatioAsString(ip.FujiImageSize(val)))[0]))
+	var icon string
+
+	switch []rune(ptpfmt.FujiImageAspectRatioAsString(ip.FujiImageSize(val)))[0] {
+	case 'S':
+		icon = "jko"
+	case 'M':
+		icon = "jqo"
+	case 'L':
+		icon = "jro"
+	}
+
+	w.DrawString(icon)
+}
+
+func NewFujiImageQualityWidget(img *image.RGBA) *Widget {
+	// Calculate starting position.
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.15)
+	y := 18
+
+	w := NewWhiteGlyphWidget(img, int(x), y)
+	w.Draw = drawFujiImageQuality
+
+	return w
+}
+
+func drawFujiImageQuality(w *Widget, val int64) {
+	w.ResetToOrigin()
+	w.ResetFace()
+
+	var icon string
+	var qual string
+
+	switch ip.FujiImageQuality(val) {
+	case ip.IQ_Fuji_Fine:
+		qual = "F"
+	case ip.IQ_Fuji_Normal:
+		qual = "N"
+	case ip.IQ_Fuji_FineAndRAW:
+		icon = "fgh"
+		qual = "F"
+	case ip.IQ_Fuji_NormalAndRAW:
+		icon = "fgh"
+		qual = "N"
+	}
+
+	w.DrawString(icon)
+	w.Face = basicfont.Face7x13
+	w.DrawString("   " + qual)
 }
 
 func NewFujiWhiteBalanceWidget(img *image.RGBA) *Widget {
