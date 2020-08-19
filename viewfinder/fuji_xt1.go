@@ -311,6 +311,10 @@ func drawFujiWhiteBalance(w *Widget, val int64) {
 	var icon string
 
 	switch ptp.WhiteBalance(val) {
+	case ptp.WB_Daylight:
+		icon = "XY"
+	case ptp.WB_Tungsten:
+		icon = "QR"
 	case ip.WB_Fuji_Fluorescent1:
 		icon = "FGH"
 	case ip.WB_Fuji_Fluorescent2:
@@ -325,11 +329,6 @@ func drawFujiWhiteBalance(w *Widget, val int64) {
 		icon = "]^"
 	case ip.WB_Fuji_Custom:
 		icon = "Z["
-	case ptp.WB_Daylight:
-		icon = "XY"
-	case ptp.WB_Tungsten:
-		icon = "QR"
-
 	}
 
 	w.DrawString(icon)
