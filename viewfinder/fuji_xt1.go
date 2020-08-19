@@ -18,6 +18,7 @@ func NewFujiXT1Viewfinder(img *image.RGBA) *Viewfinder {
 	return &Viewfinder{
 		Widgets: map[ptp.DevicePropCode]*Widget{
 			ptp.DPC_BatteryLevel:             NewFujiBatteryLevelWidget(img),
+			ptp.DPC_CaptureDelay:             NewFujiCaptureDelayWidget(img),
 			ip.DPC_Fuji_CapturesRemaining:    NewFujiCapturesRemainingWidget(img),
 			ptp.DPC_ExposureBiasCompensation: NewFujiExposureBiasCompensationWidget(img),
 			ptp.DPC_ExposureProgramMode:      NewFujiExposureProgramModeWidget(img),
@@ -57,6 +58,32 @@ func drawFujiBattery3Bars(w *Widget, val int64) {
 	}
 
 	w.DrawString(lvl)
+}
+
+func NewFujiCaptureDelayWidget(img *image.RGBA) *Widget {
+	// Calculate starting position.
+	x := float64(img.Bounds().Min.X) + (float64(img.Bounds().Max.X) * 0.2)
+	y := 18
+
+	w := NewWhiteGlyphWidget(img, int(x), y)
+	w.Draw = drawFujiCaptureDelay
+
+	return w
+}
+
+func drawFujiCaptureDelay(w *Widget, val int64) {
+	w.ResetToOrigin()
+
+	var icon string
+
+	switch ip.FujiSelfTimer(val) {
+	case ip.ST_Fuji_2Sec:
+		icon = "uv"
+	case ip.ST_Fuji_10Sec:
+		icon = "uw"
+	}
+
+	w.DrawString(icon)
 }
 
 func NewFujiCapturesRemainingWidget(img *image.RGBA) *Widget {
