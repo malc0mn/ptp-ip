@@ -24,6 +24,7 @@ func NewFujiXT1Viewfinder(img *image.RGBA) *Viewfinder {
 			ip.DPC_Fuji_ExposureIndex:        NewFujiISOWidget(img),
 			ip.DPC_Fuji_FilmSimulation:       NewFujiFilmSimulationWidget(img),
 			ptp.DPC_FNumber:                  NewFujiFNumberWidget(img),
+			ip.DPC_Fuji_ImageAspectRatio:     NewFujiImageSizeWidget(img),
 			ptp.DPC_WhiteBalance:             NewFujiWhiteBalanceWidget(img),
 		},
 	}
@@ -274,6 +275,23 @@ func drawFujiFNumber(w *Widget, val int64) {
 	w.ResetToOrigin()
 
 	w.DrawString(strings.Replace(ptpfmt.FNumberAsString(uint16(val)), "f/", "F", 1))
+}
+
+func NewFujiImageSizeWidget(img *image.RGBA) *Widget {
+	// Calculate starting position.
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.09)
+	y := 18
+
+	w := NewWhiteFontWidget(img, int(x), y)
+	w.Draw = drawFujiImageSize
+
+	return w
+}
+
+func drawFujiImageSize(w *Widget, val int64) {
+	w.ResetToOrigin()
+
+	w.DrawString(string([]rune(ptpfmt.FujiImageAspectRatioAsString(ip.FujiImageSize(val)))[0]))
 }
 
 func NewFujiWhiteBalanceWidget(img *image.RGBA) *Widget {
