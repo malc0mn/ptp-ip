@@ -204,6 +204,8 @@ const (
 	//   - 0x00000004 SEEMS not to be accepted, i.e. a client confirmation prompt is never displayed by the camera. So
 	//     it MIGHT work, but could expect a different set of commands.
 	//   - 0x00000005 hits the sweet spot and the init sequence we use completes nicely.
+	// Could it maybe be that this is not so much 'init sequence' as "operation mode'? There is a mode for image
+	// transfers over Wi-Fi as well, but this was not investigated deeper just yet...
 	PM_Fuji_InitSequence = 0x00000005
 	// PM_Fuji_AppVersion defines the minimal supported app version by the Responder.
 	// When this parameter is 'too low', the camera will also complain about the application version being 'the previous
