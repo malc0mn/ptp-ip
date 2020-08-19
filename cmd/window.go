@@ -16,13 +16,13 @@ func init() {
 	runtime.LockOSThread()
 }
 
-type Window struct {
+type window struct {
 	*glfw.Window
-	Image   image.Image
-	Texture *Texture
+	image   image.Image
+	texture *texture
 }
 
-func NewWindow(im image.Image, title string) (*Window, error) {
+func newWindow(im image.Image, title string) (*window, error) {
 	const maxSize = 1200
 	w := im.Bounds().Size().X
 	h := im.Bounds().Size().Y
@@ -42,43 +42,43 @@ func NewWindow(im image.Image, title string) (*Window, error) {
 	glfw.WindowHint(glfw.Resizable, glfw.False)
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	window, err := glfw.CreateWindow(w, h, title, nil, nil)
+	win, err := glfw.CreateWindow(w, h, title, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	window.MakeContextCurrent()
+	win.MakeContextCurrent()
 	glfw.SwapInterval(1)
 
-	texture := NewTexture()
-	texture.SetImage(im)
-	result := &Window{window, im, texture}
+	texture := newTexture()
+	texture.setImage(im)
+	result := &window{win, im, texture}
 	result.SetRefreshCallback(result.onRefresh)
 
 	return result, nil
 }
 
-func (window *Window) SetImage(im image.Image) {
-	window.Image = im
-	window.Texture.SetImage(im)
-	window.Draw()
+func (window *window) setImage(im image.Image) {
+	window.image = im
+	window.texture.setImage(im)
+	window.draw()
 }
 
-func (window *Window) onRefresh(_ *glfw.Window) {
-	window.Draw()
+func (window *window) onRefresh(_ *glfw.Window) {
+	window.draw()
 }
 
-func (window *Window) Draw() {
+func (window *window) draw() {
 	window.MakeContextCurrent()
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 	window.DrawImage()
 	window.SwapBuffers()
 }
 
-func (window *Window) DrawImage() {
+func (window *window) DrawImage() {
 	const padding = 0
-	iw := window.Image.Bounds().Size().X
-	ih := window.Image.Bounds().Size().Y
+	iw := window.image.Bounds().Size().X
+	ih := window.image.Bounds().Size().Y
 	w, h := window.GetFramebufferSize()
 	s1 := float32(w) / float32(iw)
 	s2 := float32(h) / float32(ih)
@@ -92,7 +92,7 @@ func (window *Window) DrawImage() {
 		y = f * s1 / s2
 	}
 	gl.Enable(gl.TEXTURE_2D)
-	window.Texture.Bind()
+	window.texture.bind()
 	gl.Begin(gl.QUADS)
 	gl.TexCoord2f(0, 1)
 	gl.Vertex2f(-x, -y)

@@ -94,7 +94,7 @@ poller:
 				if vf != nil {
 					viewfinder.DrawViewfinder(vf, rgba, s.([]*ptp.DevicePropDesc))
 				}
-				window.SetImage(rgba)
+				window.setImage(rgba)
 			}
 		case <-ticker.C:
 			s, _ = c.GetDeviceState()
@@ -165,17 +165,17 @@ poller:
 	return nil
 }
 
-func showImage(img []byte, title string) (*Window, error) {
+func showImage(img []byte, title string) (*window, error) {
 	im, _, err := image.Decode(bytes.NewReader(img))
 	if err != nil {
 		return nil, err
 	}
 
-	window, err := NewWindow(im, title)
+	window, err := newWindow(im, title)
 	if err != nil {
 		return nil, err
 	}
-	window.Draw()
+	window.draw()
 
 	return window, nil
 }

@@ -10,36 +10,36 @@ import (
 	"image/draw"
 )
 
-type Texture struct {
-	Handle uint32
+type texture struct {
+	handle uint32
 }
 
-func NewTexture() *Texture {
+func newTexture() *texture {
 	var handle uint32
 	gl.GenTextures(1, &handle)
-	t := &Texture{handle}
-	t.SetMinFilter(gl.LINEAR)
-	t.SetMagFilter(gl.NEAREST)
-	t.SetWrapS(gl.CLAMP_TO_EDGE)
-	t.SetWrapT(gl.CLAMP_TO_EDGE)
+	t := &texture{handle}
+	t.setMinFilter(gl.LINEAR)
+	t.setMagFilter(gl.NEAREST)
+	t.setWrapS(gl.CLAMP_TO_EDGE)
+	t.setWrapT(gl.CLAMP_TO_EDGE)
 	return t
 }
 
-func (t *Texture) Bind() {
-	gl.BindTexture(gl.TEXTURE_2D, t.Handle)
+func (t *texture) bind() {
+	gl.BindTexture(gl.TEXTURE_2D, t.handle)
 }
 
-func (t *Texture) SetImage(im image.Image) {
+func (t *texture) setImage(im image.Image) {
 	rgba, ok := im.(*image.RGBA)
 	if !ok {
 		rgba = image.NewRGBA(im.Bounds())
 		draw.Draw(rgba, rgba.Rect, im, image.Point{}, draw.Src)
 	}
-	t.SetRGBA(rgba)
+	t.setRGBA(rgba)
 }
 
-func (t *Texture) SetRGBA(im *image.RGBA) {
-	t.Bind()
+func (t *texture) setRGBA(im *image.RGBA) {
+	t.bind()
 	size := im.Rect.Size()
 	gl.TexImage2D(
 		gl.TEXTURE_2D, 0, gl.RGBA, int32(size.X), int32(size.Y),
@@ -47,22 +47,22 @@ func (t *Texture) SetRGBA(im *image.RGBA) {
 	)
 }
 
-func (t *Texture) SetMinFilter(x int32) {
-	t.Bind()
+func (t *texture) setMinFilter(x int32) {
+	t.bind()
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, x)
 }
 
-func (t *Texture) SetMagFilter(x int32) {
-	t.Bind()
+func (t *texture) setMagFilter(x int32) {
+	t.bind()
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, x)
 }
 
-func (t *Texture) SetWrapS(x int32) {
-	t.Bind()
+func (t *texture) setWrapS(x int32) {
+	t.bind()
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, x)
 }
 
-func (t *Texture) SetWrapT(x int32) {
-	t.Bind()
+func (t *texture) setWrapT(x int32) {
+	t.bind()
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, x)
 }
