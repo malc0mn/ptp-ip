@@ -60,7 +60,7 @@ func drawFujiBattery3Bars(w *Widget, val int64) {
 
 func NewFujiCapturesRemainingWidget(img *image.RGBA) *Widget {
 	// Calculate starting position.
-	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.3)
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.25)
 	y := 18
 
 	w := NewWhiteFontWidget(img, int(x), y)
