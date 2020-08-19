@@ -270,7 +270,6 @@ func TestFujiImageQualityAsString(t *testing.T) {
 		ip.IQ_Fuji_Normal:       "normal",
 		ip.IQ_Fuji_FineAndRAW:   "fine + RAW",
 		ip.IQ_Fuji_NormalAndRAW: "normal + RAW",
-		ip.IQ_Fuji_RAW:          "RAW",
 		ip.FujiImageQuality(0):  "",
 	}
 

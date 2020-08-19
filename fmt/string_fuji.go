@@ -301,8 +301,6 @@ func FujiImageQualityAsString(iq ip.FujiImageQuality) string {
 		return "fine + RAW"
 	case ip.IQ_Fuji_NormalAndRAW:
 		return "normal + RAW"
-	case ip.IQ_Fuji_RAW:
-		return "RAW"
 	default:
 		return ""
 	}

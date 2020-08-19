@@ -97,11 +97,15 @@ const (
 	IS_Fuji_Large_16x9  FujiImageSize = 0x000B
 	IS_Fuji_Large_1x1   FujiImageSize = 0x000C
 
-	IQ_Fuji_Fine         FujiImageQuality = 0x0002
-	IQ_Fuji_Normal       FujiImageQuality = 0x0003
-	IQ_Fuji_FineAndRAW   FujiImageQuality = 0x0004
+	// IQ_Fuji_Fine indicates jpeg only shooting in 'fine' quality.
+	IQ_Fuji_Fine FujiImageQuality = 0x0002
+	// IQ_Fuji_Normal indicates jpeg only shooting in 'normal' quality.
+	IQ_Fuji_Normal FujiImageQuality = 0x0003
+	// IQ_Fuji_FineAndRAW indicates RAW + jpeg shooting in 'fine' quality. This is the highest possible quality setting
+	// the camera will accept when in remote control mode. There is no 'RAW only' mode!
+	IQ_Fuji_FineAndRAW FujiImageQuality = 0x0004
+	// IQ_Fuji_NormalAndRAW indicates RAW + jpeg shooting in 'normal' quality.
 	IQ_Fuji_NormalAndRAW FujiImageQuality = 0x0005
-	IQ_Fuji_RAW          FujiImageQuality = 0x0006
 
 	MM_Fuji_None    FujiMovieMode = 0x0000
 	MM_Fuji_Present FujiMovieMode = 0x0001
