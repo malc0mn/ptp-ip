@@ -18,6 +18,10 @@ ptpip:
 nolv:
 	cd cmd; go build ${LDFLAGS} -o ../${BINARY_NOLV}
 
+.PHONY: test
+test:
+	go test ./...
+
 .PHONY: install
 install:
 	cd cmd; GOBIN=/usr/local/bin/ go install ${LDFLAGS} ${TAGS}
