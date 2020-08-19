@@ -27,8 +27,8 @@ func FujiDevicePropCodeAsString(code ptp.DevicePropCode) string {
 		return "focus lock"
 	case ip.DPC_Fuji_DeviceError:
 		return "device error"
-	case ip.DPC_Fuji_ImageSpaceSD:
-		return "image space SD"
+	case ip.DPC_Fuji_CapturesRemaining:
+		return "captures remaining"
 	case ip.DPC_Fuji_MovieRemainingTime:
 		return "movie remaining time"
 	case ip.DPC_Fuji_ShutterSpeed:

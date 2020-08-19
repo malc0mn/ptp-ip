@@ -18,7 +18,7 @@ func TestFujiDevicePropCodeAsString(t *testing.T) {
 		ip.DPC_Fuji_FocusMeteringMode:  "focus point",
 		ip.DPC_Fuji_FocusLock:          "focus lock",
 		ip.DPC_Fuji_DeviceError:        "device error",
-		ip.DPC_Fuji_ImageSpaceSD:       "image space SD",
+		ip.DPC_Fuji_CapturesRemaining:  "captures remaining",
 		ip.DPC_Fuji_MovieRemainingTime: "movie remaining time",
 		ip.DPC_Fuji_ShutterSpeed:       "shutter speed",
 		ip.DPC_Fuji_ImageAspectRatio:   "image size",

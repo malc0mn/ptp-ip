@@ -132,9 +132,11 @@ const (
 	DPC_Fuji_FocusMeteringMode ptp.DevicePropCode = 0xD17C
 	DPC_Fuji_FocusLock         ptp.DevicePropCode = 0xD209
 	// DPC_Fuji_CurrentState is a property code that will return a list of properties with their current value.
-	DPC_Fuji_CurrentState       ptp.DevicePropCode = 0xD212
-	DPC_Fuji_DeviceError        ptp.DevicePropCode = 0xD21B
-	DPC_Fuji_ImageSpaceSD       ptp.DevicePropCode = 0xD229
+	DPC_Fuji_CurrentState ptp.DevicePropCode = 0xD212
+	DPC_Fuji_DeviceError  ptp.DevicePropCode = 0xD21B
+	// DPC_Fuji_CapturesRemaining indicates the amount of still image captures the internal storage can hold based on
+	// the current capture quality and resolution settings.
+	DPC_Fuji_CapturesRemaining  ptp.DevicePropCode = 0xD229
 	DPC_Fuji_MovieRemainingTime ptp.DevicePropCode = 0xD22A
 	DPC_Fuji_ShutterSpeed       ptp.DevicePropCode = 0xD240
 	DPC_Fuji_ImageAspectRatio   ptp.DevicePropCode = 0xD241

@@ -515,7 +515,7 @@ func TestFujiGetDeviceState(t *testing.T) {
 		{DevicePropertyCode: DPC_Fuji_FocusMeteringMode, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x02, 0x07, 0x02, 0x03}},
 		{DevicePropertyCode: DPC_Fuji_FocusLock, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x00, 0x00, 0x00}},
 		{DevicePropertyCode: DPC_Fuji_DeviceError, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x00, 0x00, 0x00, 0x00}},
-		{DevicePropertyCode: DPC_Fuji_ImageSpaceSD, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0xd6, 0x05, 0x00, 0x00}},
+		{DevicePropertyCode: DPC_Fuji_CapturesRemaining, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0xd6, 0x05, 0x00, 0x00}},
 		{DevicePropertyCode: DPC_Fuji_MovieRemainingTime, DataType: ptp.DTC_UINT32, CurrentValue: []uint8{0x8f, 0x06, 0x00, 0x00}},
 	}
 

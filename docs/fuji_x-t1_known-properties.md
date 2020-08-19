@@ -665,7 +665,7 @@ Received 12 bytes. HEX dump:
 00000000  0c 00 00 00 03 00 01 20  28 d4 00 00              |....... (...|
 ```
 
-#### Property Code 0xd229 - Image Space SD
+#### Property Code 0xd229 - Captures remaining
 ```text
 opreq 0x1015 0xd229
 
