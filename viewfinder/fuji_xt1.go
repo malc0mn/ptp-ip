@@ -8,6 +8,7 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,7 @@ func NewFujiXT1Viewfinder(img *image.RGBA) *Viewfinder {
 	return &Viewfinder{
 		Widgets: map[ptp.DevicePropCode]*Widget{
 			ptp.DPC_BatteryLevel:             NewFujiBatteryLevelWidget(img),
+			ip.DPC_Fuji_CapturesRemaining:    NewFujiCapturesRemainingWidget(img),
 			ptp.DPC_ExposureBiasCompensation: NewFujiExposureBiasCompensationWidget(img),
 			ptp.DPC_ExposureProgramMode:      NewFujiExposureProgramModeWidget(img),
 			ip.DPC_Fuji_ExposureIndex:        NewFujiISOWidget(img),
@@ -53,6 +55,23 @@ func drawFujiBattery3Bars(w *Widget, val int64) {
 	}
 
 	w.DrawString(lvl)
+}
+
+func NewFujiCapturesRemainingWidget(img *image.RGBA) *Widget {
+	// Calculate starting position.
+	x := float64(img.Bounds().Max.X) - (float64(img.Bounds().Max.X) * 0.3)
+	y := 18
+
+	w := NewWhiteFontWidget(img, int(x), y)
+	w.Draw = drawFujiCapturesRemaining
+
+	return w
+}
+
+func drawFujiCapturesRemaining(w *Widget, val int64) {
+	w.ResetToOrigin()
+
+	w.DrawString(strconv.FormatInt(val, 10))
 }
 
 func NewFujiExposureBiasCompensationWidget(img *image.RGBA) *Widget {
