@@ -18,6 +18,17 @@ const (
 	PRP_WhiteBalance      string = "whitebalance"
 )
 
+var UnifiedFieldNames = []string{
+	PRP_Delay,
+	PRP_Effect,
+	PRP_Exposure,
+	PRP_ExpBias,
+	PRP_FlashMode,
+	PRP_FocusMeteringMode,
+	PRP_ISO,
+	PRP_WhiteBalance,
+}
+
 func ConvertToHexString(v interface{}) string {
 	return fmt.Sprintf("%#x", v)
 }
