@@ -31,7 +31,7 @@ func main() {
 
 	initFlags()
 
-	if noArgs := len(os.Args) < 2; noArgs || help {
+	if noArgs := len(os.Args) < 2; noArgs || showHelp {
 		printUsage()
 		exit := ok
 		if noArgs {
@@ -40,7 +40,7 @@ func main() {
 		os.Exit(exit)
 	}
 
-	if ver {
+	if showVersion {
 		fmt.Printf("%s version %s built on %s\n", exe, version, buildTime)
 		os.Exit(ok)
 	}
@@ -92,7 +92,7 @@ func main() {
 
 	if cmd != "" {
 		f := strings.Fields(cmd)
-		fmt.Print(commandByName(f[0])(client, f[1:]))
+		fmt.Print(commandByName(f[0]).execute(client, f[1:]))
 	}
 
 	if server || interactive {

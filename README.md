@@ -254,6 +254,14 @@ they are requested *before* having called the `info` command. Exactly which
 properties have that odd behavior can be determined by doing an `info json
 pretty` call.
 
+#### `help`
+Help without arguments displays help about all available commands. You can also
+call help with one parameter being the specific command you want to print help
+about.
+```text
+help info
+```
+
 #### `info`
 The info command will display the current info about the camera. The output
 will vary from vendor to vendor.

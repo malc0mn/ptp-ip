@@ -2,17 +2,65 @@ package main
 
 import (
 	"bufio"
-	"encoding/hex"
-	"fmt"
 	ptpfmt "github.com/malc0mn/ptp-ip/fmt"
 	"github.com/malc0mn/ptp-ip/ip"
-	"github.com/malc0mn/ptp-ip/ptp"
-	"io/ioutil"
 	"log"
 	"strings"
+	"sync"
 )
 
-type command func(*ip.Client, []string) string
+var (
+	commandsMu sync.RWMutex
+	commands   = make(map[string]command)
+	aliases    = make(map[string]string)
+)
+
+type command interface {
+	name() string
+	alias() []string
+	execute(*ip.Client, []string) string
+	help() string
+	arguments() []string
+}
+
+func registerCommand(cmd command) {
+	commandsMu.Lock()
+	defer commandsMu.Unlock()
+	if cmd == nil {
+		panic("cmd: registerCommand command is nil")
+	}
+
+	name := cmd.name()
+	if _, dup := commands[name]; dup {
+		panic("cmd: registerCommand called twice for command " + name)
+	}
+	commands[name] = cmd
+
+	for _, alias := range cmd.alias() {
+		if _, dup := aliases[alias]; dup {
+			panic("cmd: registerCommand double alias " + alias)
+		}
+		aliases[alias] = name
+	}
+}
+
+func helpAddAliases(aliases []string) string {
+	var help string
+
+	if len(aliases) > 0 {
+		help += "\n\t" + `Possible aliases: "` + strings.Join(aliases, `", "`) + `"` + "\n"
+	}
+
+	return help
+}
+
+func helpAddArgumentsTitle() string {
+	return "\tAllowed arguments:\n"
+}
+
+func helpAddUnifiedFieldNames() string {
+	return "\t" + `  "` + strings.Join(ptpfmt.UnifiedFieldNames, `", "`) + `"` + "\n"
+}
 
 func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
 	msg, err := rw.ReadString('\n')
@@ -28,7 +76,7 @@ func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
 	log.Printf("%s message received: '%s'", lmp, msg)
 
 	f := strings.Fields(msg)
-	_, err = rw.Write([]byte(commandByName(f[0])(c, f[1:])))
+	_, err = rw.Write([]byte(commandByName(f[0]).execute(c, f[1:])))
 	if err != nil {
 		log.Printf("%s error writing response: '%s'", lmp, err)
 		return
@@ -40,164 +88,13 @@ func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
 }
 
 func commandByName(n string) command {
-	switch n {
-	case "capture", "shoot", "shutter", "snap":
-		return capture
-	case "describe":
-		return describe
-	case "get":
-		return get
-	// TODO: add "help" command that can output usage for all supported commands
-	//case "help":
-	//	return help
-	case "info":
-		return info
-	case "liveview":
-		return liveview
-	case "opreq":
-		return opreq
-	case "set":
-		return set
-	case "state":
-		return state
-	default:
-		return unknown
-	}
-}
-
-func unknown(_ *ip.Client, _ []string) string {
-	return "unknown command\n"
-}
-
-func capture(c *ip.Client, f []string) string {
-	img, err := c.InitiateCapture()
-	if err != nil {
-		return err.Error()
-	}
-	if len(f) == 1 {
-		if f[0] == "view" {
-			return preview(img) + "\n"
-		}
-
-		if err := ioutil.WriteFile(f[0], img, 0644); err != nil {
-			return err.Error() + "\n"
-		}
-
-		return fmt.Sprintf("Image preview saved to %s\n", f[0])
+	if name, exists := aliases[n]; exists {
+		n = name
 	}
 
-	return "Image captured, check the camera\n"
-}
-
-func describe(c *ip.Client, f []string) string {
-	errorFmt := "describe error: %s\n"
-
-	cod, err := formatDeviceProperty(c, f[0])
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
+	if cmd, exists := commands[n]; exists {
+		return cmd
 	}
 
-	res, err := c.GetDevicePropertyDescription(cod)
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	if res == nil {
-		return fmt.Sprintf(errorFmt, fmt.Sprintf("cannot describe property %#x", cod))
-	}
-
-	return fujiFormatDeviceProperty(res, f[1:])
-}
-
-func info(c *ip.Client, f []string) string {
-	res, err := c.GetDeviceInfo()
-
-	if err != nil {
-		res = err.Error()
-	}
-
-	return formatDeviceInfo(c.ResponderVendor(), res, f)
-}
-
-func get(c *ip.Client, f []string) string {
-	errorFmt := "get error: %s\n"
-
-	cod, err := formatDeviceProperty(c, f[0])
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	v, err := c.GetDevicePropertyValue(cod)
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	return ptpfmt.DevicePropValAsString(c.ResponderVendor(), cod, int64(v)) + fmt.Sprintf(" (%#x)", v)
-}
-
-func set(c *ip.Client, f []string) string {
-	errorFmt := "set error: %s\n"
-
-	cod, err := formatDeviceProperty(c, f[0])
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	// TODO: add support for "string" values such as "astia" for film simulation.
-	val, err := ptpfmt.HexStringToUint64(f[1], 32)
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-	c.Debugf("Converted value to: %#x", val)
-
-	err = c.SetDeviceProperty(cod, uint32(val))
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	return fmt.Sprintf("property %s successfully set to %#x\n", f[0], val)
-}
-
-func opreq(c *ip.Client, f []string) string {
-	var res string
-	errorFmt := "opreq error: %s\n"
-
-	cod, err := ptpfmt.HexStringToUint64(f[0], 16)
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-	c.Debugf("Converted uint16: %#x", cod)
-
-	params := f[1:]
-	p := make([]uint32, len(params))
-	for i, param := range params {
-		conv, err := ptpfmt.HexStringToUint64(param, 64)
-		if err != nil {
-			return fmt.Sprintf(errorFmt, err)
-		}
-		p[i] = uint32(conv)
-	}
-
-	c.Debugf("Converted params: %#x", p)
-
-	d, err := c.OperationRequestRaw(ptp.OperationCode(cod), p)
-	if err != nil {
-		return fmt.Sprintf(errorFmt, err)
-	}
-
-	for _, raw := range d {
-		res += fmt.Sprintf("\nReceived %d bytes. HEX dump:\n%s", len(raw), hex.Dump(raw))
-	}
-
-	return res
-}
-
-func state(c *ip.Client, f []string) string {
-	res, err := c.GetDeviceState()
-
-	if err != nil {
-		res = err.Error()
-	}
-
-	return formatDeviceInfo(c.ResponderVendor(), res, f)
+	return &unknown{}
 }

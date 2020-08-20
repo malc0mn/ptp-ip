@@ -20,24 +20,21 @@ var (
 	mainStack = make(chan func())
 )
 
-// mainThread is used to execute on the main thread, which is what OpenGL requires.
-func mainThread() {
-	for {
-		select {
-		case f := <-mainStack:
-			f()
-		case <-quit:
-			return
-		}
-	}
+func init() {
+	registerCommand(&liveview{})
 }
 
-// runOnMain executes f on the main thread but does not wait for it to finish.
-func runOnMain(f func()) {
-	mainStack <- f
+type liveview struct{}
+
+func (liveview) name() string {
+	return "liveview"
 }
 
-func liveview(c *ip.Client, _ []string) string {
+func (liveview) alias() []string {
+	return []string{}
+}
+
+func (liveview) execute(c *ip.Client, _ []string) string {
 	errorFmt := "liveview error: %s\n"
 
 	if lvState {
@@ -53,6 +50,31 @@ func liveview(c *ip.Client, _ []string) string {
 	runOnMain(func() { liveViewUI(c) })
 
 	return "enabled\n"
+}
+
+func (l liveview) help() string {
+	return `"` + l.name() + `" opens a window and displays a live view through the camera lens. Not all vendors support this!`
+}
+
+func (liveview) arguments() []string {
+	return []string{}
+}
+
+// mainThread is used to execute on the main thread, which is what OpenGL requires.
+func mainThread() {
+	for {
+		select {
+		case f := <-mainStack:
+			f()
+		case <-quit:
+			return
+		}
+	}
+}
+
+// runOnMain executes f on the main thread but does not wait for it to finish.
+func runOnMain(f func()) {
+	mainStack <- f
 }
 
 func liveViewUI(c *ip.Client) error {
