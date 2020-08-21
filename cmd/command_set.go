@@ -44,7 +44,7 @@ func (set) execute(c *ip.Client, f []string) string {
 }
 
 func (s set) help() string {
-	help := `"` + s.name() + `" sets the given value for the given property.` + "\n"
+	help := `"` + s.name() + `" sets the given value for the given property. Depending on the camera operation mode (aperture priority, shutter priority, manual or auto), not all properties might be settable!` + "\n"
 
 	if args := s.arguments(); len(args) > 0 {
 		help += helpAddArgumentsTitle()
