@@ -33,15 +33,13 @@ func formatDeviceProperty(c *ip.Client, param string) (ptp.DevicePropCode, error
 }
 
 func formatDeviceInfo(vendor ptp.VendorExtension, data interface{}, f []string) string {
-	// TODO: how to cleanly eliminate this switch? Move it to the client?
 	switch vendor {
 	case ptp.VE_FujiPhotoFilmCoLtd:
 		return fujiFormatDeviceInfo(data.([]*ptp.DevicePropDesc), f)
-		//default:
+	default:
 		// TODO: add generic device info formatting.
+		return ""
 	}
-
-	return ""
 }
 
 func fujiFormatDeviceProperty(dpd *ptp.DevicePropDesc, f []string) string {
