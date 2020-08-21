@@ -98,8 +98,8 @@ func fujiFormatJson(v interface{}, opt string) string {
 
 func fujiFormatTable(dpd *ptp.DevicePropDesc) string {
 	w, buf := newTabWriter()
-	rows := shortHeader()
-	rows = append(rows, shortPropDescFormat(dpd))
+	rows := longHeader()
+	rows = append(rows, longPropDescFormat(dpd))
 	formatRows(w, rows)
 
 	return "\n" + buf.String()
@@ -136,6 +136,44 @@ func shortPropDescFormat(dpd *ptp.DevicePropDesc) []string {
 		ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
 		strconv.FormatInt(dpd.CurrentValueAsInt64(), 10),
 		fmt.Sprintf("%0#8x", dpd.CurrentValueAsInt64()),
+	}
+}
+
+func longHeader() [][]string {
+	return [][]string{
+		{"DevicePropCode", "Prop name", "Dflt val as str", "Dflt val as int64", "Dflt val in hex", "Cur val as str", "Cur val as int64", "Cur val in hex", "Vals allowed"},
+		{"--------------", "---------", "---------------", "-----------------", "---------------", "--------------", "----------------", "--------------", "------------"},
+	}
+}
+
+func longPropDescFormat(dpd *ptp.DevicePropDesc) []string {
+	var allowed string
+
+	switch form := dpd.Form.(type) {
+	case *ptp.RangeForm:
+		allowed = fmt.Sprintf(
+			"Min: %#x, max: %#x, stepszie: %#x",
+			form.MinimumValueAsInt64(), form.MaximumValueAsInt64(), form.StepSizeAsInt64(),
+		)
+	case *ptp.EnumerationForm:
+		vals := form.SupportedValuesAsInt64Array()
+		str := make([]string, len(vals))
+		for i, val := range vals {
+			str[i] = ptpfmt.ConvertToHexString(val)
+		}
+		allowed = strings.Join(str, ", ")
+	}
+
+	return []string{
+		fmt.Sprintf("%0#4x", dpd.DevicePropertyCode),
+		ptpfmt.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
+		ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.FactoryDefaultValueAsInt64()),
+		strconv.FormatInt(dpd.FactoryDefaultValueAsInt64(), 10),
+		fmt.Sprintf("%0#8x", dpd.FactoryDefaultValueAsInt64()),
+		ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
+		strconv.FormatInt(dpd.CurrentValueAsInt64(), 10),
+		fmt.Sprintf("%0#8x", dpd.CurrentValueAsInt64()),
+		allowed,
 	}
 }
 
