@@ -98,6 +98,7 @@ func liveViewUI(c *ip.Client) error {
 		return err
 	}
 
+	// TODO: add support to have live view without viewfinder and allow toggling the viewfinder on or off.
 	var vf *viewfinder.Viewfinder
 	im, _, err := image.Decode(bytes.NewReader(img))
 	if err == nil {
