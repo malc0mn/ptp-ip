@@ -113,8 +113,9 @@ poller:
 			im, _, err := image.Decode(bytes.NewReader(img))
 			if err == nil {
 				rgba := toRGBA(im)
-				if vf != nil {
-					viewfinder.DrawViewfinder(vf, rgba, s.([]*ptp.DevicePropDesc))
+				data, ok := s.([]*ptp.DevicePropDesc)
+				if vf != nil && ok {
+					viewfinder.DrawViewfinder(vf, rgba, data)
 				}
 				window.setImage(rgba)
 			}
