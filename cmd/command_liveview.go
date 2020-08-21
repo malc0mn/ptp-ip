@@ -53,7 +53,7 @@ func (liveview) execute(c *ip.Client, _ []string) string {
 }
 
 func (l liveview) help() string {
-	return `"` + l.name() + `" opens a window and displays a live view through the camera lens. Not all vendors support this!`
+	return `"` + l.name() + `" opens a window and displays a live view through the camera lens. Not all vendors support this!` + "\n"
 }
 
 func (liveview) arguments() []string {
