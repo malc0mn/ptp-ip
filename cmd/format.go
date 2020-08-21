@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	ptpfmt "github.com/malc0mn/ptp-ip/fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"github.com/malc0mn/ptp-ip/ptp"
+	"strconv"
+	"strings"
+	"text/tabwriter"
 )
 
 func formatDeviceProperty(c *ip.Client, param string) (ptp.DevicePropCode, error) {
@@ -94,26 +98,51 @@ func fujiFormatJson(v interface{}, opt string) string {
 	return string(res)
 }
 
-// TODO: write as ASCII table.
 func fujiFormatTable(dpd *ptp.DevicePropDesc) string {
-	return fmt.Sprintf("%#v", dpd)
+	w, buf := newTabWriter()
+	rows := shortHeader()
+	rows = append(rows, shortDescriptionFormat(dpd))
+	formatRows(w, rows)
+
+	return "\n" + buf.String()
 }
 
-// TODO: write as ASCII table.
 func fujiFormatListAsTable(list []*ptp.DevicePropDesc) string {
-	var s string
-
+	w, buf := newTabWriter()
+	rows := shortHeader()
 	for _, dpd := range list {
-		s += fmt.Sprintf("%s: %s || %d - %v - %#x - %#x",
-			ptpfmt.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
-			ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
-			uint16(dpd.CurrentValueAsInt64()),
-			dpd.CurrentValue,
-			dpd.CurrentValue,
-			uint16(dpd.CurrentValueAsInt64()),
-		)
-		s += "\n"
+		rows = append(rows, shortDescriptionFormat(dpd))
 	}
+	formatRows(w, rows)
 
-	return s
+	return "\n" + buf.String()
+}
+
+func newTabWriter() (*tabwriter.Writer, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+
+	return tabwriter.NewWriter(buf, 8, 4, 2, ' ', tabwriter.TabIndent), buf
+}
+
+func shortHeader() [][]string {
+	return [][]string{
+		{"Property", "Value as string", "Value as int64", "Value in hex"},
+		{"--------", "---------------", "--------------", "------------"},
+	}
+}
+
+func shortDescriptionFormat(dpd *ptp.DevicePropDesc) []string {
+	return []string{
+		ptpfmt.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
+		ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
+		strconv.FormatInt(dpd.CurrentValueAsInt64(), 10),
+		fmt.Sprintf("%0#8x", dpd.CurrentValueAsInt64()),
+	}
+}
+
+func formatRows(w *tabwriter.Writer, rows [][]string) {
+	for _, row := range rows {
+		fmt.Fprintln(w, strings.Join(row, "\t"))
+	}
+	w.Flush()
 }
