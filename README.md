@@ -306,6 +306,13 @@ the live view window.
 The state of the camera is polled once per second so as not to overload the
 camera with requests.
 
+If you want to eliminate this state polling, you can call liveview with the
+`nolv` parameter:
+```
+liveview nolv
+```
+This will enable live view without the viewfinder overlay.
+
 #### `opreq`
 This command is intended for reverse engineering and/or debugging purposes. It
 takes two parameters in hexadecimal form: the first one is the operation code

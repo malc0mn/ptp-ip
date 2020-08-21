@@ -34,7 +34,7 @@ func (liveview) alias() []string {
 	return []string{}
 }
 
-func (liveview) execute(c *ip.Client, _ []string) string {
+func (l liveview) execute(c *ip.Client, f []string) string {
 	errorFmt := "liveview error: %s\n"
 
 	if lvState {
@@ -47,17 +47,38 @@ func (liveview) execute(c *ip.Client, _ []string) string {
 		return fmt.Sprintf(errorFmt, err)
 	}
 
-	runOnMain(func() { liveViewUI(c) })
+	withVf := true
+	if len(f) >= 1 {
+		withVf = !l.isNoVf(f[0])
+	}
+
+	runOnMain(func() { liveViewUI(c, withVf) })
 
 	return "enabled\n"
 }
 
 func (l liveview) help() string {
-	return `"` + l.name() + `" opens a window and displays a live view through the camera lens. Not all vendors support this!` + "\n"
+	help := `"` + l.name() + `" opens a window and displays a live view through the camera lens. Not all vendors support this!` + "\n"
+
+	if args := l.arguments(); len(args) > 0 {
+		help += helpAddArgumentsTitle()
+		for i, arg := range args {
+			switch i {
+			case 0:
+				help += "\t- " + `"` + arg + `" disables the viewfinder overlay which eliminates camera state polling` + "\n"
+			}
+		}
+	}
+
+	return help
 }
 
 func (liveview) arguments() []string {
-	return []string{}
+	return []string{"novf"}
+}
+
+func (l liveview) isNoVf(param string) bool {
+	return param == l.arguments()[0]
 }
 
 // mainThread is used to execute on the main thread, which is what OpenGL requires.
@@ -77,12 +98,7 @@ func runOnMain(f func()) {
 	mainStack <- f
 }
 
-func liveViewUI(c *ip.Client) error {
-	s, err := c.GetDeviceState()
-	if err != nil {
-		s = []*ptp.DevicePropDesc{}
-	}
-
+func liveViewUI(c *ip.Client, withVf bool) error {
 	if err := gl.Init(); err != nil {
 		return err
 	}
@@ -98,14 +114,25 @@ func liveViewUI(c *ip.Client) error {
 		return err
 	}
 
-	// TODO: add support to have live view without viewfinder and allow toggling the viewfinder on or off.
-	var vf *viewfinder.Viewfinder
-	im, _, err := image.Decode(bytes.NewReader(img))
-	if err == nil {
-		vf = viewfinder.NewViewfinder(toRGBA(im), c.ResponderVendor())
-	}
-
+	// TODO: add support to allow toggling the viewfinder on or off.
+	var (
+		vf *viewfinder.Viewfinder
+		s  interface{}
+	)
 	ticker := time.NewTicker(1 * time.Second)
+	if withVf {
+		s, err = c.GetDeviceState()
+		if err != nil {
+			s = []*ptp.DevicePropDesc{}
+		}
+
+		im, _, err := image.Decode(bytes.NewReader(img))
+		if err == nil {
+			vf = viewfinder.NewViewfinder(toRGBA(im), c.ResponderVendor())
+		}
+	} else {
+		ticker.Stop()
+	}
 
 poller:
 	for !window.ShouldClose() {
@@ -114,9 +141,10 @@ poller:
 			im, _, err := image.Decode(bytes.NewReader(img))
 			if err == nil {
 				rgba := toRGBA(im)
-				data, ok := s.([]*ptp.DevicePropDesc)
-				if vf != nil && ok {
-					viewfinder.DrawViewfinder(vf, rgba, data)
+				if vf != nil {
+					if data, ok := s.([]*ptp.DevicePropDesc); ok {
+						viewfinder.DrawViewfinder(vf, rgba, data)
+					}
 				}
 				window.setImage(rgba)
 			}
