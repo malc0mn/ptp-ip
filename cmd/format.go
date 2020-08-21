@@ -99,7 +99,7 @@ func fujiFormatJson(v interface{}, opt string) string {
 func fujiFormatTable(dpd *ptp.DevicePropDesc) string {
 	w, buf := newTabWriter()
 	rows := shortHeader()
-	rows = append(rows, shortDescriptionFormat(dpd))
+	rows = append(rows, shortPropDescFormat(dpd))
 	formatRows(w, rows)
 
 	return "\n" + buf.String()
@@ -109,7 +109,7 @@ func fujiFormatListAsTable(list []*ptp.DevicePropDesc) string {
 	w, buf := newTabWriter()
 	rows := shortHeader()
 	for _, dpd := range list {
-		rows = append(rows, shortDescriptionFormat(dpd))
+		rows = append(rows, shortPropDescFormat(dpd))
 	}
 	formatRows(w, rows)
 
@@ -129,7 +129,7 @@ func shortHeader() [][]string {
 	}
 }
 
-func shortDescriptionFormat(dpd *ptp.DevicePropDesc) []string {
+func shortPropDescFormat(dpd *ptp.DevicePropDesc) []string {
 	return []string{
 		ptpfmt.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
 		ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
