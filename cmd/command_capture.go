@@ -87,5 +87,5 @@ func (capture) arguments() []string {
 }
 
 func (cap capture) isView(param string) bool {
-	return param == cap.arguments()[0]
+	return param == cap.arguments()[1]
 }
