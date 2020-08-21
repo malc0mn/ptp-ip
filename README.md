@@ -225,9 +225,15 @@ ptpip -f ~/fuji.conf -c "capture /tmp/capture.jpg"
 ```
 
 #### `capture`
-This command will make the responder capture a single image. Some devices will
-return a preview of the captured image. To save this preview to disk, you can
-pass a path to write the preview to as the first parameter. E.g.:
+This command will make the responder capture (an) image(s). By default a single
+capture will be made, but you can supply the command with an integer parameter
+to capture X amount of images:
+```text
+capture 5
+```
+Some devices will return a preview of the captured image. To save this preview
+to disk, you can pass a path to write the preview to as the *first* parameter.
+E.g.:
 ```text
 capture /tmp/my-preview.jpg
 ```
