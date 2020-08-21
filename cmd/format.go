@@ -124,13 +124,14 @@ func newTabWriter() (*tabwriter.Writer, *bytes.Buffer) {
 
 func shortHeader() [][]string {
 	return [][]string{
-		{"Property", "Value as string", "Value as int64", "Value in hex"},
-		{"--------", "---------------", "--------------", "------------"},
+		{"DevicePropCode", "Property name", "Value as string", "Value as int64", "Value in hex"},
+		{"--------------", "-------------", "---------------", "--------------", "------------"},
 	}
 }
 
 func shortPropDescFormat(dpd *ptp.DevicePropDesc) []string {
 	return []string{
+		fmt.Sprintf("%0#4x", dpd.DevicePropertyCode),
 		ptpfmt.FujiDevicePropCodeAsString(dpd.DevicePropertyCode),
 		ptpfmt.FujiDevicePropValueAsString(dpd.DevicePropertyCode, dpd.CurrentValueAsInt64()),
 		strconv.FormatInt(dpd.CurrentValueAsInt64(), 10),
