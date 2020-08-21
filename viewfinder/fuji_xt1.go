@@ -348,7 +348,7 @@ func drawFujiImageQuality(w *Widget, val int64) {
 	w.ResetToOrigin()
 	w.ResetFace()
 
-	var icon string
+	icon := "   " // three spaces as default value to represent 'no icon'
 	var qual string
 
 	switch ip.FujiImageQuality(val) {
