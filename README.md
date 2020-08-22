@@ -442,16 +442,71 @@ single packet or, depending on the data phase, an *end of data* packet as well.
 
 ## Library
 ### Usage examples
-Start by creating a new PTP IP client:
+Creating a client and connecting to the camera:
 ```go
 package main
 
 import(
+    "fmt"
     "github.com/malc0mn/ptp-ip/ip"
+    "os"
 )
 
-c := ip.NewClient(ip.DefaultVendor, "192.168.0.1", ip.DefaultPort, "MyClient", "", ip.LevelDebug)
+c, err := ip.NewClient(ip.DefaultVendor, "192.168.0.1", ip.DefaultPort, "MyClient", "", ip.LevelDebug)
+if err != nil {
+    fmt.Fprintf(os.Stderr, "Error creating PTP/IP client - %s\n", err)
+    os.Exit(1)
+}
+defer client.Close()
+
+fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", client.InitiatorFriendlyName(), client.InitiatorGUIDAsString())
+fmt.Printf("Attempting to connect to %s\n", client.CommandDataAddress())
+err = client.Dial()
+if err != nil {
+    fmt.Fprintf(os.Stderr, "Error connecting to responder - %s\n", err)
+    os.Exit(1)
+}
 ```
+Setting custom ports **before** calling `ip.Client.Dial()`:
+```go
+package main
+
+import 	"github.com/malc0mn/ptp-ip/ip"
+
+type config struct {
+    commPort  uint16
+    evtPort   uint16
+    strmPort  uint16
+}
+
+func setPorts(conf *config, c *ip.Client) {
+    if conf.commPort != 0 {
+        c.SetCommandDataPort(conf.commPort)
+    }
+    if conf.evtPort != 0 {
+        c.SetEventPort(conf.evtPort)
+    }
+    if conf.strmPort != 0 {
+        c.SetStreamerPort(conf.strmPort)
+    }
+}
+```
+When the client is ready, you can start calling methods:
+```go
+import 	"github.com/malc0mn/ptp-ip/ip"
+
+func myLogic(c *ip.Client) (interface{}, error) {
+    res, err := c.GetDeviceInfo()
+    if err != nil {
+        return nil, err.Error()
+    }
+
+    // Depending on what you want to do, format the data first.
+    return res, nil
+}
+```
+Have a look at the `cmd` package which can be considered a reference
+implementation on using the client.
 
 ### Credits
 
