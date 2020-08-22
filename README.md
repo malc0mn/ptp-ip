@@ -232,11 +232,18 @@ to capture X amount of images:
 capture 5
 ```
 Some devices will return a preview of the captured image. To save this preview
-to disk, you can pass a path to write the preview to as the *first* parameter.
-E.g.:
+to disk, you can also pass a path to write the preview to:
 ```text
 capture /tmp/my-preview.jpg
 ```
+or
+```text
+capture 3 /tmp/my-preview.jpg
+```
+The latter will result in a counter to be added to the given filename, making
+the filename from the example look like `/tmp/my-preview-%d.jpg` where `%d` is
+replaced with a counter starting from `1`.
+
 **Note**: existing files will shamelessly be overwritten!
 
 If the command is compiled with `liveview` support, you can view the preview
