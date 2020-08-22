@@ -257,7 +257,16 @@ There are three aliases for this command: `shoot`, `shutter` and `snap`.
 
 #### `describe`
 Describe will request a device property description for the given device
-property. The property can be a hexadecimal code or a property name.
+property. The property can be a hexadecimal code or a property name, one of:
+1. `delay`
+2. `effect`
+3. `exposure`
+4. `exp-bias`
+5. `flashmode`
+6. `focusmtr`
+7. `iso`
+8. `whitebalance`
+
 The output can be formatted as JSON by adding `json` as additional parameter.
 As a last parameter you can specify `pretty` to print the JSON output indented.
 The full length command would be:
@@ -327,7 +336,7 @@ this second parameter is mandatory depends on the operation being executed.
 An example would be to describe (`0x1014`) a responder's image size property
 (`0x5003`) by calling:
 ```text
-opreq 0x1015 0x5003
+opreq 0x1014 0x5003
 ```
 The output will always be a **hexadecimal dump** of the packets received from the
 responder.
