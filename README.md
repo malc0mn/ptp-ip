@@ -295,8 +295,6 @@ like `0x5005`, or a unified property name. The currently supported names are:
 7. `iso`
 8. `whitebalance`
 
-TODO: add `recmode`!
-
 #### `liveview`
 This *does what it says on the tin* if your camera supports it. This will open
 an additional window displaying a live view through the camera lens.
@@ -342,8 +340,6 @@ supported names are:
 6. `focusmtr`
 7. `iso`
 8. `whitebalance`
-
-TODO: add `recmode`!
 
 The second parameter is the value to set the property to. E.g.:
 ```text

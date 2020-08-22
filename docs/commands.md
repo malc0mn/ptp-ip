@@ -3,16 +3,16 @@ info
 ```
 Result:
 ```text
-#TODO: add correct table output
-
-capture delay: off || 0 - [0 0] - 0x0000 - 0x0
-flash mode: disabled || 32777 - [9 128] - 0x0980 - 0x8009
-white balance: automatic || 2 - [2 0] - 0x0200 - 0x2
-exposure bias compensation: off || 0 - [0 0] - 0x0000 - 0x0
-film simulation: Velvia || 2 - [2 0] - 0x0200 - 0x2
-ISO: S 6400 || 6400 - [0 25 0 128] - 0x00190080 - 0x1900
-rec mode:  || 1 - [1 0] - 0x0100 - 0x1
-focus point:  || 1028 - [4 4 2 3] - 0x04040203 - 0x404
+DevicePropCode  Property name               Value as string  Value as int64  Value in hex
+--------------  -------------               ---------------  --------------  ------------
+0x5012          capture delay               off              0               0x00000000
+0x500c          flash mode                  disabled         32777           0x00008009
+0x5005          white balance               automatic        2               0x00000002
+0x5010          exposure bias compensation  0                0               0x00000000
+0xd001          film simulation             Velvia           2               0x00000002
+0xd02a          ISO                         S6400            2147490048      0x80001900
+0xd019          rec mode                                     1               0x00000001
+0xd17c          focus point                 6x2              50464258        0x03020602
 ```
 
 ```text
