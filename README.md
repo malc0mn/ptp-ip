@@ -237,6 +237,8 @@ E.g.:
 ```text
 capture /tmp/my-preview.jpg
 ```
+**Note**: existing files will shamelessly be overwritten!
+
 If the command is compiled with `liveview` support, you can view the preview
 image returned by the camera like so:
 ```text
