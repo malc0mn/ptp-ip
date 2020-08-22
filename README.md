@@ -297,12 +297,11 @@ TODO: add `recmode`!
 
 #### `liveview`
 This *does what it says on the tin* if your camera supports it. This will open
-an additional window displaying a live view through the camera lens. It is a
-*toggle* so type the command once to enable it and once again to disable it.
+an additional window displaying a live view through the camera lens.
 
 If your camera vendor has viewfinder support added to the `viewfinder` package,
-vienwfinder widgets showing the current camera settings will be displayed in
-the live view window.
+viewfinder widgets showing the current camera settings will be displayed in the
+live view window.
 The state of the camera is polled once per second so as not to overload the
 camera with requests.
 
