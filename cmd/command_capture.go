@@ -24,7 +24,7 @@ func (capture) alias() []string {
 	return []string{"shoot", "shutter", "snap"}
 }
 
-func (cap capture) execute(c *ip.Client, f []string) string {
+func (cap capture) execute(c *ip.Client, f []string, asyncOut chan<- string) string {
 	amount := 1
 	if len(f) >= 1 {
 		if val, err := strconv.Atoi(f[0]); err == nil {
@@ -35,8 +35,7 @@ func (cap capture) execute(c *ip.Client, f []string) string {
 
 	var (
 		imgs chan []byte
-		output string
-		wg sync.WaitGroup
+		wg   sync.WaitGroup
 	)
 	if len(f) >= 1 {
 		imgs = make(chan []byte, 10)
@@ -53,22 +52,26 @@ func (cap capture) execute(c *ip.Client, f []string) string {
 				if path != "" {
 					file := fmt.Sprintf(path, i)
 					if err := ioutil.WriteFile(file, img, 0644); err != nil {
-						output += err.Error() + "\n"
+						asyncOut <- err.Error()
 						continue
 					}
-					output += fmt.Sprintf("Image preview saved to %s\n", file)
+					asyncOut <- fmt.Sprintf("Image preview saved to %s", file)
 					i++
 				} else {
-					output += preview(img) + "\n"
+					asyncOut <- preview(img)
 				}
 			}
 			wg.Done()
 		}()
 	}
 
-	// TODO: send fmt.Sprintf("capturing %d images", amount) to a channel for instant output to the end user.
+	if amount > 1 {
+		asyncOut <- fmt.Sprintf("Capturing %d images...", amount)
+	}
 	for i := 0; i < amount; i++ {
-		// TODO: send fmt.Sprintf("capturing image %d", i) to a channel for instant output to the end user.
+		if amount > 1 {
+			asyncOut <- fmt.Sprintf("  capturing image %d", i+1)
+		}
 		var err error
 		img, err := c.InitiateCapture()
 		if err != nil {
@@ -81,7 +84,7 @@ func (cap capture) execute(c *ip.Client, f []string) string {
 	if imgs != nil {
 		close(imgs)
 		wg.Wait()
-		return output
+		return ""
 	}
 
 	plural := ""

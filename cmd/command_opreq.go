@@ -22,7 +22,7 @@ func (opreq) alias() []string {
 	return []string{}
 }
 
-func (opreq) execute(c *ip.Client, f []string) string {
+func (opreq) execute(c *ip.Client, f []string, _ chan<- string) string {
 	var res string
 	errorFmt := "opreq error: %s\n"
 

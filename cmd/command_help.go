@@ -19,7 +19,7 @@ func (help) alias() []string {
 	return []string{}
 }
 
-func (help) execute(_ *ip.Client, f []string) string {
+func (help) execute(_ *ip.Client, f []string, _ chan<- string) string {
 	if len(f) == 0 {
 		names := make([]string, 0, len(commands))
 		for name := range commands {

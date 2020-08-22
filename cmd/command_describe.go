@@ -19,7 +19,7 @@ func (describe) alias() []string {
 	return []string{}
 }
 
-func (describe) execute(c *ip.Client, f []string) string {
+func (describe) execute(c *ip.Client, f []string, _ chan<- string) string {
 	errorFmt := "describe error: %s\n"
 
 	cod, err := formatDeviceProperty(c, f[0])

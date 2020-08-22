@@ -18,7 +18,8 @@ var (
 type command interface {
 	name() string
 	alias() []string
-	execute(*ip.Client, []string) string
+	// TODO: is there a more elegant solution to drop at least the async output channel argument here...?
+	execute(*ip.Client, []string, chan<- string) string
 	help() string
 	arguments() []string
 }
@@ -75,13 +76,37 @@ func readAndExecuteCommand(rw *bufio.ReadWriter, c *ip.Client, lmp string) {
 	}
 	log.Printf("%s message received: '%s'", lmp, msg)
 
+	executeCommand(msg, rw.Writer, c, lmp)
+}
+
+func executeCommand(msg string, w *bufio.Writer, c *ip.Client, lmp string) {
+	var wg sync.WaitGroup
 	f := strings.Fields(msg)
-	_, err = rw.Write([]byte(commandByName(f[0]).execute(c, f[1:])))
+	asyncOut := make(chan string)
+
+	// Launch async output routine.
+	wg.Add(1)
+	go func() {
+		for msg := range asyncOut {
+			if _, err := w.Write([]byte(msg + "\n")); err != nil {
+				log.Printf("%s error writing response: '%s'", lmp, err)
+				continue
+			}
+			if err := w.Flush(); err != nil {
+				log.Printf("%s error flushing buffer: '%s'", lmp, err)
+			}
+		}
+		wg.Done()
+	}()
+
+	_, err := w.Write([]byte(commandByName(f[0]).execute(c, f[1:], asyncOut)))
+	close(asyncOut)
+	wg.Wait()
 	if err != nil {
 		log.Printf("%s error writing response: '%s'", lmp, err)
 		return
 	}
-	err = rw.Flush()
+	err = w.Flush()
 	if err != nil {
 		log.Printf("%s error flushing buffer: '%s'", lmp, err)
 	}

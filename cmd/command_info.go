@@ -18,7 +18,7 @@ func (info) alias() []string {
 	return []string{}
 }
 
-func (info) execute(c *ip.Client, f []string) string {
+func (info) execute(c *ip.Client, f []string, _ chan<- string) string {
 	res, err := c.GetDeviceInfo()
 
 	if err != nil {

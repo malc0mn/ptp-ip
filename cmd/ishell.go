@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-// TODO: add a channel to receive output from async processes, like the multi capture command
 func iShell(c *ip.Client) {
 	rw := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(os.Stdout))
 	fmt.Print("Interactive shell ready to receive commands.\n")

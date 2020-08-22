@@ -20,7 +20,7 @@ func (liveview) alias() []string {
 	return []string{}
 }
 
-func (liveview) execute(_ *ip.Client, _ []string) string {
+func (liveview) execute(_ *ip.Client, _ []string, _ chan<- string) string {
 	return nolv + "\n"
 }
 

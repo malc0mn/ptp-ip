@@ -20,7 +20,7 @@ func (set) alias() []string {
 	return []string{}
 }
 
-func (set) execute(c *ip.Client, f []string) string {
+func (set) execute(c *ip.Client, f []string, _ chan<- string) string {
 	errorFmt := "set error: %s\n"
 
 	cod, err := formatDeviceProperty(c, f[0])

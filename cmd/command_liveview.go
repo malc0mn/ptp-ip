@@ -34,7 +34,7 @@ func (liveview) alias() []string {
 	return []string{}
 }
 
-func (l liveview) execute(c *ip.Client, f []string) string {
+func (l liveview) execute(c *ip.Client, f []string, _ chan<- string) string {
 	errorFmt := "liveview error: %s\n"
 
 	if lvState {

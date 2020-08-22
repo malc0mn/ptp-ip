@@ -30,7 +30,7 @@ func TestCommandByName(t *testing.T) {
 }
 
 func TestUnknown(t *testing.T) {
-	got := unknown{}.execute(&ip.Client{}, []string{})
+	got := unknown{}.execute(&ip.Client{}, []string{}, make(chan string))
 	want := "unknown command\n"
 	if got != want {
 		t.Errorf("got = '%s'; want '%s'", got, want)

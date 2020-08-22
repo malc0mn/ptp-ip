@@ -20,7 +20,7 @@ func (get) alias() []string {
 	return []string{}
 }
 
-func (get) execute(c *ip.Client, f []string) string {
+func (get) execute(c *ip.Client, f []string, _ chan<- string) string {
 	errorFmt := "get error: %s\n"
 
 	cod, err := formatDeviceProperty(c, f[0])

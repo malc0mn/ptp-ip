@@ -16,7 +16,7 @@ func (unknown) alias() []string {
 	return []string{}
 }
 
-func (unknown) execute(_ *ip.Client, _ []string) string {
+func (unknown) execute(_ *ip.Client, _ []string, _ chan<- string) string {
 	return "unknown command\n"
 }
 

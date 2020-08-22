@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/malc0mn/ptp-ip/ip"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 )
 
@@ -91,8 +91,7 @@ func main() {
 	}
 
 	if cmd != "" {
-		f := strings.Fields(cmd)
-		fmt.Print(commandByName(f[0]).execute(client, f[1:]))
+		executeCommand(cmd, bufio.NewWriter(os.Stdout), client, "cli")
 	}
 
 	if server || interactive {
