@@ -257,7 +257,8 @@ There are three aliases for this command: `shoot`, `shutter` and `snap`.
 
 #### `describe`
 Describe will request a device property description for the given device
-property. The property can be a hexadecimal code or a property name, one of:
+property. The property can be a hexadecimal code (`0x5005`), or a unified
+property name. Names supported are:
 1. `delay`
 2. `effect`
 3. `exposure`
