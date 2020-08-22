@@ -360,8 +360,10 @@ supported names are:
 
 The second parameter is the value to set the property to. E.g.:
 ```text
-set iso 800
+set iso 0x320
 ```
+Only hexadecimal values are currently supported. You can use the `describe`
+command to see exactly which values are supported for a given property.
 
 #### `state`
 This command is, for now, only supported by Fuji cameras and will display the
