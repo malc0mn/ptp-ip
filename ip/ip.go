@@ -493,6 +493,9 @@ func (c *Client) ReadRawFromStreamConn() ([]byte, error) {
 	return c.readRawResponse(c.streamConn)
 }
 
+// TODO: this must be refactored to work like the events: continuously read and push to a channel in such a way that we
+//  do not mix up packets (use transaction ID properly) like what's happening now with liveview polling the camera state
+//  every second.
 func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, []byte, error) {
 	var err error
 	var h Header
@@ -534,6 +537,9 @@ func (c *Client) readResponse(r io.Reader, p PacketIn) (PacketIn, []byte, error)
 	return p, xs, nil
 }
 
+// TODO: this must be refactored to work like the events: continuously read and push to a channel in such a way that we
+//  do not mix up packets (use transaction ID properly) like what's happening now with liveview polling the camera state
+//  every second.
 // The reading approach taken here is so that we can return the full raw data but still reliably read the complete
 // expected data length.
 func (c *Client) readRawResponse(r io.Reader) ([]byte, error) {
