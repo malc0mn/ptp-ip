@@ -476,11 +476,11 @@ if err != nil {
     fmt.Fprintf(os.Stderr, "Error creating PTP/IP client - %s\n", err)
     os.Exit(1)
 }
-defer client.Close()
+defer c.Close()
 
-fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", client.InitiatorFriendlyName(), client.InitiatorGUIDAsString())
-fmt.Printf("Attempting to connect to %s\n", client.CommandDataAddress())
-err = client.Dial()
+fmt.Printf("Created new client with name '%s' and GUID '%s'.\n", c.InitiatorFriendlyName(), c.InitiatorGUIDAsString())
+fmt.Printf("Attempting to connect to %s\n", c.CommandDataAddress())
+err = c.Dial()
 if err != nil {
     fmt.Fprintf(os.Stderr, "Error connecting to responder - %s\n", err)
     os.Exit(1)
