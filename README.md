@@ -53,7 +53,8 @@ the end user can see the current camera state at all times.
 
 ### The `cmd` package
 A command line interface implementation of the PTP/IP protocol that uses the
-`ptp`, `ip` and `fmt` packages. See *CLI command* for further info.
+`ptp`, `ip`, `fmt` and `viewfinder` packages. See *CLI command* for further
+info.
 
 ## Connecting to your camera
 The first and obvious step is to enable the camera's Wi-Fi. Have your network
@@ -328,6 +329,12 @@ If you want to eliminate this state polling, you can call liveview with the
 liveview nolv
 ```
 This will enable live view without the viewfinder overlay.
+
+**WARNING:** the `ip` package currently has a bug that causes message responses
+to get *mixed up*. Enabling the viewfinder overlay **will** trigger this bug
+especially when issuing a multi capture command like `capture 5`.
+When in need for a stable use of `liveview` use it with `nolv` until this bug
+is fixed!
 
 #### `opreq`
 This command is intended for reverse engineering and/or debugging purposes. It
