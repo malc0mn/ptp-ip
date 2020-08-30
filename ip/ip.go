@@ -151,7 +151,7 @@ type Client struct {
 	vendorExtensions *VendorExtensions
 	EventChan        chan EventPacket
 	StreamChan       chan []byte
-	closeStreamChan  chan bool
+	closeStreamChan  chan struct{}
 	Logger
 }
 
@@ -614,7 +614,7 @@ func (c *Client) initStreamConn() error {
 		c.configureTcpConn(streamConnection)
 
 		c.StreamChan = make(chan []byte, 50)
-		c.closeStreamChan = make(chan bool)
+		c.closeStreamChan = make(chan struct{})
 
 		return c.vendorExtensions.processStreamData(c)
 	}
@@ -624,7 +624,6 @@ func (c *Client) initStreamConn() error {
 
 func (c *Client) closeStreamConn() error {
 	if c.StreamChan != nil {
-		c.closeStreamChan <- true
 		close(c.closeStreamChan)
 		c.closeStreamChan = nil
 	}
