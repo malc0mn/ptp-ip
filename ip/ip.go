@@ -721,9 +721,9 @@ func (c *Client) InitiateCapture() ([]byte, error) {
 	return c.vendorExtensions.initiateCapture(c)
 }
 
-// ToggleLiveView opens or closes the streamer connection on the camera if there is any and initiates or closes the
+// ToggleLiveView opens or closes the streamer connection on the camera, if it has one, and initiates or closes the
 // StreamChan on the client.
-// This channel will receive raw image data that can be processed by the client.
+// StreamChan will receive raw image data that can be processed by the client.
 func (c *Client) ToggleLiveView(en bool) error {
 	if en {
 		return c.initStreamConn()
