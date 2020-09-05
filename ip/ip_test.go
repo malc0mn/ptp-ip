@@ -202,6 +202,12 @@ func TestClient_incrementTransactionId(t *testing.T) {
 		t.Errorf("TransactionId() = %#x; want %#x", got, want)
 	}
 
+	got = c.incrementTransactionId()
+	want = ptp.TransactionID(2)
+	if got != want {
+		t.Errorf("TransactionId() = %#x; want %#x", got, want)
+	}
+
 	c.transactionId = 0xFFFFFFFE
 	c.incrementTransactionId()
 	got = c.TransactionId()
@@ -349,6 +355,29 @@ func TestClient_initCommandDataConnFail(t *testing.T) {
 	want := ptp.TransactionID(0)
 	if got != want {
 		t.Errorf("TransactionId() got = %#x; want %#x", got, want)
+	}
+}
+
+func TestClient_subscribe(t *testing.T) {
+	c, err := NewClient(DefaultVendor, address, failPort, "testér", "b3ca53e9-bb61-4c85-9fcd-3b446a9e81e6", logLevel)
+	defer c.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tid := ptp.TransactionID(55)
+	ch := make(chan []byte, 2)
+	err = c.subscribe(tid, ch)
+	if err != nil {
+		t.Errorf("subscribe() error = %s; want: nil", err)
+	}
+
+	got, ok := c.cmdDataSubs[tid]
+	if !ok {
+		t.Errorf("subscribe() got = %#v; want true", got)
+	}
+	if got != ch {
+		t.Errorf("subscribe() got = %#v; want %#v", got, ch)
 	}
 }
 

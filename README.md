@@ -330,12 +330,6 @@ liveview nolv
 ```
 This will enable live view without the viewfinder overlay.
 
-**WARNING:** the `ip` package currently has a bug that causes message responses
-to get *mixed up*. Enabling the viewfinder overlay **will** trigger this bug
-especially when issuing a multi capture command like `capture 5`.
-When in need for a stable use of `liveview` use it with `nolv` until this bug
-is fixed!
-
 #### `opreq`
 This command is intended for reverse engineering and/or debugging purposes. It
 takes two parameters in hexadecimal form: the first one is the operation code

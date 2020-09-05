@@ -2,6 +2,7 @@ package ip
 
 import (
 	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"net"
 )
@@ -58,5 +59,9 @@ func genericInitEventRequestResponse() (string, PacketIn) {
 }
 
 func genericOperationRequestResponse() (string, PacketIn) {
-	return "OperationRequest", &OperationResponsePacket{}
+	return "OperationRequest", &OperationResponsePacket{
+		OperationResponse: ptp.OperationResponse{
+			TransactionID: 2,
+		},
+	}
 }

@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -29,6 +31,7 @@ const (
 
 var (
 	BytesWrittenMismatch = "bytes written mismatch: written %d wanted %d"
+	ConnectionLostError  = errors.New("connection lost")
 	ReadResponseError    = errors.New("unable to read response packet")
 	WaitForResponseError = errors.New("timeout reached when waiting for response")
 	WaitForEventError    = errors.New("timeout reached when waiting for event")
@@ -143,13 +146,17 @@ func NewResponder(vendor string, ip string, cport uint16, eport uint16, sport ui
 type Client struct {
 	connectionNumber uint32
 	transactionId    ptp.TransactionID
+	transactionIdMu  sync.Mutex
 	commandDataConn  net.Conn
 	eventConn        net.Conn
 	streamConn       net.Conn
 	initiator        *Initiator
 	responder        *Responder
 	vendorExtensions *VendorExtensions
-	EventChan        chan EventPacket
+	cmdDataChan      chan []byte
+	cmdDataSubs      map[ptp.TransactionID]chan<- []byte
+	cmdDataSubsMu    sync.Mutex
+	eventChan        chan EventPacket
 	StreamChan       chan []byte
 	closeStreamChan  chan struct{}
 	Logger
@@ -166,12 +173,18 @@ func (c *Client) TransactionId() ptp.TransactionID {
 	return c.transactionId
 }
 
-func (c *Client) incrementTransactionId() {
+// incrementTransactionId increments the transaction ID in a thread safe way.
+func (c *Client) incrementTransactionId() ptp.TransactionID {
+	c.transactionIdMu.Lock()
 	c.transactionId++
 	// The min and max values are considered 'invalid', so we roll over to 1 when we reach the max value.
 	if c.transactionId == 0xFFFFFFFF {
 		c.transactionId = 0x00000001
 	}
+	tid := c.transactionId // must copy the value before releasing the lock to reliably return it!
+	c.transactionIdMu.Unlock()
+
+	return tid
 }
 
 // Network returns a fixed value: "tcp".
@@ -378,16 +391,17 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	return nil
 }
 
-// ReadPacketFromCmdDataConn reads a packet from the command/data connection with a read timout of 30 seconds.
-// When expecting a specific packet, you can pass it in, otherwise pass nil.
-// The byte array that is returned will contain any excess data that was not unmarshalled, empty otherwise.
-func (c *Client) ReadPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
-	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
-	return c.readResponse(c.commandDataConn, p)
+// readRawFromCmdDataConn reads raw data from the command/data connection with a read timout of 30 seconds.
+func (c *Client) readRawFromCmdDataConn() ([]byte, error) {
+	if c.commandDataConn == nil {
+		return nil, fmt.Errorf("connection lost")
+	}
+	c.commandDataConn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	return c.readRawResponse(c.commandDataConn)
 }
 
-// WaitForRawFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
-func (c *Client) WaitForRawFromCmdDataConn() ([]byte, error) {
+// waitForRawFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
+func (c *Client) waitForRawFromCmdDataConn() ([]byte, error) {
 	var (
 		res []byte
 		err error
@@ -399,7 +413,7 @@ func (c *Client) WaitForRawFromCmdDataConn() ([]byte, error) {
 			wait = false
 			err = WaitForResponseError
 		default:
-			res, err = c.ReadRawFromCmdDataConn()
+			res, err = c.readRawFromCmdDataConn()
 			if err != io.EOF || res != nil {
 				wait = false
 			}
@@ -413,17 +427,21 @@ func (c *Client) WaitForRawFromCmdDataConn() ([]byte, error) {
 	return res, nil
 }
 
-// ReadRawFromCmdDataConn reads raw data from the command/data connection with a read timout of 5 seconds. It is
-// intended primarily for debugging and/or reverse engineering purposes.
-func (c *Client) ReadRawFromCmdDataConn() ([]byte, error) {
-	c.commandDataConn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	return c.readRawResponse(c.commandDataConn)
+// readPacketFromCmdDataConn reads a packet from the command/data connection with a read timout of 30 seconds.
+// When expecting a specific packet, you can pass it in, otherwise pass nil.
+// The byte array that is returned will contain any excess data that was not unmarshalled, empty otherwise.
+func (c *Client) readPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
+	if c.commandDataConn == nil {
+		return nil, nil, ConnectionLostError
+	}
+	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
+	return c.readResponse(c.commandDataConn, p)
 }
 
-// WaitForPacketFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
+// waitForPacketFromCmdDataConn waits 30 seconds for a packet on the command/data connection.
 // This function will return a packet satisfying PacketIn together with any excess data that was not unmarshalled as a
 // byte array. The excess data will be empty if there was none.
-func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
+func (c *Client) waitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
 		xs  []byte
@@ -436,7 +454,7 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, err
 			wait = false
 			err = WaitForResponseError
 		default:
-			res, xs, err = c.ReadPacketFromCmdDataConn(p)
+			res, xs, err = c.readPacketFromCmdDataConn(p)
 			if err != io.EOF || res != nil {
 				wait = false
 			}
@@ -450,17 +468,20 @@ func (c *Client) WaitForPacketFromCmdDataConn(p PacketIn) (PacketIn, []byte, err
 	return res, xs, nil
 }
 
-// ReadPacketFromEventConn reads a packet from the Event connection.
+// readPacketFromEventConn reads a packet from the Event connection.
 // The byte array that is returned will contain any excess data that was not unmarshalled, empty otherwise.
-func (c *Client) ReadPacketFromEventConn(p PacketIn) (PacketIn, []byte, error) {
+func (c *Client) readPacketFromEventConn(p PacketIn) (PacketIn, []byte, error) {
+	if c.eventConn == nil {
+		return nil, nil, ConnectionLostError
+	}
 	c.eventConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readResponse(c.eventConn, p)
 }
 
-// WaitForPacketFromEventConn waits for a packet on the Event connection.
+// waitForPacketFromEventConn waits for a packet on the Event connection.
 // This function will return a packet satisfying EventPacket together with any excess data that was not unmarshalled as
 // a byte array. The excess data will be empty if there was none.
-func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, error) {
+func (c *Client) waitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, error) {
 	var (
 		res PacketIn
 		xs  []byte
@@ -473,7 +494,7 @@ func (c *Client) WaitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, er
 			wait = false
 			err = WaitForEventError
 		default:
-			res, xs, err = c.ReadPacketFromEventConn(p)
+			res, xs, err = c.readPacketFromEventConn(p)
 			if res != nil || (err != nil && err != io.EOF && !strings.Contains(err.Error(), "i/o timeout")) {
 				wait = false
 			}
@@ -557,14 +578,111 @@ func (c *Client) readRawResponse(r io.Reader) ([]byte, error) {
 	return append(l, b...), nil
 }
 
+// subscribe registers a channel to receive responses for a specific transaction ID.
+func (c *Client) subscribe(tid ptp.TransactionID, ch chan<- []byte) error {
+	c.cmdDataSubsMu.Lock()
+	defer c.cmdDataSubsMu.Unlock()
+
+	if _, ok := c.cmdDataSubs[tid]; ok {
+		return fmt.Errorf("attempt to double subscribe transaction id %d", tid)
+	}
+	c.cmdDataSubs[tid] = ch
+
+	return nil
+}
+
+// unsubscribe removes a subscription for a given transaction ID and closes the corresponding channel.
+func (c *Client) unsubscribe(tid ptp.TransactionID) {
+	c.cmdDataSubsMu.Lock()
+	if ch, ok := c.cmdDataSubs[tid]; ok {
+		close(ch)
+		delete(c.cmdDataSubs, tid)
+	}
+	c.cmdDataSubsMu.Unlock()
+}
+
+// responseListener listens on the Command/Data connection for incoming packets and publishes them to a registered
+// subscriber based on the transaction ID of the packet.
+func (c *Client) responseListener() {
+	c.cmdDataChan = make(chan []byte, 10)
+	lmp := "[responseListener]"
+	c.Infof("%s subscribing response listener to command/data connection...", lmp)
+	for {
+		p, err := c.waitForRawFromCmdDataConn()
+		if err == nil {
+			tid, err := c.vendorExtensions.extractTransactionId(p, cmdDataConnection)
+			if err != nil {
+				c.Error(err)
+				continue
+			}
+			c.Debugf("%s publishing new response with length '%d' for transaction ID '%d'...", lmp, binary.LittleEndian.Uint32(p[0:4]), tid)
+
+			if _, ok := c.cmdDataSubs[tid]; !ok {
+				panic(fmt.Sprintf("No subscriber for transaction ID %d!", tid))
+			}
+			c.cmdDataSubs[tid] <- p
+			continue
+		} else if err == WaitForResponseError {
+			continue
+		}
+		c.Errorf("%s message listener stopped: %s", lmp, err)
+		return
+	}
+}
+
 // TODO: introduce context here so init can be aborted at any time.
 func (c *Client) initCommandDataConn() error {
-	err := c.vendorExtensions.cmdDataInit(c)
+	var err error
+
+	c.commandDataConn, err = internal.RetryDialer(c.Network(), c.CommandDataAddress(), DefaultDialTimeout)
 	if err != nil {
+		return err
+	}
+
+	c.configureTcpConn(cmdDataConnection)
+
+	if err := c.vendorExtensions.cmdDataInit(c); err != nil {
 		return fmt.Errorf("command data connection: %s", err)
 	}
 
 	return nil
+}
+
+// WaitForRawPacketFromCommandDataSubscriber waits 30 seconds for a packet to be sent to a command/data channel
+// subscriber registered using the subscribe method.
+func (c *Client) WaitForRawPacketFromCommandDataSubscriber(ch <-chan []byte) ([]byte, error) {
+	var (
+		res []byte
+		err error
+	)
+
+	for wait, timeout := true, time.After(DefaultReadTimeout); wait; {
+		select {
+		case <-timeout:
+			wait = false
+			err = WaitForResponseError
+		case res = <-ch:
+			wait = false
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// WaitForPacketFromCommandDataSubscriber waits 30 seconds for a packet to be sent to a command/data channel subscriber
+// registered using the subscribe method.
+// This function will return a packet satisfying PacketIn together with any excess data that was not unmarshalled as a
+// byte array. The excess data will be empty if there was none.
+func (c *Client) WaitForPacketFromCommandDataSubscriber(ch <-chan []byte, p PacketIn) (PacketIn, []byte, error) {
+	res, err := c.WaitForRawPacketFromCommandDataSubscriber(ch)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return c.readResponse(bytes.NewReader(res), p)
 }
 
 func (c *Client) newCmdDataInitPacket() InitCommandRequestPacket {
@@ -572,20 +690,21 @@ func (c *Client) newCmdDataInitPacket() InitCommandRequestPacket {
 }
 
 // TODO: introduce context here so init can be aborted at any time.
+// TODO: refactor this one to work exactly like the responseListener!
 func (c *Client) initEventConn() error {
 	if err := c.vendorExtensions.eventInit(c); err != nil {
 		return fmt.Errorf("event connection error: %s", err)
 	}
 
-	c.EventChan = make(chan EventPacket, 10)
+	c.eventChan = make(chan EventPacket, 10)
 	go func() {
 		c.Info("[eventListener] subscribing event listener to event connection...")
 		for {
 			p := c.vendorExtensions.newEventPacket()
-			_, _, err := c.WaitForPacketFromEventConn(p)
+			_, _, err := c.waitForPacketFromEventConn(p)
 			if err == nil {
 				c.Debugf("[eventListener] publishing new event '%#x' to event channel...", p.GetEventCode())
-				c.EventChan <- p
+				c.eventChan <- p
 				continue
 			} else if err == WaitForEventError {
 				continue
@@ -672,9 +791,10 @@ func NewClient(vendor string, ip string, port uint16, friendlyName string, guid 
 	}
 
 	c := &Client{
-		initiator: i,
-		responder: NewResponder(vendor, ip, port, port, port),
-		Logger:    NewLogger(logLevel, os.Stderr, "", log.LstdFlags),
+		initiator:   i,
+		responder:   NewResponder(vendor, ip, port, port, port),
+		cmdDataSubs: make(map[ptp.TransactionID]chan<- []byte),
+		Logger:      NewLogger(logLevel, os.Stderr, "", log.LstdFlags),
 	}
 
 	c.loadVendorExtensions()

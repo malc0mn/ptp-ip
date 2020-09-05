@@ -76,7 +76,7 @@ func TestFujiInitCommandDataConn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = FujiInitCommandDataConn(c)
+	err = c.initCommandDataConn()
 	if err != nil {
 		t.Errorf("FujiInitCommandDataConn() error = %s; want <nil>", err)
 	}
@@ -125,43 +125,6 @@ func TestFujiSetDevicePropertyFail(t *testing.T) {
 	}
 }
 
-func TestFujiGetEndOfDataPacket(t *testing.T) {
-	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
-	defer c.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	got, err := FujiGetEndOfDataPacket(c, &FujiOperationResponsePacket{
-		DataPhase:             uint16(DP_NoDataOrDataIn),
-		OperationResponseCode: RC_Fuji_GetDeviceInfo,
-		TransactionID:         10,
-	})
-	if err != nil {
-		t.Errorf("FujiGetEndOfDataPacket() error = %s; want <nil>", err)
-	}
-
-	var want *FujiOperationResponsePacket
-	if got != want {
-		t.Errorf("FujiGetEndOfDataPacket() got = %#v; want %#v", got, want)
-	}
-
-	got, err = FujiGetEndOfDataPacket(c, &FujiOperationResponsePacket{
-		DataPhase:             uint16(DP_Unknown),
-		OperationResponseCode: RC_Fuji_GetDeviceInfo,
-		TransactionID:         10,
-	})
-	if err != nil {
-		t.Errorf("FujiGetEndOfDataPacket() error = %s; want <nil>", err)
-	}
-
-	if got != want {
-		t.Errorf("FujiGetEndOfDataPacket() got = %#v; want %#v", got, want)
-	}
-
-	// TODO: how to actually test DP_DataOut here properly so we can drop the two tests above?
-}
-
 func TestFujiGetDevicePropertyValue(t *testing.T) {
 	c, err := NewClient("fuji", address, fujiCmdPort, "testèr", "67bace55-e7a4-4fbc-8e31-5122ee73a17c", logLevel)
 	defer c.Close()
@@ -198,7 +161,8 @@ func TestFujiSendOperationRequest(t *testing.T) {
 	}
 
 	// We use close session here because our fuji mock will not respond to it.
-	err = FujiSendOperationRequest(c, ptp.OC_CloseSession, PM_Fuji_NoParam)
+	resCh, err := FujiSendOperationRequest(c, ptp.OC_CloseSession, PM_Fuji_NoParam)
+	defer close(resCh)
 	if err != nil {
 		t.Errorf("FujiSendOperationRequest() error = %s; want <nil>", err)
 	}
@@ -216,17 +180,12 @@ func TestFujiSendOperationRequestAndGetResponse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gotPar, gotPkt, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_AppVersion), 4)
+	gotPar, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_AppVersion), 4)
 	if len(xs) > 0 {
 		t.Errorf("FujiSendOperationRequestAndGetResponse() excess bytes = %d; want <nil>", len(xs))
 	}
 	if err != nil {
 		t.Errorf("FujiSendOperationRequestAndGetResponse() error = %s; want <nil>", err)
-	}
-
-	wantPkt := "*ip.FujiOperationResponsePacket"
-	if fmt.Sprintf("%T", gotPkt) != wantPkt {
-		t.Errorf("FujiSendOperationRequestAndGetResponse() got = %T; want %s", gotPkt, wantPkt)
 	}
 
 	wantPar := uint32(PM_Fuji_AppVersion)

@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -20,6 +21,7 @@ type VendorExtensions struct {
 	newCmdDataInitPacket   func(uuid.UUID, string) InitCommandRequestPacket
 	newEventInitPacket     func(uint32) InitEventRequestPacket
 	newEventPacket         func() EventPacket
+	extractTransactionId   func([]byte, connectionType) (ptp.TransactionID, error)
 	getDeviceInfo          func(*Client) (interface{}, error)
 	getDeviceState         func(*Client) (interface{}, error)
 	getDevicePropertyDesc  func(*Client, ptp.DevicePropCode) (*ptp.DevicePropDesc, error)
@@ -37,6 +39,7 @@ func (c *Client) loadVendorExtensions() {
 		newCmdDataInitPacket:   NewInitCommandRequestPacket,
 		newEventInitPacket:     NewInitEventRequestPacket,
 		newEventPacket:         NewEventPacket,
+		extractTransactionId:   GenericExtractTransactionId,
 		getDeviceInfo:          GenericGetDeviceInfo,
 		getDeviceState:         GenericGetDeviceState,
 		getDevicePropertyDesc:  GenericGetDevicePropertyDesc,
@@ -53,6 +56,7 @@ func (c *Client) loadVendorExtensions() {
 		c.vendorExtensions.newCmdDataInitPacket = NewFujiInitCommandRequestPacket
 		c.vendorExtensions.newEventInitPacket = NewFujiInitEventRequestPacket
 		c.vendorExtensions.newEventPacket = NewFujiEventPacket
+		c.vendorExtensions.extractTransactionId = FujiExtractTransactionId
 		c.vendorExtensions.getDeviceInfo = FujiGetDeviceInfo
 		c.vendorExtensions.getDeviceState = FujiGetDeviceState
 		c.vendorExtensions.getDevicePropertyDesc = FujiGetDevicePropertyDesc
@@ -63,22 +67,15 @@ func (c *Client) loadVendorExtensions() {
 	}
 }
 
+// GenericInitCommandDataConn initiates the command/data connection. It expects an open TCP connection to the
+// command/data port to be present.
 func GenericInitCommandDataConn(c *Client) error {
-	var err error
-
-	c.commandDataConn, err = internal.RetryDialer(c.Network(), c.CommandDataAddress(), DefaultDialTimeout)
+	err := c.SendPacketToCmdDataConn(c.newCmdDataInitPacket())
 	if err != nil {
 		return err
 	}
 
-	c.configureTcpConn(cmdDataConnection)
-
-	err = c.SendPacketToCmdDataConn(c.newCmdDataInitPacket())
-	if err != nil {
-		return err
-	}
-
-	res, _, err := c.WaitForPacketFromCmdDataConn(nil)
+	res, _, err := c.waitForPacketFromCmdDataConn(nil)
 	if err != nil {
 		return err
 	}
@@ -91,6 +88,7 @@ func GenericInitCommandDataConn(c *Client) error {
 		c.responder.GUID = pkt.ResponderGUID
 		c.responder.FriendlyName = pkt.ResponderFriendlyName
 		c.responder.ProtocolVersion = pkt.ResponderProtocolVersion
+		go c.responseListener()
 		return nil
 	default:
 		err = fmt.Errorf("unexpected packet received %T", res)
@@ -101,6 +99,7 @@ func GenericInitCommandDataConn(c *Client) error {
 	return err
 }
 
+// GenericInitEventConn initiates the event connection.
 func GenericInitEventConn(c *Client) error {
 	var err error
 
@@ -121,7 +120,7 @@ func GenericInitEventConn(c *Client) error {
 		return err
 	}
 
-	res, _, err := c.WaitForPacketFromEventConn(nil)
+	res, _, err := c.waitForPacketFromEventConn(nil)
 	if err != nil {
 		return err
 	}
@@ -147,18 +146,46 @@ func GenericProcessStreamData(_ *Client) error {
 	return nil
 }
 
+// GenericExtractTransactionId extracts the transaction ID from a full raw inbound packet. This packet must include the
+// full header containing length and packet type.
+func GenericExtractTransactionId(p []byte, _ connectionType) (ptp.TransactionID, error) {
+	if len(p) < 13 {
+		return 0, fmt.Errorf("packet too small: got length %d", len(p))
+	}
+
+	var data []byte
+	pt := PacketType(binary.LittleEndian.Uint32(p[4:8]))
+	switch pt {
+	case PKT_OperationResponse, PKT_Event:
+		data = p[10:14]
+	case PKT_StartData, PKT_Data, PKT_EndData, PKT_Cancel:
+		data = p[8:12]
+		// TODO: PKT_ProbeRequest and PKT_ProbeResponse do not have a transaction ID, how to handle those?
+	}
+
+	return ptp.TransactionID(binary.LittleEndian.Uint32(data)), nil
+}
+
 // Request the Responder's device information.
 func GenericGetDeviceInfo(c *Client) (interface{}, error) {
+	tid := c.incrementTransactionId()
+
+	resCh := make(chan []byte, 2)
+	defer close(resCh)
+	if err := c.subscribe(tid, resCh); err != nil {
+		return nil, err
+	}
+
 	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
 		DataPhaseInfo:    DP_NoDataOrDataIn,
-		OperationRequest: ptp.GetDeviceInfo(),
+		OperationRequest: ptp.GetDeviceInfo(tid),
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	res, _, err := c.WaitForPacketFromCmdDataConn(nil)
+	res, _, err := c.WaitForPacketFromCommandDataSubscriber(resCh, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -194,8 +221,11 @@ func GenericSetDeviceProperty(c *Client, dpc ptp.DevicePropCode, val uint32) err
 }
 
 func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
+	tid := c.incrementTransactionId()
+
 	or := ptp.OperationRequest{
 		OperationCode: code,
+		TransactionID: tid,
 	}
 
 	// TODO: how to eliminate this crazyness WITHOUT reflection? Rework the OperationRequest struct perhaps with a
@@ -215,6 +245,11 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 	if len(params) == 5 {
 		or.Parameter5 = params[4]
 	}
+	resCh := make(chan []byte, 2)
+	if err := c.subscribe(tid, resCh); err != nil {
+		return nil, err
+	}
+	defer c.unsubscribe(tid)
 
 	err := c.SendPacketToCmdDataConn(&OperationRequestPacket{
 		DataPhaseInfo:    DP_NoDataOrDataIn,
@@ -226,7 +261,11 @@ func GenericOperationRequestRaw(c *Client, code ptp.OperationCode, params []uint
 	}
 
 	var raw [][]byte
-	raw[0], err = c.ReadRawFromCmdDataConn()
+	raw[0], err = c.WaitForRawPacketFromCommandDataSubscriber(resCh)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: handle possible followup packets depending on the data phase returned.
 
 	return raw, err

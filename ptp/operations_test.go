@@ -78,7 +78,7 @@ func TestOperationResponse_Session(t *testing.T) {
 }
 
 func TestGetDeviceInfo(t *testing.T) {
-	got := GetDeviceInfo()
+	got := GetDeviceInfo(1)
 	want := OC_GetDeviceInfo
 	if got.OperationCode != want {
 		t.Errorf("GetDeviceInfo() OperationCode = '%#x', want '%#x'", got.OperationCode, want)

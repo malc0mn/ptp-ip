@@ -428,7 +428,32 @@ func NewFujiEventPacket() EventPacket {
 	return &FujiEventPacket{}
 }
 
-// FujiInitCommandDataConn initialises the Fuji command/data connection.
+// FujiExtractTransactionId extracts the transaction ID from a full raw inbound packet. This packet must include the
+// full header containing length and packet type.
+func FujiExtractTransactionId(p []byte, ct connectionType) (ptp.TransactionID, error) {
+	errFmt := "packet too small: got length %d"
+
+	var data []byte
+	switch ct {
+	case cmdDataConnection:
+		if len(p) < 8 {
+			return 0, fmt.Errorf(errFmt, len(p))
+		}
+
+		data = p[8:12]
+	case eventConnection:
+		if len(p) < 12 {
+			return 0, fmt.Errorf(errFmt, len(p))
+		}
+
+		data = p[12:16]
+	}
+
+	return ptp.TransactionID(binary.LittleEndian.Uint32(data)), nil
+}
+
+// FujiInitCommandDataConn initialises the Fuji command/data connection. It expects an open TCP connection to the
+// command/data port to be present.
 // The PTP/IP protocol specifies how to set up the command/data connection which should immediately be followed by
 // setting up the event connection. However Fuji wants additional communications before it is satisfied that the
 // command/data connection is properly setup. This additional initialisation is performed here.
@@ -455,7 +480,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.Info("Opening a session...")
-	if _, _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
+	if err := FujiSendOperationRequestIgnoreResponse(c, ptp.OC_OpenSession, 0x00000001, 0); err != nil {
 		return err
 	}
 
@@ -476,7 +501,7 @@ func FujiInitCommandDataConn(c *Client) error {
 	}
 
 	c.Info("Initiating open capture...")
-	if _, _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
+	if err := FujiSendOperationRequestIgnoreResponse(c, ptp.OC_InitiateOpenCapture, PM_Fuji_NoParam, 0); err != nil {
 		return err
 	}
 
@@ -519,12 +544,18 @@ func FujiProcessStreamData(c *Client) error {
 
 // FujiSetDeviceProperty sets a device property to the given value.
 func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error {
-	c.incrementTransactionId()
+	tid := c.incrementTransactionId()
+
+	resCh := make(chan []byte, 2)
+	if err := c.subscribe(tid, resCh); err != nil {
+		return err
+	}
+	defer c.unsubscribe(tid)
 
 	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: ptp.OC_SetDevicePropValue,
-		TransactionID: c.TransactionId(),
+		TransactionID: tid,
 		Parameter1:    uint32(code),
 	}); err != nil {
 		return err
@@ -533,14 +564,14 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 	if err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_DataOut),
 		OperationCode: ptp.OC_SetDevicePropValue,
-		TransactionID: c.TransactionId(),
+		TransactionID: tid,
 		Parameter1:    val,
 	}); err != nil {
 		return err
 	}
 
 	p := new(FujiOperationResponsePacket)
-	if _, _, err := c.WaitForPacketFromCmdDataConn(p); err != nil {
+	if _, _, err := c.WaitForPacketFromCommandDataSubscriber(resCh, p); err != nil {
 		return err
 	}
 
@@ -551,54 +582,55 @@ func FujiSetDeviceProperty(c *Client, code ptp.DevicePropCode, val uint32) error
 	return nil
 }
 
-func FujiGetEndOfDataPacket(c *Client, orp *FujiOperationResponsePacket) (*FujiOperationResponsePacket, error) {
-	if orp.DataPhase != uint16(DP_DataOut) {
-		return nil, nil
-	}
-
-	eodp := new(FujiOperationResponsePacket)
-	if _, _, err := c.WaitForPacketFromCmdDataConn(eodp); err != nil {
-		return nil, err
-	}
-
-	if eodp != nil && !eodp.WasSuccessful(0) {
-		return nil, eodp.ReasonAsError()
-	}
-
-	return eodp, nil
-}
-
 // FujiGetDevicePropertyValue gets the value for the given device property.
 // TODO: add third parameter to indicate how many parameters from the response object are expected?
 func FujiGetDevicePropertyValue(c *Client, dpc ptp.DevicePropCode) (uint32, error) {
 	var val uint32
 	var err error
-	var rp *FujiOperationResponsePacket
 
 	// First we get the actual value from the Responder.
-	if val, rp, _, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
-		return 0, err
-	}
-
-	_, err = FujiGetEndOfDataPacket(c, rp)
-	if err != nil {
+	if val, _, err = FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(dpc), 4); err != nil {
 		return 0, err
 	}
 
 	return val, nil
 }
 
-// FujiSendOperationRequest sends an operation request to the camera. If a parameter is not required, simply pass in
-// PM_Fuji_NoParam!
-func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) error {
-	c.incrementTransactionId()
+// FujiSendOperationRequest sends an operation request to the camera and returns a channel that will receive the
+// response messages as a raw byte array.
+// If a parameter is not required, simply pass in PM_Fuji_NoParam!
+func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) (chan []byte, error) {
+	resCh := make(chan []byte, 2)
 
-	err := c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
+	_, err := FujiSendOperationRequestWithChan(c, code, param, resCh)
+
+	return resCh, err
+}
+
+// FujiSendOperationRequestWithChan sends an operation request to the camera and returns the current transaction ID
+// the given response channel has been subscribed to.
+// If a parameter is not required, simply pass in PM_Fuji_NoParam!
+func FujiSendOperationRequestWithChan(c *Client, code ptp.OperationCode, param uint32, resCh chan []byte) (ptp.TransactionID, error) {
+	tid := c.incrementTransactionId()
+
+	if err := c.subscribe(tid, resCh); err != nil {
+		return 0, err
+	}
+
+	return tid, c.SendPacketToCmdDataConn(&FujiOperationRequestPacket{
 		DataPhaseInfo: uint16(DP_NoDataOrDataIn),
 		OperationCode: code,
-		TransactionID: c.TransactionId(),
+		TransactionID: tid,
 		Parameter1:    param,
 	})
+}
+
+// FujiSendOperationRequestIgnoreResponse sends an operation request to the camera. If a parameter is not required,
+// simply pass in PM_Fuji_NoParam!
+// Use this wrapper function if you do not care about the actual response value but just want to know if it was
+// successful.
+func FujiSendOperationRequestIgnoreResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) error {
+	_, _, err := FujiSendOperationRequestAndGetResponse(c, code, param, pSize)
 
 	return err
 }
@@ -609,19 +641,32 @@ func FujiSendOperationRequest(c *Client, code ptp.OperationCode, param uint32) e
 // by passing the size in bytes of the expected data. Pass 0 when not expecting anything.
 // The byte array being returned may contain excess dat that could not be unmarshalled. This will often be the case so
 // check this data to see if it is not nil and handle it accordingly.
-func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, *FujiOperationResponsePacket, []byte, error) {
-	if err := FujiSendOperationRequest(c, code, param); err != nil {
-		return 0, nil, nil, err
+func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, param uint32, pSize int) (uint32, []byte, error) {
+	resCh, err := FujiSendOperationRequest(c, code, param)
+	if err != nil {
+		return 0, nil, err
 	}
 
 	p := new(FujiOperationResponsePacket)
-	_, xs, err := c.WaitForPacketFromCmdDataConn(p)
+	_, xs, err := c.WaitForPacketFromCommandDataSubscriber(resCh, p)
 	if err != nil {
-		return 0, nil, nil, err
+		return 0, nil, err
+	}
+
+	// Make sure we also grab the end of data packet should it be there...
+	if p.DataPhase == uint16(DP_DataOut) {
+		eodp := new(FujiOperationResponsePacket)
+		if _, _, err := c.WaitForPacketFromCommandDataSubscriber(resCh, eodp); err != nil {
+			return 0, nil, err
+		}
+
+		if eodp != nil && !eodp.WasSuccessful(0) {
+			return 0, nil, eodp.ReasonAsError()
+		}
 	}
 
 	if xs == nil && pSize > 0 {
-		return 0, p, nil, errors.New("expected additional value but none was returned")
+		return 0, nil, errors.New("expected additional value but none was returned")
 	}
 
 	r := bytes.NewReader(xs)
@@ -637,7 +682,7 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 
 		v := make([]byte, pSize)
 		if err := binary.Read(r, binary.LittleEndian, &v); err != nil {
-			return 0, nil, nil, err
+			return 0, nil, err
 		}
 		if pSize < 4 {
 			pad := make([]byte, 4-pSize)
@@ -650,26 +695,31 @@ func FujiSendOperationRequestAndGetResponse(c *Client, code ptp.OperationCode, p
 	}
 
 	if !p.WasSuccessful(operationCodeToOKResponseCode(code)) {
-		return 0, nil, nil, p.ReasonAsError()
+		return 0, nil, p.ReasonAsError()
 	}
 
-	return parameter, p, xs, nil
+	return parameter, xs, nil
 }
 
 // FujiSendOperationRequestAndGetRawResponse wraps FujiSendOperationRequest and returns the raw camera response data.
 func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode, params []uint32) ([][]byte, error) {
+	var err error
+
 	field := uint32(PM_Fuji_NoParam)
 	if len(params) != 0 {
 		field = params[0]
 	}
-	if err := FujiSendOperationRequest(c, code, field); err != nil {
+
+	resCh := make(chan []byte, 2)
+	tid, err := FujiSendOperationRequestWithChan(c, code, field, resCh)
+	if err != nil {
 		return nil, err
 	}
+	defer c.unsubscribe(tid)
 
 	var raw [][]byte
-	var err error
 	for {
-		r, err := c.WaitForRawFromCmdDataConn()
+		r, err := c.WaitForRawPacketFromCommandDataSubscriber(resCh)
 		if err == nil {
 			raw = append(raw, r)
 			// Keep reading as long as the Responder tells us there is more data.
@@ -692,7 +742,7 @@ func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode
 // clear error being returned.
 func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DevicePropDesc, error) {
 	c.Infof("Requesting %s device property description for %#x...", c.ResponderFriendlyName(), code)
-	_, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropDesc, uint32(code), 0)
+	_, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropDesc, uint32(code), 0)
 	if err != nil {
 		return nil, err
 	}
@@ -706,11 +756,6 @@ func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DeviceP
 		return nil, err
 	}
 
-	_, err = FujiGetEndOfDataPacket(c, rp)
-	if err != nil {
-		return nil, err
-	}
-
 	return dpd, nil
 }
 
@@ -719,7 +764,7 @@ func FujiGetDevicePropertyDesc(c *Client, code ptp.DevicePropCode) (*ptp.DeviceP
 // specification.
 func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device info...", c.ResponderFriendlyName())
-	numProps, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
+	numProps, xs, err := FujiSendOperationRequestAndGetResponse(c, OC_Fuji_GetDeviceInfo, PM_Fuji_NoParam, 4)
 	if err != nil {
 		return nil, err
 	}
@@ -743,11 +788,6 @@ func FujiGetDeviceInfo(c *Client) (interface{}, error) {
 		}
 
 		list[i] = dpd
-	}
-
-	_, err = FujiGetEndOfDataPacket(c, rp)
-	if err != nil {
-		return nil, err
 	}
 
 	return list, nil
@@ -841,7 +881,7 @@ func fujiReadDevicePropDesc(c *Client, r io.Reader) (*ptp.DevicePropDesc, error)
 // manual or auto.
 func FujiGetDeviceState(c *Client) (interface{}, error) {
 	c.Infof("Requesting %s device state...", c.ResponderFriendlyName())
-	numProps, rp, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
+	numProps, xs, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_GetDevicePropValue, uint32(DPC_Fuji_CurrentState), 2)
 	if err != nil {
 		return nil, err
 	}
@@ -868,11 +908,6 @@ func FujiGetDeviceState(c *Client) (interface{}, error) {
 		list[i] = dpd
 	}
 
-	_, err = FujiGetEndOfDataPacket(c, rp)
-	if err != nil {
-		return nil, err
-	}
-
 	return list, nil
 }
 
@@ -884,8 +919,7 @@ func FujiGetDeviceState(c *Client) (interface{}, error) {
 // but no further actions will be taken by the camera.
 func FujiInitiateCapture(c *Client) ([]byte, error) {
 	c.Infof("Releasing %s shutter...", c.ResponderFriendlyName())
-	_, _, _, err := FujiSendOperationRequestAndGetResponse(c, ptp.OC_InitiateCapture, PM_Fuji_NoParam, 0)
-	if err != nil {
+	if err := FujiSendOperationRequestIgnoreResponse(c, ptp.OC_InitiateCapture, PM_Fuji_NoParam, 0); err != nil {
 		return nil, err
 	}
 
@@ -893,7 +927,7 @@ func FujiInitiateCapture(c *Client) ([]byte, error) {
 	invalidEvent := "invalid event received, expected '%#x' got '%#x'"
 	for _, ec := range []ptp.EventCode{EC_Fuji_ObjectAdded, EC_Fuji_PreviewAvailable} {
 		select {
-		case msg := <-c.EventChan:
+		case msg := <-c.eventChan:
 			if msg.GetEventCode() != ec {
 				return nil, fmt.Errorf(invalidEvent, ec, msg.GetEventCode())
 			}
@@ -919,7 +953,7 @@ func FujiInitiateCapture(c *Client) ([]byte, error) {
 	}
 
 	select {
-	case msg := <-c.EventChan:
+	case msg := <-c.eventChan:
 		if msg.GetEventCode() != ptp.EC_CaptureComplete {
 			return nil, fmt.Errorf("invalid event received, expected '%#x' got '%#x'", ptp.EC_CaptureComplete, msg.GetEventCode())
 		}

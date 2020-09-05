@@ -241,9 +241,10 @@ func (ores *OperationResponse) Session() SessionID {
 // GetDeviceInfo returns information and capabilities about the Responder device by returning a DeviceInfo dataset. This
 // operation is the only operation that may be issued inside or outside of a session. When used outside a session, both
 // the SessionID and the TransactionID in the OperationRequest dataset shall be set to 0x00000000.
-func GetDeviceInfo() OperationRequest {
+func GetDeviceInfo(tid TransactionID) OperationRequest {
 	return OperationRequest{
 		OperationCode: OC_GetDeviceInfo,
+		TransactionID: tid,
 	}
 }
 
