@@ -393,7 +393,7 @@ func (forp *FujiOperationResponsePacket) ReasonAsError() error {
 // Referring to the PTP/IP standard which specifies the following:
 //    - EventCode (16 bytes)
 //    - TransactionID (32 bytes)
-//    - Parameter1-3 (4 bytes)
+//    - Parameter1-3 (4 bytes each)
 // There is an additional unknown field before the EventCode it always seems to be set to 0x004 for events so it was
 // kept in line with the FujiOperationRequestPacket and hence dubbed DataPhase; although that makes no sense whatsoever.
 // EventCode seems to adhere to the PTP standard concerning vendor extensions in that it starts with 0xC making the MSN
