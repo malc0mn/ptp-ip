@@ -301,6 +301,15 @@ func (c *Client) DialWithStreamer() error {
 func (c *Client) Close() error {
 	var err error
 
+	// streamConn must be closed first so we can do it cleanly, otherwise the camera might terminate it for us causing
+	// any possible listeners to panic.
+	if c.streamConn != nil {
+		err = c.closeStreamConn()
+		if err != nil {
+			return err
+		}
+	}
+
 	if c.commandDataConn != nil {
 		err = c.commandDataConn.Close()
 		c.commandDataConn = nil
@@ -313,13 +322,6 @@ func (c *Client) Close() error {
 	if c.eventConn != nil {
 		err = c.eventConn.Close()
 		c.eventConn = nil
-		if err != nil {
-			return err
-		}
-	}
-
-	if c.streamConn != nil {
-		err = c.closeStreamConn()
 		if err != nil {
 			return err
 		}
