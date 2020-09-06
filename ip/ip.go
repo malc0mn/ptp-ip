@@ -746,7 +746,6 @@ func (c *Client) initStreamConn() error {
 func (c *Client) closeStreamConn() error {
 	if c.StreamChan != nil {
 		close(c.closeStreamChan)
-		c.closeStreamChan = nil
 	}
 
 	err := c.streamConn.Close()
