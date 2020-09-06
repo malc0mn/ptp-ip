@@ -144,6 +144,7 @@ func TotalSizeOfFixedFields(s interface{}) int {
 
 // A wrapper around net.Dial() that will retry dialing 10 times on a "connection refused" error with a 500ms delay
 // between retries.
+// TODO: make this loop cancelable!
 func RetryDialer(network, address string, timeout time.Duration) (net.Conn, error) {
 	var err error
 	var retries = 10

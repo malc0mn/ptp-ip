@@ -632,7 +632,6 @@ func (c *Client) responseListener() {
 	}
 }
 
-// TODO: introduce context here so init can be aborted at any time.
 func (c *Client) initCommandDataConn() error {
 	var err error
 
@@ -691,7 +690,6 @@ func (c *Client) newCmdDataInitPacket() InitCommandRequestPacket {
 	return c.vendorExtensions.newCmdDataInitPacket(c.InitiatorGUID(), c.InitiatorFriendlyName())
 }
 
-// TODO: introduce context here so init can be aborted at any time.
 // TODO: refactor this one to work exactly like the responseListener!
 func (c *Client) initEventConn() error {
 	if err := c.vendorExtensions.eventInit(c); err != nil {
