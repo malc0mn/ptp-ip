@@ -396,7 +396,7 @@ func (c *Client) readRawFromCmdDataConn() ([]byte, error) {
 	if c.commandDataConn == nil {
 		return nil, fmt.Errorf("connection lost")
 	}
-	c.commandDataConn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readRawResponse(c.commandDataConn)
 }
 
@@ -510,7 +510,7 @@ func (c *Client) waitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, er
 
 // ReadRawFromStreamConn reads raw data from the streamer connection with a read timout of 30 seconds.
 func (c *Client) ReadRawFromStreamConn() ([]byte, error) {
-	c.commandDataConn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	c.commandDataConn.SetReadDeadline(time.Now().Add(DefaultReadTimeout))
 	return c.readRawResponse(c.streamConn)
 }
 
