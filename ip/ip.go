@@ -497,7 +497,7 @@ func (c *Client) waitForPacketFromEventConn(p EventPacket) (PacketIn, []byte, er
 			err = WaitForEventError
 		default:
 			res, xs, err = c.readPacketFromEventConn(p)
-			if res != nil || (err != nil && err != io.EOF && !strings.Contains(err.Error(), "i/o timeout")) {
+			if err != io.EOF || res != nil {
 				wait = false
 			}
 			time.Sleep(20 * time.Millisecond)
@@ -624,7 +624,7 @@ func (c *Client) responseListener() {
 			}
 			c.cmdDataSubs[tid] <- p
 			continue
-		} else if err == WaitForResponseError {
+		} else if err == WaitForResponseError || strings.Contains(err.Error(), "i/o timeout") {
 			continue
 		}
 		c.Errorf("%s message listener stopped: %s", lmp, err)
@@ -696,20 +696,21 @@ func (c *Client) initEventConn() error {
 		return fmt.Errorf("event connection error: %s", err)
 	}
 
+	lmp := "[eventListener]"
 	c.eventChan = make(chan EventPacket, 10)
 	go func() {
-		c.Info("[eventListener] subscribing event listener to event connection...")
+		c.Infof("%s subscribing event listener to event connection...", lmp)
 		for {
 			p := c.vendorExtensions.newEventPacket()
 			_, _, err := c.waitForPacketFromEventConn(p)
 			if err == nil {
-				c.Debugf("[eventListener] publishing new event '%#x' to event channel...", p.GetEventCode())
+				c.Debugf("%s publishing new event '%#x' to event channel...", lmp, p.GetEventCode())
 				c.eventChan <- p
 				continue
-			} else if err == WaitForEventError {
+			} else if err == WaitForEventError || strings.Contains(err.Error(), "i/o timeout") {
 				continue
 			}
-			c.Errorf("[eventListener] message listener stopped: %s", err)
+			c.Errorf("%s message listener stopped: %s", lmp, err)
 			return
 		}
 	}()

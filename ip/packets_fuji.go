@@ -730,6 +730,8 @@ func FujiSendOperationRequestAndGetRawResponse(c *Client, code ptp.OperationCode
 		break
 	}
 
+	// TODO: find out why no error is returned when receiving a timeout!
+
 	// TODO: check if there is data on the event connection and read that as well!
 
 	return raw, err
