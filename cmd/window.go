@@ -71,11 +71,11 @@ func (window *window) onRefresh(_ *glfw.Window) {
 func (window *window) draw() {
 	window.MakeContextCurrent()
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	window.DrawImage()
+	window.drawImage()
 	window.SwapBuffers()
 }
 
-func (window *window) DrawImage() {
+func (window *window) drawImage() {
 	const padding = 0
 	iw := window.image.Bounds().Size().X
 	ih := window.image.Bounds().Size().Y
