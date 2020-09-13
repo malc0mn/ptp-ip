@@ -105,7 +105,9 @@ or chat applications such as Slack, WhatsApp etc.
 ## CLI command
 
 ### Building
-To build the command including the OpenGL based live view simply execute:
+To build the command including the OpenGL based live view, make sure you have
+the proper [dependencies](https://github.com/go-gl/glfw#installation) installed.
+When that is done, simply execute:
 ```shell script
 make clean; make
 ```
