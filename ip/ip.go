@@ -1,13 +1,11 @@
 package ip
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/malc0mn/ptp-ip/ip/internal"
-	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
 	"net"
@@ -15,6 +13,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ptp"
 )
 
 const (
@@ -340,8 +342,8 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 	return c.sendPacket(c.eventConn, p)
 }
 
-// We write directly to the connection here without using bufio. The Payload() method and marshaling functions are
-// already writing to a bytes buffer before we write to the connection.
+// send a packet to the connection. We use bufio to buffer the packet to avoid
+// fragmenting header and payload across multiple TCP packets.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if w == nil {
 		return NotConnectedError
@@ -353,11 +355,12 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 
 	pl := p.Payload()
 	pll := len(pl)
+	bw := bufio.NewWriterSize(w, 1476)
 
 	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
 	if p.PacketType() == PKT_Invalid {
 		// Send length only. The length must include the size of the length field, so we add 4 bytes for that!
-		if _, err := w.Write(internal.MarshalLittleEndian(uint32(pll + 4))); err != nil {
+		if _, err := bw.Write(internal.MarshalLittleEndian(uint32(pll + 4))); err != nil {
 			return err
 		}
 	} else {
@@ -365,7 +368,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		h := internal.MarshalLittleEndian(Header{uint32(pll + HeaderSize), p.PacketType()})
 
 		// Send header.
-		n, err := w.Write(h)
+		n, err := bw.Write(h)
 		if err != nil {
 			return err
 		}
@@ -381,10 +384,16 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 		return nil
 	}
 
-	n, err := w.Write(pl)
+	n, err := bw.Write(pl)
 	if err != nil {
 		return err
 	}
+
+	err = bw.Flush()
+	if err != nil {
+		return err
+	}
+
 	if n != pll {
 		return fmt.Errorf(BytesWrittenMismatch, n, pll)
 	}
