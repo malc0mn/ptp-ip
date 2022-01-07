@@ -6,6 +6,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/malc0mn/ptp-ip/ip/internal"
+	"github.com/malc0mn/ptp-ip/ptp"
 	"io"
 	"log"
 	"net"
@@ -13,10 +16,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/malc0mn/ptp-ip/ip/internal"
-	"github.com/malc0mn/ptp-ip/ptp"
 )
 
 const (
@@ -342,7 +341,7 @@ func (c *Client) SendPacketToEventConn(p PacketOut) error {
 	return c.sendPacket(c.eventConn, p)
 }
 
-// send a packet to the connection. We use bufio to buffer the packet to avoid
+// Send a packet to the connection. We use bufio to buffer the packet to avoid
 // fragmenting header and payload across multiple TCP packets.
 func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 	if w == nil {
@@ -355,7 +354,7 @@ func (c *Client) sendPacket(w io.Writer, p PacketOut) error {
 
 	pl := p.Payload()
 	pll := len(pl)
-	bw := bufio.NewWriterSize(w, 1476)
+	bw := bufio.NewWriterSize(w, 1476) // Size is MTU 1500-24 bytes TCP header size.
 
 	// An invalid packet type means it does not adhere to the PTP/IP standard, so we only send the length field here.
 	if p.PacketType() == PKT_Invalid {
