@@ -6,17 +6,16 @@ BUILD_TIME := $(shell date +%FT%T%z)
 
 LDFLAGS=-ldflags "-s -w -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}"
 TAGS=-tags with_lv
-
 .DEFAULT_GOAL: all
 
 .PHONY: all
 all: ptpip
 
 ptpip:
-	cd cmd; go build ${LDFLAGS} ${TAGS} -o ../${BINARY}
+	cd cmd; go build -trimpath ${LDFLAGS} ${TAGS} -o ../${BINARY}
 
 nolv:
-	cd cmd; go build ${LDFLAGS} -o ../${BINARY_NOLV}
+	cd cmd; go build -trimpath ${LDFLAGS} -o ../${BINARY_NOLV}
 
 .PHONY: test
 test:
