@@ -6,6 +6,7 @@ BUILD_TIME := $(shell date +%FT%T%z)
 
 LDFLAGS=-ldflags "-s -w -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}"
 TAGS=-tags with_lv
+
 .DEFAULT_GOAL: all
 
 .PHONY: all
