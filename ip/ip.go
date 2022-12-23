@@ -314,7 +314,6 @@ func (c *Client) Close() error {
 	// TODO: add a closeEventConn() method so we can properly shut down the event channel like we do with the streamer.
 	if c.eventConn != nil {
 		err = c.eventConn.Close()
-		c.eventConn = nil
 		if err != nil {
 			return err
 		}
@@ -322,7 +321,6 @@ func (c *Client) Close() error {
 
 	if c.commandDataConn != nil {
 		err = c.commandDataConn.Close()
-		c.commandDataConn = nil
 		if err != nil {
 			return err
 		}
